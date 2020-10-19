@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div id="initiative" class="initiative">
+    <!-- <div id="initiative" class="initiative">
         <a href="javascript:void(0)" class="closebtn" onclick='closeNav("initiative")'>&times;</a>
         <a href="#">Yeah</a>
         <a href="#">Initiative</a>
@@ -18,21 +18,36 @@
         <a href="#">Log</a>
         <a href="#">Goes</a>
         <a href="#">Here?</a>
-    </div>
-    <div class=row>
-        <div class=col>
-            <span style="font-size:30px;cursor:pointer" onclick='openNav("initiative")'>&#9776; open</span>
-        </div>
-        <div class="col text-right">
-            <span style="font-size:30px;cursor:pointer" onclick='openTools("dm-tools")'>open &#9776;</span>
-        </div>
-    </div>
-    
+    </div> -->
 <div class=row>
-    <div class="col-2 border border-dark"><p class=text-center>Initiative</p></div>
-    <div class="col-8 border border-dark"><p class=text-center>Map<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br></p><p class="text-center border-dark border-top">Log?
-        <span style="font-size:30px;cursor:pointer" onclick='openLogs("log")'>&#9776; open</span>
-    </p></div>
-    <div class="col-2 border border-dark"><p class=text-center>Other things?</p></div>
+    <div class="col-2 border border-dark h-100">
+        <!-- <p class=text-center><span style="font-size:30px;cursor:pointer" onclick='openNav("initiative")'>&#9776; open</span></p> -->
+        <h4 class="text-center">Initiative Order</h4>
+
+        <div id="initiative-list"></div>
+    </div>
+    <div class="col-8 border border-dark">
+        <p class=text-center><img src="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg" class="test-img-fluid"></p>
+    </div>
+    <div class="col-2 border border-dark h-100">
+        <!-- <span style="font-size:30px;cursor:pointer" onclick='openTools("dm-tools")'>open &#9776;</span></p> -->
+        <h4 class="text-center">DM Tools</h4>
+    </div>
+</div>
+<div class=fixed-bottom>
+    <div class=row>
+        <div class=col-2>
+            <form class="form" id=set_initiative>
+                <input type=text id=player_name class="form-control" placeholder="Player Name">
+                <input type=text id=initiative_roll class="form-control" placeholder="Initiative">
+                <input type=submit class="btn btn-primary form-control" value="Set Initiative">
+            </form>
+        </div>
+        <div class=col-8>
+            <p class="text-center">Log?
+                <span style="font-size:30px;cursor:pointer" onclick='openLogs("log")'>&#9776; open</span>
+            </p>
+        </div>
+    </div>
 </div>
 {% endblock %}

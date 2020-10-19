@@ -98,6 +98,17 @@
     font-size: 36px;
     margin-left: 50px;
   }
+
+  .initiative-form {
+    width: 100%;
+    position: fixed;
+    z-index: 2;
+    bottom: 0;
+    left: 0;
+    background-color: blue;
+    overflow-x: hidden;
+    transition: 0.5s;
+  }
   
   @media screen and (max-height: 450px) {
     .sidenav {padding-top: 15px;}
