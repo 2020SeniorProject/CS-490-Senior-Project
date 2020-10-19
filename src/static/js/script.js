@@ -18,9 +18,13 @@ $(document).ready(function() {
   //     http[s]://<domain>:<port>[/<namespace>]
   var socket = io(namespace);
 
+  socket.on('connect', function() {
+    socket.emit('my_event', {data: 'I\'m connected!'});
+  });
+
   $('form#set_initiative').submit(function(event) {
     socket.emit('my_broadcast_event', {data: [$('#player_name').val(), $('#initiative_roll').val()]});
-    console.log([$('#player_name').val(), $('#initiative_roll').val()])
+    // console.log([$('#player_name').val(), $('#initiative_roll').val()])
     return false;
   });
 
