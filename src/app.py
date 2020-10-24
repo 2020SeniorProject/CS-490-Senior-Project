@@ -18,18 +18,29 @@ thread_lock = Lock()
 def index():
     return render_template("index.html", async_mode=socketio.async_mode)
 
-@socketio.on('my_broadcast_event', namespace='/test')
+
+@socketio.on('set_initiative', namespace='/test')
 def test_broadcast_message(message):
     global initiative
     # Sends to all connected
-    emit('my_response', {'data': message['data']}, broadcast=True)
+    emit('initiative_update', {'data': message['data']}, broadcast=True)
     initiative += message['data']
+    emit('log_update', {'data': "Initiative update"}, broadcast=True)
+
+
+@socketio.on('send_chat', namespace='/test')
+def test_broadcast_message(message):
+    # Sends to all connected
+    # emit('chat_update', {'data': message['data']}, broadcast=True)
+    emit('chat_update', {'data': message['data']}, broadcast=True)
+    emit('log_update', {'data': "Chat update"}, broadcast=True)
 
 
 @socketio.on('connect', namespace='/test')
 def test_connect():
     global initiative
     # Sends upon a new connection
-    emit('my_response', {'data': "test"}, broadcast=True)
+    emit('log_update', {'data': "Connected"}, broadcast=True)
     if initiative != []:
-        emit('my_response', {'data': initiative})
+        emit('initiative_update', {'data': initiative})
+        emit('log_update', {'data': "Initiative update"}, broadcast=True)
