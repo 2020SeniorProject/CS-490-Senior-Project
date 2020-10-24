@@ -1,36 +1,16 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <!-- <div id="initiative" class="initiative">
-        <a href="javascript:void(0)" class="closebtn" onclick='closeNav("initiative")'>&times;</a>
-        <a href="#">Yeah</a>
-        <a href="#">Initiative</a>
-        <a href="#">Here?</a>
-    </div>
-    <div id="dm-tools" class="dm-tools">
-        <a href="javascript:void(0)" class="closebtn" onclick='closeTools("dm-tools")'>&times;</a>
-        <a href="#">DM</a>
-        <a href="#">Tools</a>
-        <a href="#">Here?</a>
-    </div>
-    <div id=log class=log>
-        <a href="javascript:void(0)" class="closebtn" onclick='closeLogs("log")'>&times;</a>
-        <a href="#">Log</a>
-        <a href="#">Goes</a>
-        <a href="#">Here?</a>
-    </div> -->
 <div class=row style="height:70%;">
     <div class="col-2 border border-dark h-100" style="overflow:scroll;">
-        <!-- <p class=text-center><span style="font-size:30px;cursor:pointer" onclick='openNav("initiative")'>&#9776; open</span></p> -->
         <h4 class="text-center">Initiative Order</h4>
 
         <div id="initiative-list"></div>
     </div>
     <div class="col-8 border border-dark">
-        <p class=text-center><img src="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg" class="test-img-fluid"></p>
+        <p class=text-center><img src="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg"></p>
     </div>
     <div class="col-2 border border-dark h-100">
-        <!-- <span style="font-size:30px;cursor:pointer" onclick='openTools("dm-tools")'>open &#9776;</span></p> -->
         <h4 class="text-center">DM Tools</h4>
     </div>
 </div>
@@ -44,9 +24,7 @@
             </form>
         </div>
         <div class=col-8>
-            <p class="text-center">Log?
-                <span style="font-size:30px;cursor:pointer" onclick='openLogs("log")'>&#9776; open</span>
-            </p>
+            <p class="text-center">Log?</p>
         </div>
     </div>
 </div>

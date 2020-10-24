@@ -1,10 +1,3 @@
-// function addPlayer() {
-//   let playerName = document.querySelector("#player_name").value;
-//   let initiative = document.querySelector("#initiative_roll").value;
-
-//   console.log(playerName, initiative);
-// }
-
 $(document).ready(function() {
   // Use a "/test" namespace.
   // An application can open a connection on multiple namespaces, and
@@ -24,7 +17,6 @@ $(document).ready(function() {
 
   $('form#set_initiative').submit(function(event) {
     socket.emit('my_broadcast_event', {data: [$('#player_name').val(), $('#initiative_roll').val()]});
-    // console.log([$('#player_name').val(), $('#initiative_roll').val()])
     return false;
   });
 
@@ -32,27 +24,3 @@ $(document).ready(function() {
     $('#initiative-list').append('<br>' + $('<div/>').text('Received ' + msg.data).html());
   });
 });
-
-// function openNav(id) {
-//     document.getElementById("initiative").style.width = "16.66666667%";
-//   }
-  
-//   function closeNav(id) {
-//     document.getElementById("initiative").style.width = "0";
-//   } 
-
-// function openTools(id) {
-//     document.getElementById("dm-tools").style.width = "16.66666667%";
-// }
-
-// function closeTools(id) {
-//     document.getElementById("dm-tools").style.width = "0";
-//   } 
-
-// function openLogs(id) {
-//     document.getElementById("log").style.height = "16.66666667%";
-// }
-
-// function closeLogs(id) {
-//     document.getElementById("log").style.height = "0";
-// }
