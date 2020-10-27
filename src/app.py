@@ -161,7 +161,7 @@ def load_user(user_id):
 
 
 # Homepage
-@app.route("/")
+@app.route("/home")
 def index():
     if current_user.is_authenticated:
         return (
