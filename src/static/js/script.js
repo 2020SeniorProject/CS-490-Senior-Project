@@ -27,6 +27,7 @@ $(document).ready(function() {
 
   socket.on('initiative_update', function(msg) {
     $('#initiative-list').append('<br>' + $('<div/>').text('Received ' + msg.data).html());
+    console.log(msg.data);
   });
 
   socket.on('chat_update', function(msg) {
