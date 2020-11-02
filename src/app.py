@@ -17,8 +17,7 @@ thread_lock = Lock()
 session_id = "69BBEG69" #placeholder till we figure out id creation method, use usernames with random numbers?
 user_key = "BigGamer420" #placeholder till we create some sort of user database?
 
-create_db_init()
-create_db_log()
+create_dbs()
 
 @app.route("/")
 def index():
@@ -37,10 +36,10 @@ def play():
 def test_broadcast_message(message):
     # Sends to all connected
     emit('initiative_update', {'data': message['data']}, broadcast=True)
-    add_to_init(session_id, user_key, message['data'][0], message['data'][1])
+    add_to_db("init", (session_id, user_key, message['data'][0], message['data'][1]))
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     init_name = message['data'][0] + message['data'][1]
-    add_to_log(session_id, user_key, "Init", init_name, s)   #redundant??
+    add_to_db("log", (session_id, user_key, "Init", init_name, s) )  #redundant??
     emit('log_update', {'data': "Initiative update"}, broadcast=True)
 
 @socketio.on('send_chat', namespace='/test')
@@ -49,7 +48,7 @@ def test_broadcast_message(message):
     # emit('chat_update', {'data': message['data']}, broadcast=True)
     emit('chat_update', {'data': message['data']}, broadcast=True)
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    add_to_log(session_id, user_key, "Chat", message['data'][0], s)
+    add_to_db("log", (session_id, user_key, "Chat", message['data'][0], s))
     emit('log_update', {'data': "Chat update"}, broadcast=True)
 
 @socketio.on('connect', namespace='/test')
@@ -58,9 +57,9 @@ def test_connect():
     # Sends upon a new connection
     emit('log_update', {'data': "Connected"}, broadcast=True)
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    add_to_log(session_id, user_key, "Connection", "User connected", s)
-    init_items = read_db_init("initiative", session_id)
-    chat_items = read_db_log_chat("log", session_id)
+    add_to_db("log", (session_id, user_key, "Connection", "User connected", s))
+    init_items = read_db("initiative", "player_name, init_val")
+    chat_items = read_db("log", "log", "where title = 'Chat'")
     # print(init_items)
     # print(chat_items[0][0])
     if init_items != []:
