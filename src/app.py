@@ -24,11 +24,14 @@ from user import User
 
 
 # Google OAuth configurations
+# Visit https://console.developers.google.com/apis/credentials/oauthclient/211539095216-3dnbifedm4u5599jf7spaomla4thoju6.apps.googleusercontent.com?project=seniorproject-294418&supportedpurview=project to get ID and SECRET, then export them in a terminal to set them as environment variables
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
 GOOGLE_DISCOVERY_URL = (
     "https://accounts.google.com/.well-known/openid-configuration"
 )
+# This disables the SSL usage check - TODO: solution to this needed as it may pose security risk. see https://oauthlib.readthedocs.io/en/latest/oauth2/security.html and https://requests-oauthlib.readthedocs.io/en/latest/examples/real_world_example.html
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 # The GOOGLE_CLIENT_ID and the GOOGLE_CLIENT_SECRET are stored as environment variables. IT IS IMPORTANT THAT THEY ARE NOT STORED ANYWHERE ELSE. Not in this directory, not in this repository, and absolutely not in this file. It is a massive security risk if secret credentials are committed to a public repository.
 # To set the GOOGLE_CLIENT_ID and the GOOGLE_CLIENT_SECRET environment variables in a Linux bash terminal, use: `export GOOGLE_CLIENT_ID=your_client_id` and `export GOOGLE_CLIENT_SECRET=your_client_secret`
 
@@ -54,12 +57,12 @@ def create_db_log(conn):
                                         log LONGTEXT
                                     ); """)
 
-def create_db_init(conn): #Takes session_id, User_key as main identifiers and then grabs order for the given session
+def create_db_init(conn): #Takes session_id, User_key as main identifiers and then grabs sequence for the given session
     cur = conn.cursor()
     cur.execute(""" CREATE TABLE IF NOT EXISTS initiative (
                                         session_id TEXT PRIMARY KEY,
                                         User_key TEXT,
-                                        order TEXT NOT NULL
+                                        sequence TEXT NOT NULL
                                     ); """)    
 
 def add_to_log(conn, session_id, user_key, title, log):
@@ -69,10 +72,10 @@ def add_to_log(conn, session_id, user_key, title, log):
     item = (session_id, user_key, title, log)
     cur.execute(sql, item)
 
-def add_to_init(conn, session_id, user_key, order):
+def add_to_init(conn, session_id, user_key, sequence):
     cur = conn.cursor()
-    sql = "INSERT INTO initiative(session_id, user_key, order)VALUES(?,?,?)"
-    item = (session_id, user_key, order)
+    sql = "INSERT INTO initiative(session_id, user_key, sequence)VALUES(?,?,?)"
+    item = (session_id, user_key, sequence)
     cur.execute(sql, item)
 
 def create_connection(db_file):
@@ -82,7 +85,7 @@ def create_connection(db_file):
 def read_db_init(conn, sesh_id, user_id):
     cur = conn.cursor() 
     init = []
-    for row in cur.execute(f"select order from init where session_id = {sesh_id}"):
+    for row in cur.execute(f"select sequence from init where session_id = {sesh_id}"):
         init.append(row)
     return init
 
@@ -99,8 +102,8 @@ def get_google_provider_cfg():
 
 
 
-@app.route("/")
-def index():
+@app.route("/home")
+def home_index():
     conn = create_connection("battle_sesh.db")
     create_db_init(conn)
     create_db_log(conn)
@@ -144,12 +147,12 @@ def test_connect():
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-# Naive database setup
-try:
-    init_db_command()
-except sqlite3.OperationalError:
-    # Assume it's already been created
-    pass
+# # Naive database setup
+# try:
+#     init_db_command()
+# except sqlite3.OperationalError:
+#     # Assume it's already been created
+#     pass
 
 # OAuth 2 client setup
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
@@ -161,8 +164,8 @@ def load_user(user_id):
 
 
 # Homepage
-@app.route("/home")
-def index():
+@app.route("/")
+def login_index():
     if current_user.is_authenticated:
         return (
             "<p>Hello, {}! You're logged in! Email: {}</p>"
@@ -182,6 +185,7 @@ def login():
     # Find out what URL to hit for Google login
     google_provider_cfg = get_google_provider_cfg()
     authorization_endpoint = google_provider_cfg["authorization_endpoint"]
+    print(authorization_endpoint)
 
     # Use library to construct the request for Google login and provide
     # scopes that let you retrieve user's profile from Google
@@ -248,7 +252,7 @@ def callback():
     login_user(user)
 
     # Send user back to homepage
-    return redirect(url_for("index"))
+    return redirect(url_for("login_index"))
 
 
 # Logout
@@ -256,7 +260,7 @@ def callback():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for("index"))
+    return redirect(url_for("login_index"))
 
 
 
