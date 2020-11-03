@@ -72,7 +72,8 @@ def login_index():
     if current_user.is_authenticated:
         #To Do -> need to create way to add information to the DBs via the UI 
         # add_to_init(session_id, user_key, initiative)
-        return render_template("base.html", async_mode=socketio.async_mode)
+        # return render_template("base.html", async_mode=socketio.async_mode)
+        return redirect(url_for('home'))
 
         # return (
         #     "<p>Hello, {}! You're logged in! Email: {}</p>"
