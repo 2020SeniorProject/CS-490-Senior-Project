@@ -217,7 +217,6 @@ def test_connect():
         emit('log_update', {'data': "Chat List Received"}, broadcast=True)
 
 
-
 # User session management setup
 # https://flask-login.readthedocs.io/en/latest
 login_manager = LoginManager()
@@ -246,4 +245,5 @@ if __name__ == "__main__":
 
 
 # References
-# https://realpython.com/flask-google-login/
+# https://realpython.com/flask-google-login/\
+# https://blog.miguelgrinberg.com/post/easy-websockets-with-flask-and-gevent 
