@@ -102,16 +102,16 @@ def get_google_provider_cfg():
 
 
 
-@app.route("/home")
-def home_index():
-    conn = create_connection("battle_sesh.db")
-    create_db_init(conn)
-    create_db_log(conn)
-    session_id = "69BBEG69" #placeholder till we figure out id creation method, use usernames with random numbers?
-    user_key = "BigGamer420" #placeholder till we create some sort of user database?
-    #To Do -> need to create way to add information to the DBs via the UI 
-    # add_to_init(session_id, user_key, initiative)
-    return render_template("index.html", async_mode=socketio.async_mode)
+# @app.route("/home")
+# def home_index():
+#     conn = create_connection("battle_sesh.db")
+#     create_db_init(conn)
+#     create_db_log(conn)
+#     session_id = "69BBEG69" #placeholder till we figure out id creation method, use usernames with random numbers?
+#     user_key = "BigGamer420" #placeholder till we create some sort of user database?
+#     #To Do -> need to create way to add information to the DBs via the UI 
+#     # add_to_init(session_id, user_key, initiative)
+#     return render_template("index.html", async_mode=socketio.async_mode)
 
 
 @socketio.on('set_initiative', namespace='/test')
@@ -167,14 +167,23 @@ def load_user(user_id):
 @app.route("/")
 def login_index():
     if current_user.is_authenticated:
-        return (
-            "<p>Hello, {}! You're logged in! Email: {}</p>"
-            "<div><p>Google Profile Picture:</p>"
-            '<img src="{}" alt="Google profile pic"></img></div>'
-            '<a class="button" href="/logout">Logout</a>'.format(
-                current_user.name, current_user.email, current_user.profile_pic
-            )
-        )
+        conn = create_connection("battle_sesh.db")
+        create_db_init(conn)
+        create_db_log(conn)
+        session_id = "69BBEG69" #placeholder till we figure out id creation method, use usernames with random numbers?
+        user_key = "BigGamer420" #placeholder till we create some sort of user database?
+        #To Do -> need to create way to add information to the DBs via the UI 
+        # add_to_init(session_id, user_key, initiative)
+        return render_template("index.html", async_mode=socketio.async_mode)
+
+        # return (
+        #     "<p>Hello, {}! You're logged in! Email: {}</p>"
+        #     "<div><p>Google Profile Picture:</p>"
+        #     '<img src="{}" alt="Google profile pic"></img></div>'
+        #     '<a class="button" href="/logout">Logout</a>'.format(
+        #         current_user.name, current_user.email, current_user.profile_pic
+        #     )
+        # )
     else:
         return '<a class="button" href="/login">Google Login</a>'
 
