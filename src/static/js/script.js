@@ -42,20 +42,36 @@ $(document).ready(function() {
   })
 });
 
-function loadDoc() {
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      document.getElementById("demo").innerHTML = this.responseText;
-    }
-  };
-  xhttp.open("GET", "https://www.dnd5eapi.co/api/", true);
-  xhttp.send();
-  $('#chat-list').append('<br>' + $('<div/>').text('Received ' + msg.data).html());
-}
-});
+// function loadDoc() {
+//   var xhttp = new XMLHttpRequest();
+//   xhttp.onreadystatechange = function() {
+//     if (this.readyState == 4 && this.status == 200) {
+//       document.getElementById("demo").innerHTML = this.responseText;
+//     }
+//   };
+//   xhttp.open("GET", "https://www.dnd5eapi.co/api/", true);
+//   xhttp.send();
+//   $('#chat-list').append('<br>' + $('<div/>').text('Received ' + msg.data).html());
+// }
+// });
 
 String.prototype.format = function () {
   var args = arguments;
   return this.replace(/\{(\d+)\}/g, function (m, n) { return args[n]; });
 };
+
+async function getData(url) {
+  return fetch(url)
+  .then(response => response.json())
+  .catch(error => console.log(error));
+}
+
+async function apiTest(url) {
+  let data = await Promise.all([getData(url)]);
+  // console.log(data[0]); 
+  document.querySelector("#demo").innerHTML = "";
+  $('#demo').append($('<div/>').text("Classes:").html() + '<br>')
+  for (i = 0; i < data[0].count; i++) {
+    $('#demo').append('<br>' + $('<div/>').text(data[0].results[i].name).html())
+  }
+}
