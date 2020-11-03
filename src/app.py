@@ -216,11 +216,6 @@ def test_connect():
             
         emit('log_update', {'data': "Chat List Received"}, broadcast=True)
 
-@socketio.on('api_call', namespace='/test')
-def API_call(message):
-    emit('chat_update', {'data': "AAAAAA"}, broadcast=True)
-
-
 
 # User session management setup
 # https://flask-login.readthedocs.io/en/latest

@@ -33,27 +33,7 @@ $(document).ready(function() {
   socket.on('chat_update', function(msg) {
     $('#chat-list').append('<br>' + $('<div/>').text(msg.data).html());
   });
-  $('form#api_call').submit(function(event) {
-    socket.emit('api_call', {data: $('AAAA').val()});
-    return false;
-  }); 
-  socket.on('api_call', function(msg) {
-    $('#chat-list').append('<br>' + $('<div/>').text('API: ' + msg.data).html());
-  })
 });
-
-// function loadDoc() {
-//   var xhttp = new XMLHttpRequest();
-//   xhttp.onreadystatechange = function() {
-//     if (this.readyState == 4 && this.status == 200) {
-//       document.getElementById("demo").innerHTML = this.responseText;
-//     }
-//   };
-//   xhttp.open("GET", "https://www.dnd5eapi.co/api/", true);
-//   xhttp.send();
-//   $('#chat-list').append('<br>' + $('<div/>').text('Received ' + msg.data).html());
-// }
-// });
 
 String.prototype.format = function () {
   var args = arguments;
