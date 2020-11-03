@@ -216,6 +216,10 @@ def test_connect():
             
         emit('log_update', {'data': "Chat List Received"}, broadcast=True)
 
+@socketio.on('api_call', namespace='/test')
+def API_call(message):
+    emit('chat_update', {'data': "AAAAAA"}, broadcast=True)
+
 
 
 # User session management setup
@@ -246,4 +250,5 @@ if __name__ == "__main__":
 
 
 # References
-# https://realpython.com/flask-google-login/
+# https://realpython.com/flask-google-login/\
+# https://blog.miguelgrinberg.com/post/easy-websockets-with-flask-and-gevent 
