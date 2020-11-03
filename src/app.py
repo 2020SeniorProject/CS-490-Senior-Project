@@ -113,3 +113,7 @@ def test_connect():
     if initiative != []:
         emit('initiative_update', {'data': initiative})
         emit('log_update', {'data': "Initiative update"}, broadcast=True)
+
+
+
+# Reference: https://blog.miguelgrinberg.com/post/easy-websockets-with-flask-and-gevent
