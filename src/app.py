@@ -3,6 +3,9 @@ from threading import Lock
 import sqlite3
 import json
 import os
+import sqlite3
+import datetime
+from log_init_db import *
 
 # Third-party libraries
 from flask import Flask, render_template, session, request, redirect, url_for
