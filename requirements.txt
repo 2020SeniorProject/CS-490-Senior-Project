@@ -10,3 +10,6 @@ python-socketio
 six==1.11.0
 Werkzeug==0.14.1
 python-dotenv
+requests==2.21.0
+oauthlib==3.0.1
+pyOpenSSL==19.0.0
