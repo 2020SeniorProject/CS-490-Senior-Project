@@ -20,7 +20,10 @@ $(document).ready(function() {
     socket.emit('send_chat', {data: [$('#chat_text').val()]});
     return false;
   });
-
+  $('form#api_call').submit(function(event) {
+    socket.emit('api_call', {data: $('AAAA').val()});
+    return false;
+});
   socket.on('log_update', function(msg) {
     $('#log').append('<br>' + $('<div/>').text('Received ' + msg.data).html());
   });
@@ -32,4 +35,8 @@ $(document).ready(function() {
   socket.on('chat_update', function(msg) {
     $('#chat-list').append('<br>' + $('<div/>').text('Received ' + msg.data).html());
   });
+
+  socket.on('api_call', function(msg) {
+    $('#chat-list').append('<br>' + $('<div/>').text('API: ' + msg.data).html());
+  })
 });

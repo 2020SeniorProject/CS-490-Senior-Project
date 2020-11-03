@@ -25,12 +25,12 @@ def create_db_log(conn):
 
 
 
-def create_db_init(conn): #Takes session_id, User_key as main identifiers and then grabs order for the given session
+def create_db_init(conn): #Takes session_id, User_key as main identifiers and then grabs sequence  for the given session
     cur = conn.cursor()
     cur.execute(""" CREATE TABLE IF NOT EXISTS initiative (
                                         session_id TEXT PRIMARY KEY,
                                         User_key TEXT,
-                                        order TEXT NOT NULL
+                                        sequence  TEXT NOT NULL
                                     ); """)    
 
 
@@ -41,10 +41,10 @@ def add_to_log(conn, session_id, user_key, title, log):
     item = (session_id, user_key, title, log)
     cur.execute(sql, item)
 
-def add_to_init(conn, session_id, user_key, order):
+def add_to_init(conn, session_id, user_key, sequence ):
     cur = conn.cursor()
-    sql = "INSERT INTO initiative(session_id, user_key, order)VALUES(?,?,?)"
-    item = (session_id, user_key, order)
+    sql = "INSERT INTO initiative(session_id, user_key, sequence )VALUES(?,?,?)"
+    item = (session_id, user_key, sequence )
     cur.execute(sql, item)
 
 
@@ -56,7 +56,7 @@ def create_connection(db_file):
 def read_db_init(conn, sesh_id, user_id):
     cur = conn.cursor() 
     init = []
-    for row in cur.execute(f"select order from init where session_id = {sesh_id}"):
+    for row in cur.execute(f"select sequence  from init where session_id = {sesh_id}"):
         init.append(row)
     return init
 
@@ -98,6 +98,11 @@ def test_broadcast_message(message):
     # emit('chat_update', {'data': message['data']}, broadcast=True)
     emit('chat_update', {'data': message['data']}, broadcast=True)
     emit('log_update', {'data': "Chat update"}, broadcast=True)
+
+
+@socketio.on('api_call', namespace='/test')
+def API_call(message):
+    emit('chat_update', {'data': "AAAAAA"}, broadcast=True)
 
 
 @socketio.on('connect', namespace='/test')
