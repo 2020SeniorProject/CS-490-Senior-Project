@@ -40,3 +40,15 @@ $(document).ready(function() {
     $('#chat-list').append('<br>' + $('<div/>').text('API: ' + msg.data).html());
   })
 });
+
+function loadDoc() {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      document.getElementById("demo").innerHTML = this.responseText;
+    }
+  };
+  xhttp.open("GET", "https://www.dnd5eapi.co/api/", true);
+  xhttp.send();
+  $('#chat-list').append('<br>' + $('<div/>').text('Received ' + msg.data).html());
+}
