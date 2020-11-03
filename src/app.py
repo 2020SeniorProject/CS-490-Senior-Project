@@ -64,8 +64,12 @@ def test_connect():
     chat_items = read_db("log", "log", "where title = 'Chat'")
 
     if init_items != []:
-        emit('initiative_update', {'data': init_items})
+        for item in init_items:
+            emit('initiative_update', {'data': item})
+            
         emit('log_update', {'data': "Initiative List Received"}, broadcast=True)
     if chat_items != []:
-        emit('chat_update', {'data': chat_items})
+        for item in chat_items:
+            emit('chat_update', {'data': item})
+            
         emit('log_update', {'data': "Chat List Received"}, broadcast=True)

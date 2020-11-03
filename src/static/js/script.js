@@ -26,11 +26,16 @@ $(document).ready(function() {
   });
 
   socket.on('initiative_update', function(msg) {
-    $('#initiative-list').append('<br>' + $('<div/>').text('Received ' + msg.data).html());
-    console.log(msg.data);
+    var tableData = '<tr><td>{0}</td><td>{1}</td></tr>'.format(msg.data[0], msg.data[1]);
+    $('#initiative-table').append(tableData);
   });
 
   socket.on('chat_update', function(msg) {
-    $('#chat-list').append('<br>' + $('<div/>').text('Received ' + msg.data).html());
+    $('#chat-list').append('<br>' + $('<div/>').text(msg.data).html());
   });
 });
+
+String.prototype.format = function () {
+  var args = arguments;
+  return this.replace(/\{(\d+)\}/g, function (m, n) { return args[n]; });
+};
