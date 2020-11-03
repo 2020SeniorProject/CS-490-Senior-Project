@@ -50,55 +50,6 @@ socketio = SocketIO(app, async_mode=async_mode)
 thread = None
 thread_lock = Lock()
 
-
-def create_db_log(conn):
-    cur = conn.cursor()             #saves global ID key, user-specific key, and name of session/battle, DM Name, 
-    cur.execute(f""" CREATE TABLE IF NOT EXISTS session_log (
-                                        session_id TEXT PRIMARY KEY,
-                                        user_key TEXT,
-                                        title TEXT,     
-                                        log LONGTEXT
-                                    ); """)
-
-def create_db_init(conn): #Takes session_id, User_key as main identifiers and then grabs sequence for the given session
-    cur = conn.cursor()
-    cur.execute(""" CREATE TABLE IF NOT EXISTS initiative (
-                                        session_id TEXT PRIMARY KEY,
-                                        User_key TEXT,
-                                        sequence TEXT NOT NULL
-                                    ); """)    
-
-def add_to_log(conn, session_id, user_key, title, log):
-    cur = conn.cursor()
-    print("adding to blog")
-    sql = "INSERT INTO log(session_id, user_key, title, log)VALUES(?,?,?,?)"
-    item = (session_id, user_key, title, log)
-    cur.execute(sql, item)
-
-def add_to_init(conn, session_id, user_key, sequence):
-    cur = conn.cursor()
-    sql = "INSERT INTO initiative(session_id, user_key, sequence)VALUES(?,?,?)"
-    item = (session_id, user_key, sequence)
-    cur.execute(sql, item)
-
-def create_connection(db_file):
-    conn = sqlite3.connect(db_file)
-    return conn
-
-def read_db_init(conn, sesh_id, user_id):
-    cur = conn.cursor() 
-    init = []
-    for row in cur.execute(f"select sequence from init where session_id = {sesh_id}"):
-        init.append(row)
-    return init
-
-def read_db_log(conn, sesh_id, user_id):
-    cur = conn.cursor() 
-    log = []
-    for row in cur.execute(f"select log from sesshion_log where session_id = {sesh_id}"):
-        log.append(row)
-    return log
-
 # Retrieves Google's provider configuration
 def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
