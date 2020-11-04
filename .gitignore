@@ -118,6 +118,7 @@ ENV/
 env.bak/
 venv.bak/
 pythonenv*
+.vscode/launch.json
 
 # Spyder project settings
 .spyderproject
@@ -142,5 +143,9 @@ dmypy.json
 
 # profiling data
 .prof
+
+# database files
+.db
+src/sqlite_db
 
 # End of https://www.toptal.com/developers/gitignore/api/python
