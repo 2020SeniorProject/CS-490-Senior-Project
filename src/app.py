@@ -206,21 +206,11 @@ def test_connect():
     if init_items != []:
         for item in init_items:
             emit('initiative_update', {'data': item})
-<<<<<<< HEAD
-        emit('log_update', {'data': "Initiative List Received"}, broadcast=True)
-    if chat_items != []:
-        for item in chat_items:
-            emit('chat_update', {'data': item})
-        emit('log_update', {'data': "Chat List Received"}, broadcast=True)
-=======
-            
         emit('log_update', {'data': "Initiative List Received"})
     if chat_items != []:
         for item in chat_items:
             emit('chat_update', {'data': item})
-            
         emit('log_update', {'data': "Chat List Received"})
->>>>>>> bb0f1ef02ca802c24d2606f029b6127c7e94a4d3
 
 
 
