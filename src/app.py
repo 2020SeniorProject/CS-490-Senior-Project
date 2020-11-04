@@ -209,12 +209,12 @@ def test_connect():
         for item in init_items:
             emit('initiative_update', {'data': item})
             
-        emit('log_update', {'data': "Initiative List Received"}, broadcast=True)
+        emit('log_update', {'data': "Initiative List Received"})
     if chat_items != []:
         for item in chat_items:
             emit('chat_update', {'data': item})
             
-        emit('log_update', {'data': "Chat List Received"}, broadcast=True)
+        emit('log_update', {'data': "Chat List Received"})
 
 
 # User session management setup

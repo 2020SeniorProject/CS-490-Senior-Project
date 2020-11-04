@@ -1,2 +1,4 @@
-FLASK_ENV = development
+FLASK_ENV = production
 FLASK_APP = app
+FLASK_RUN_PORT = 5000
+FLASK_RUN_HOST = 10.28.144.244
