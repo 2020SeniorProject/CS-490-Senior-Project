@@ -89,6 +89,11 @@ def load_user(user_id):
 
 ### ROUTING DIRECTIVES 
 
+# Will need to be fixed... probably
+@app.route("/create_character")
+def character_creation():
+    return render_template("add_character.html")
+
 # Post-Login Landing Page
 @app.route("/home")
 def home():
