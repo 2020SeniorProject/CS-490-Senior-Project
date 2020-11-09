@@ -21,8 +21,7 @@ from oauthlib.oauth2 import WebApplicationClient
 import requests
 
 # Internal imports
-from db import init_db_command
-from user import User
+from classes import User
 
 
 
@@ -82,7 +81,7 @@ def get_google_provider_cfg():
 # Flask-Login helper to retrieve a user from our db
 @login_manager.user_loader
 def load_user(user_id):
-    return User.get(user_id)
+    return read_db("users", "*", f"WHERE user_id = {user_id}")
 
 
 
@@ -158,10 +157,16 @@ def callback():
         return "User email not available or not verified by Google.", 400
     # Create a user in the datbase if they don't already exist
     user = User(id_=unique_id, name=users_name, email=users_email, profile_pic=picture)
-    if not User.get(unique_id):
-        User.create(unique_id, users_name, users_email, picture)
+    # TODO: is it worth it to have a user class? I only see it being useful if we use it elsewhere. Where else would we use it? Otherwise, I think that it doesn't make sense to create a user opject, adn we should just pass data directly into add_to_db
+    if not read_db("users", "*", f"WHERE user_id = {unique_id}"):
+        add_to_db("users", (unique_id, users_name, users_email, picture))
+    # if not User.get(unique_id):
+    #     User.create(unique_id, users_name, users_email, picture)
     # Log the user in and send them to the homepage
     login_user(user)
+    global current_user 
+    current_user = current_user
+    print(current_user)
     return redirect(url_for("login_index"))
 
 # Logout
