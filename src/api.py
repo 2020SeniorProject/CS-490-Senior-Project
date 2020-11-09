@@ -30,9 +30,44 @@ def read_api_db(db_name, rows="*", extra_clause = ""):
         ret_lst = []
         for row in cur.execute(f"SELECT {rows} FROM {db_name} {extra_clause};"):
             ret_lst.append(row)
-        print(ret_lst)
+        # print(ret_lst)
         return ret_lst
 
-build_api_db(["race", "class"])
-read_db("race")
-read_db("class")
+def get_races():
+    rows = read_api_db("race")
+    races_list = read_api_db("race", "race")
+
+    races = set()
+    for row in races_list:
+        races.add(row[0])
+
+    subraces = {}
+    for race in races:
+        subraces[race] = []
+    for row in rows:
+        subraces[row[0]].append(row[1])
+
+    return races, subraces
+
+def get_classes():
+    rows = read_api_db("class")
+    classes_list = read_api_db("class", "class")
+
+    classes = set()
+    for row in classes_list:
+        classes.add(row[0])
+
+    subclasses = {}
+    for classs in classes:
+        subclasses[classs] = []
+    for row in rows:
+        subclasses[row[0]].append(row[1])
+
+    return classes, subclasses
+
+# build_api_db(["race", "class"])
+# read_db("race")
+# read_db("class")
+
+# print(get_races())
+# print(get_classes())

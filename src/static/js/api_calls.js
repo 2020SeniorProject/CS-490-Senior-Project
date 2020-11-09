@@ -1,31 +1,54 @@
+var subclasses = []
+
 async function getData(url) {
     return fetch(url)
     .then(response => response.json())
     .catch(error => console.log(error));
   }
-  
-  async function apiTest(url) {
-    let data = await Promise.all([getData(url)]);
-    // console.log(data[0]); 
-    document.querySelector("#demo").innerHTML = "";
-    $('#demo').append($('<div/>').text("Classes:").html() + '<br>')
-    for (i = 0; i < data[0].count; i++) {
-      $('#demo').append('<br>' + $('<div/>').text(data[0].results[i].name).html())
-    }
-  }; 
 
-async function testing() {
-  var test = await Promise.all([getData("https://api.open5e.com/races/?format=json")]);
-  var ret_test = [];
-  for (i=0; i<9; i++) {
-    console.log(test[0].results[i].name);
-    ret_test.push(test[0].results[i].name)
+async function populate_races() {
+  var data = await Promise.all([getData("/api/races")]);
+
+  let races = data[0].races;
+  races.sort();
+
+  for (i=0; i<races.length; i++) {
+    $('#racename').append(`<option value="${races[i]}">${races[i]}</option>`);
   }
-  return test
+
+  let subraces = data[0].subraces;
+  console.log(subraces);
+};
+
+async function populate_class() {
+  var data = await Promise.all([getData("/api/classes")]);
+
+  let classes = data[0].classes;
+  classes.sort();
+
+  for (i=0; i<classes.length; i++) {
+    $('#classname').append(`<option value="${classes[i]}">${classes[i]}</option>`);
+  }
+  subclasses = data[0].subclasses;
+  console.log(subclasses);
 };
 
 $(document).ready(function() {
-    // When called this way, testing returns a promise. Instead, make testing call a function to populate the dropdowns
-    let data = testing()
-    console.log(data);
+    populate_races();
+    populate_class();
+});
+
+$(document).on('change', '#racename', function(){
+  console.log("Race changed");
+});
+
+$(document).on('change', '#classname', function(){
+  console.log("Class changed");
+  console.log(subclasses);
+
+  let classname = $(this).val();
+  let subclasses_names = subclasses.Barbarian;
+  console.log(subclasses[0]);
+  console.log(subclasses_names);
+  console.log(classname);
 });

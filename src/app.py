@@ -6,9 +6,10 @@ import os
 import sqlite3
 import datetime
 from log_init_db import *
+import api
 
 # Third-party libraries
-from flask import Flask, render_template, session, request, redirect, url_for
+from flask import Flask, render_template, session, request, redirect, url_for, jsonify
 from flask_socketio import SocketIO, emit 
 from flask_login import (
     LoginManager,
@@ -175,6 +176,24 @@ def callback():
 def logout():
     logout_user()
     return redirect(url_for("login_index"))
+
+
+
+api.build_api_db(["race", "class"])
+
+### API ROUTES
+@app.route("/api/races")
+def get_races():
+    races, subraces = api.get_races()
+
+    return jsonify(races=list(races), subraces=subraces)
+
+@app.route("/api/classes")
+def get_classes():
+    classes, subclasses = api.get_classes()
+
+    return jsonify(classes=list(classes), subclasses=subclasses)
+
 
 
 
