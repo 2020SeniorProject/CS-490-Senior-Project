@@ -22,7 +22,7 @@ $(document).ready(function() {
   });
 
   socket.on('log_update', function(msg) {
-    $('#log').append('<br>' + $('<div/>').text('Received ' + msg.data).html());
+    $('#log').append($('<div/>').text('Received ' + msg.data).html() + '<br>');
   });
 
   socket.on('initiative_update', function(msg) {
@@ -31,6 +31,6 @@ $(document).ready(function() {
   });
 
   socket.on('chat_update', function(msg) {
-    $('#chat-list').append('<br>' + $('<div/>').text(msg.data).html());
+    $('#chat-list').append($('<div/>').text(msg.data).html() + '<br>');
   });
 });
