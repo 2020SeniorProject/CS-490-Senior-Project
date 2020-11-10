@@ -33,34 +33,19 @@ def read_api_db(db_name, rows="*", extra_clause = ""):
         # print(ret_lst)
         return ret_lst
 
-def get_races():
-    rows = read_api_db("race")
-    races_list = read_api_db("race", "race")
 
-    races = set()
-    for row in races_list:
-        races.add(row[0])
+def get_api_info(table, row):
+    rows = read_api_db(table)
+    main_column = read_api_db(table, row)
 
-    subraces = {}
-    for race in races:
-        subraces[race] = []
+    main_column_set = set()
+    for row in main_column:
+        main_column_set.add(row[0])
+    
+    column_subsets = {}
+    for column in main_column_set:
+        column_subsets[column] = []
     for row in rows:
-        subraces[row[0]].append(row[1])
+        column_subsets[row[0]].append(row[1])
 
-    return races, subraces
-
-def get_classes():
-    rows = read_api_db("class")
-    classes_list = read_api_db("class", "class")
-
-    classes = set()
-    for row in classes_list:
-        classes.add(row[0])
-
-    subclasses = {}
-    for classs in classes:
-        subclasses[classs] = []
-    for row in rows:
-        subclasses[row[0]].append(row[1])
-
-    return classes, subclasses
+    return main_column_set, column_subsets

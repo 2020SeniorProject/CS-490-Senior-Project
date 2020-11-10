@@ -38,9 +38,11 @@ async function populate_class() {
 // Using the store objects from API (essentially dictionaries), gets the options that match the selected property
 function get_option_html(property_name, objectt) {
   var html_code = "";
+
   for (i=0; i<objectt[property_name].length; i++) {
-    html_code += `<option>${objectt[property][i]}</option>`;
+    html_code += `<option>${objectt[property_name][i]}</option>`;
   }
+  
   return html_code;
 }
 

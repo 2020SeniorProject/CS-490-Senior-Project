@@ -184,13 +184,13 @@ api.build_api_db(["race", "class"])
 ### API ROUTES
 @app.route("/api/races")
 def get_races():
-    races, subraces = api.get_races()
+    races, subraces = api.get_api_info("race", "race")
 
     return jsonify(races=list(races), subraces=subraces)
 
 @app.route("/api/classes")
 def get_classes():
-    classes, subclasses = api.get_classes()
+    classes, subclasses = api.get_api_info("class", "class")
 
     return jsonify(classes=list(classes), subclasses=subclasses)
 
