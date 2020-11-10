@@ -81,11 +81,10 @@ def get_google_provider_cfg():
 # Flask-Login helper to retrieve a user from our db
 @login_manager.user_loader
 def load_user(user_id):
-    stuff = read_db("users", "*", f"WHERE user_id = '{user_id}'")
-    print(stuff)
-    if not stuff:
+    db_response = read_db("users", "*", f"WHERE user_id = '{user_id}'")
+    if not db_response:
         return None
-    return User(id_=stuff[0][0], name=stuff[0][1], email=stuff[0][2], profile_pic=stuff[0][3])
+    return User(id_=db_response[0][0], name=db_response[0][1], email=db_response[0][2], profile_pic=db_response[0][3])
 
 
 
@@ -161,21 +160,15 @@ def callback():
         return "User email not available or not verified by Google.", 400
     # Create a user in the datbase if they don't already exist
     user = User(id_=unique_id, name=users_name, email=users_email, profile_pic=picture)
-    # TODO: is it worth it to have a user class? I only see it being useful if we use it elsewhere. Where else would we use it? Otherwise, I think that it doesn't make sense to create a user opject, adn we should just pass data directly into add_to_db
     if not read_db("users", "*", f"WHERE user_id = '{unique_id}'"):
         add_to_db("users", (unique_id, users_name, users_email, picture))
-    # if not User.get(unique_id):
-    #     User.create(unique_id, users_name, users_email, picture)
     # Log the user in and send them to the homepage
     login_user(user)
-    # global current_user 
-    # current_user = current_user
-    # print(current_user)
     return redirect(url_for("login_index"))
 
 # Logout
 @app.route("/logout")
-@login_required
+@login_required   # TODO: customize unauthorized page 
 def logout():
     logout_user()
     return redirect(url_for("login_index"))
