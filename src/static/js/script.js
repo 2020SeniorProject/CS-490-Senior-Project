@@ -26,7 +26,7 @@ $(document).ready(function() {
   });
 
   socket.on('initiative_update', function(msg) {
-    var tableData = '<tr><td>{0}</td><td>{1}</td></tr>'.format(msg.data[0], msg.data[1]);
+    var tableData = `<tr><td>${msg.data[0]}</td><td>${msg.data[1]}</td></tr>`;
     $('#initiative-table').append(tableData);
   });
 
@@ -34,8 +34,3 @@ $(document).ready(function() {
     $('#chat-list').append('<br>' + $('<div/>').text(msg.data).html());
   });
 });
-
-String.prototype.format = function () {
-  var args = arguments;
-  return this.replace(/\{(\d+)\}/g, function (m, n) { return args[n]; });
-};

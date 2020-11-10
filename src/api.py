@@ -64,10 +64,3 @@ def get_classes():
         subclasses[row[0]].append(row[1])
 
     return classes, subclasses
-
-# build_api_db(["race", "class"])
-# read_db("race")
-# read_db("class")
-
-# print(get_races())
-# print(get_classes())
