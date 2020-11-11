@@ -22,6 +22,11 @@ def create_connection(db_file):
 #order = intiative # associated with a player
     # order allows for sorting
   
+#Character table
+# user_key -> used to connect players to their created characters
+# room_id -> used to connect room_id to the room in which the character is playing
+# chr_name, race, subclass, hitpoints -> tracks character details and stats
+#user_key and chr_name -> primary keys to allow a character to be tracked across rooms and to allow repeats of character names across 
 
 def create_dbs():
     with create_connection("battle_sesh.db") as conn:
@@ -33,7 +38,7 @@ def create_dbs():
                         (row_id INT PRIMARY KEY, room_id TEXT, user_key TEXT, player_name TEXT, init_val INT);""") 
 
         cur.execute(f""" CREATE TABLE IF NOT EXISTS characters
-                            (user_key TEXT, room_id TEXT, chr_name TEXT, class TEXT, subclass TEXT, race TEXT, hitpoints INT, CONSTRAINT plyr_chr PRIMARY KEY(user_key, room_id, chr_name));""")
+                            (user_key TEXT, room_id TEXT, chr_name TEXT, class TEXT, subclass TEXT, race TEXT, hitpoints INT, CONSTRAINT plyr_chr PRIMARY KEY(user_key, chr_name));""")
 
 
 def add_to_db(db_name, values):
