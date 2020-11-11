@@ -22,7 +22,7 @@ import requests
 # Internal imports
 from input_validator import *
 from classes import User
-from log_init_db import *
+from db import *
 import api
 
 
