@@ -94,9 +94,14 @@ def load_user(user_id):
 ### ROUTING DIRECTIVES 
 
 # Will need to be fixed... probably
-@app.route("/create_character")
+@app.route("/create_character", methods=["POST", "GET"])
 @login_required 
 def character_creation():
+    form = chr_valid()
+    if request.method == "POST" and form.validate_on_submit():
+        print(request.get("name"))
+        # add_to_db("chars", )
+        return render_template("add_character.html", message_text="Character Created!")
     return render_template("add_character.html")
 
 # Post-Login Landing Page

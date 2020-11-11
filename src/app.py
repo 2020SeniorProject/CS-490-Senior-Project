@@ -95,9 +95,14 @@ def load_user(user_id):
 ### ROUTING DIRECTIVES 
 
 # Will need to be fixed... probably
-@app.route("/create_character")
+@app.route("/create_character", methods=["POST", "GET"])
 @login_required 
 def character_creation():
+    form = chr_valid()
+    if request.method == "POST" and form.validate_on_submit():
+        print(request.get("name"))
+        # add_to_db("chars", )
+        return render_template("add_character.html", message_text="Character Created!")
     return render_template("add_character.html")
 
 # Post-Login Landing Page
@@ -110,7 +115,7 @@ def home():
 @app.route("/play")
 @login_required
 def play():
-    return render_template("index.html", async_mode=socketio.async_mode, form=init_validator())
+    return render_template("index.html", async_mode=socketio.async_mode)
 
 # Landing Login Page
 @app.route("/")
@@ -213,25 +218,12 @@ def get_classes():
 def test_broadcast_message(message):
     # Sends to all connected
     form = init_validator()
-    # print(request)
-    # try:
-    # if form.validate_on_submit():
     emit('initiative_update', {'data': message['data']}, broadcast=True)
     emit('log_update', {'data': "Initiative Added"}, broadcast=True)
     add_to_db("init", (session_id, user_key, message['data'][0], message['data'][1]))
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     init_name = message['data'][0] + message['data'][1]
     add_to_db("log", (session_id, user_key, "Init", init_name, s) )
-    # except ValidationError:
-    #     if form.initiative_roll.errors:
-    #         for errs in form.initiative_roll.errors:
-    #             print(errs)
-    #             emit('log_update', {'data': errs}, broadcast=True)
-    #     if form.player_name.errors:
-    #         for errs in form.player_name.errors:
-    #             print(errs)
-    #             emit('log_update', {'data': errs}, broadcast=True)
-
 
 @socketio.on('send_chat', namespace='/test')
 def test_broadcast_message(message):
