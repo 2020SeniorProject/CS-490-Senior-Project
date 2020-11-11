@@ -96,21 +96,25 @@ def load_user(user_id):
 
 # Will need to be fixed... probably
 @app.route("/create_character")
+@login_required 
 def character_creation():
     return render_template("add_character.html")
 
 # Post-Login Landing Page
 @app.route("/home")
+@login_required
 def home():
     return render_template("base.html", async_mode=socketio.async_mode)
 
 # Gameplay Page
 @app.route("/play")
+@login_required
 def play():
     return render_template("index.html", async_mode=socketio.async_mode, form=init_validator())
 
 # Landing Login Page
 @app.route("/")
+@login_required 
 def login_index():
     if current_user.is_authenticated:
         # TODO: -> need to create way to add information to the DBs via the UI
