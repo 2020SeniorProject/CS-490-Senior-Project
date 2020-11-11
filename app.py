@@ -5,8 +5,6 @@ import json
 import os
 import sqlite3
 import datetime
-from log_init_db import *
-import api
 
 # Third-party libraries
 from flask import Flask, render_template, session, request, redirect, url_for, jsonify
@@ -22,9 +20,10 @@ from oauthlib.oauth2 import WebApplicationClient
 import requests
 
 # Internal imports
-from db import init_db_comman
 from input_validator import *
 from classes import User
+from log_init_db import *
+import api
 
 
 
@@ -114,7 +113,6 @@ def play():
 
 # Landing Login Page
 @app.route("/")
-@login_required 
 def login_index():
     if current_user.is_authenticated:
         # TODO: -> need to create way to add information to the DBs via the UI
