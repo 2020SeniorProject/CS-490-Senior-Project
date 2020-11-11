@@ -3,7 +3,6 @@ from threading import Lock
 import sqlite3
 import json
 import os
-import sqlite3
 import datetime
 
 # Third-party libraries
@@ -23,7 +22,6 @@ import requests
 from input_validator import *
 from classes import User
 from db import *
-import api
 
 
 
@@ -185,18 +183,18 @@ def logout():
 
 
 
-api.build_api_db(["race", "class"])
+build_api_db(["race", "class"])
 
 ### API ROUTES
 @app.route("/api/races")
 def get_races():
-    races, subraces = api.get_api_info("race", "race")
+    races, subraces = get_api_info("race", "race")
 
     return jsonify(races=list(races), subraces=subraces)
 
 @app.route("/api/classes")
 def get_classes():
-    classes, subclasses = api.get_api_info("class", "class")
+    classes, subclasses = get_api_info("class", "class")
 
     return jsonify(classes=list(classes), subclasses=subclasses)
 
