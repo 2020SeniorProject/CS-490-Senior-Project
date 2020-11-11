@@ -31,6 +31,10 @@ def create_dbs():
 
         cur.execute(f"""CREATE TABLE IF NOT EXISTS initiative 
                         (row_id INT PRIMARY KEY, room_id TEXT, user_key TEXT, player_name TEXT, init_val INT);""") 
+        
+        cur.execute(f"""CREATE TABLE IF NOT EXISTS users 
+                        (user_id TEXT PRIMARY KEY, user_name TEXT NOT NULL, email TEXT NOT NULL, profile_pic TEXT);""") 
+
 
 
 def add_to_db(db_name, values):
@@ -40,6 +44,8 @@ def add_to_db(db_name, values):
             sql = f"INSERT INTO {db_name}(room_id, user_key, title, log, timestamp) VALUES('{values[0]}','{values[1]}','{values[2]}','{values[3]}','{values[4]}');"
         elif db_name == "init":
             sql = f"INSERT INTO initiative(room_id, user_key, player_name, init_val) VALUES ('{values[0]}', '{values[1]}', '{values[2]}', {values[3]});"
+        elif db_name == "users":
+            sql = f"INSERT INTO users(user_id, user_name, email, profile_pic) VALUES ('{values[0]}', '{values[1]}', '{values[2]}', '{values[3]}');"
         cur.execute(sql)
         conn.commit()
 

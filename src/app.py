@@ -21,8 +21,7 @@ from oauthlib.oauth2 import WebApplicationClient
 import requests
 
 # Internal imports
-from db import init_db_command
-from user import User
+from classes import User
 
 
 
@@ -82,7 +81,10 @@ def get_google_provider_cfg():
 # Flask-Login helper to retrieve a user from our db
 @login_manager.user_loader
 def load_user(user_id):
-    return User.get(user_id)
+    db_response = read_db("users", "*", f"WHERE user_id = '{user_id}'")
+    if not db_response:
+        return None
+    return User(id_=db_response[0][0], name=db_response[0][1], email=db_response[0][2], profile_pic=db_response[0][3])
 
 
 
@@ -158,15 +160,15 @@ def callback():
         return "User email not available or not verified by Google.", 400
     # Create a user in the datbase if they don't already exist
     user = User(id_=unique_id, name=users_name, email=users_email, profile_pic=picture)
-    if not User.get(unique_id):
-        User.create(unique_id, users_name, users_email, picture)
+    if not read_db("users", "*", f"WHERE user_id = '{unique_id}'"):
+        add_to_db("users", (unique_id, users_name, users_email, picture))
     # Log the user in and send them to the homepage
     login_user(user)
     return redirect(url_for("login_index"))
 
 # Logout
 @app.route("/logout")
-@login_required
+@login_required   # TODO: customize unauthorized page 
 def logout():
     logout_user()
     return redirect(url_for("login_index"))
