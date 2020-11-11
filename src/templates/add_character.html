@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script src="static/js/api_calls.js"></script>
+<div class="container">
+
+    <h1 class="text-center">Add a Character</h1>
+    <form action="/create_character" method="POST" class="form">
+        <div class="row">
+            <div class="col form-group">
+                <label>Name</label>
+                <input type="text" name="name" class="form-control">
+            </div>
+            <div class="col">
+                <label>Race</label>
+                <select name="race" id="racename" class="form-control">
+                    <option id=></option>
+                </select>
+            </div>
+            <!-- Perhaps only make this visible once race is chosen? -->
+            <div class="col">
+                <label>Subrace</label>
+                <select name="subrace" id="subrace" class="form-control">
+                    <option>Choose a Race!</option>
+                </select>
+            </div>
+            <!-- Perhaps only make this visible once race is chosen? -->
+            <div class="col">
+                <label>Speed</label>
+                <input type="text" name="speed" placeholder="Choose a Race!" class="form-control">
+            </div>
+            <div class="col">
+                <label>Class</label>
+                <select name="classname" id="classname" class="form-control">
+                    <option></option>
+                </select>
+            </div>
+            <!-- Perhaps only make this visible once class is chosen? -->
+            <div class="col">
+                <label>Subclass</label>
+                <select name="subclass" id="subclass" class="form-control">
+                    <option>Choose a Class!</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <label>Level</label>
+                <input type="text" name="level" class="form-control">
+            </div>
+            <div class="col">
+                <label>Strength</label>
+                <input type="text" name="strength" class="form-control">
+            </div>
+            <div class="col">
+                <label>Dexterity</label>
+                <input type="text" name="dexterity" class="form-control">
+            </div>
+            <div class="col">
+                <label>Constitution</label>
+                <input type="text" name="constitution" class="form-control">
+            </div>
+            <div class="col">
+                <label>Intelligence</label>
+                <input type="text" name="intelligence" class="form-control">
+            </div>
+            <div class="col">
+                <label>Wisdom</label>
+                <input type="text" name="wisdom" class="form-control">
+            </div>
+            <div class="col">
+                <label>Charisma</label>
+                <input type="text" name="charisma" class="form-control">
+            </div>
+            <div class="col">
+                <label>Hitpoints</label>
+                <input type="text" name="hitpoints" class="form-control">
+            </div>
+        </div>
+        <div class="row pt-4">
+            <div class="col">
+                <input type="submit" class="btn btn-primary form-control" value="Add Character!">
+            </div>
+        </div>
+    </form>
+    <p>{{ message_text }}</p>
+</div>
+
+{% endblock %}

@@ -22,36 +22,15 @@ $(document).ready(function() {
   });
 
   socket.on('log_update', function(msg) {
-    $('#log').append('<br>' + $('<div/>').text('Received ' + msg.data).html());
+    $('#log').append($('<div/>').text('Received ' + msg.data).html() + '<br>');
   });
 
   socket.on('initiative_update', function(msg) {
-    var tableData = '<tr><td>{0}</td><td>{1}</td></tr>'.format(msg.data[0], msg.data[1]);
+    var tableData = `<tr><td>${msg.data[0]}</td><td>${msg.data[1]}</td></tr>`;
     $('#initiative-table').append(tableData);
   });
 
   socket.on('chat_update', function(msg) {
-    $('#chat-list').append('<br>' + $('<div/>').text(msg.data).html());
+    $('#chat-list').append($('<div/>').text(msg.data).html() + '<br>');
   });
 });
-
-String.prototype.format = function () {
-  var args = arguments;
-  return this.replace(/\{(\d+)\}/g, function (m, n) { return args[n]; });
-};
-
-async function getData(url) {
-  return fetch(url)
-  .then(response => response.json())
-  .catch(error => console.log(error));
-}
-
-async function apiTest(url) {
-  let data = await Promise.all([getData(url)]);
-  // console.log(data[0]); 
-  document.querySelector("#demo").innerHTML = "";
-  $('#demo').append($('<div/>').text("Classes:").html() + '<br>')
-  for (i = 0; i < data[0].count; i++) {
-    $('#demo').append('<br>' + $('<div/>').text(data[0].results[i].name).html())
-  }
-}

@@ -6,9 +6,10 @@ import os
 import sqlite3
 import datetime
 from log_init_db import *
+import api
 
 # Third-party libraries
-from flask import Flask, render_template, session, request, redirect, url_for
+from flask import Flask, render_template, session, request, redirect, url_for, jsonify
 from flask_socketio import SocketIO, emit 
 from flask_login import (
     LoginManager,
@@ -23,7 +24,7 @@ import requests
 # Internal imports
 from db import init_db_command
 from user import User
-
+from input_validator import *
 
 
 
@@ -89,6 +90,11 @@ def load_user(user_id):
 
 ### ROUTING DIRECTIVES 
 
+# Will need to be fixed... probably
+@app.route("/create_character")
+def character_creation():
+    return render_template("add_character.html")
+
 # Post-Login Landing Page
 @app.route("/home")
 def home():
@@ -97,7 +103,7 @@ def home():
 # Gameplay Page
 @app.route("/play")
 def play():
-    return render_template("index.html", async_mode=socketio.async_mode)
+    return render_template("index.html", async_mode=socketio.async_mode, form=init_validator())
 
 # Landing Login Page
 @app.route("/")
@@ -173,6 +179,24 @@ def logout():
 
 
 
+api.build_api_db(["race", "class"])
+
+### API ROUTES
+@app.route("/api/races")
+def get_races():
+    races, subraces = api.get_api_info("race", "race")
+
+    return jsonify(races=list(races), subraces=subraces)
+
+@app.route("/api/classes")
+def get_classes():
+    classes, subclasses = api.get_api_info("class", "class")
+
+    return jsonify(classes=list(classes), subclasses=subclasses)
+
+
+
+
 
 
 ### EVENT HANDLERS
@@ -180,12 +204,26 @@ def logout():
 @socketio.on('set_initiative', namespace='/test')
 def test_broadcast_message(message):
     # Sends to all connected
+    form = init_validator()
+    # print(request)
+    # try:
+    # if form.validate_on_submit():
     emit('initiative_update', {'data': message['data']}, broadcast=True)
     emit('log_update', {'data': "Initiative Added"}, broadcast=True)
     add_to_db("init", (session_id, user_key, message['data'][0], message['data'][1]))
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     init_name = message['data'][0] + message['data'][1]
     add_to_db("log", (session_id, user_key, "Init", init_name, s) )
+    # except ValidationError:
+    #     if form.initiative_roll.errors:
+    #         for errs in form.initiative_roll.errors:
+    #             print(errs)
+    #             emit('log_update', {'data': errs}, broadcast=True)
+    #     if form.player_name.errors:
+    #         for errs in form.player_name.errors:
+    #             print(errs)
+    #             emit('log_update', {'data': errs}, broadcast=True)
+
 
 @socketio.on('send_chat', namespace='/test')
 def test_broadcast_message(message):
