@@ -1,4 +1,33 @@
 from flask_login import UserMixin
+from flask_wtf import FlaskForm
+from wtforms import StringField, IntegerField, SubmitField, validators, Form
+from wtforms.validators import Length, NumberRange, DataRequired, ValidationError
+
+
+
+##
+## Validate that initative input is valid
+##
+
+
+class chr_valid(FlaskForm):
+    name = StringField('Name', [DataRequired(message="Please Input Name"), Length(min=1, max=20, message ="Bad Name Size")])
+    race = StringField('Race', [DataRequired(message="Please choose a race")] )
+    subrace = StringField('Subrace', [DataRequired(message="PLease choose a subrace")])
+    speed = IntegerField('speed', [DataRequired(message="PLease input Speed")])
+    classname = StringField('class', [DataRequired(message="Please choose class ")])
+    subclass = StringField('subclass', [DataRequired(message ="Please choose subclass")])
+    level = IntegerField('level', [DataRequired(message="Please input level"), NumberRange(min=1, max=20, message="Outside Possible Range")])
+    strength = IntegerField('Str', [DataRequired(message="Please input strength"), NumberRange(min=1, max=20, message="Outside Possible Range")])
+    dexterity = IntegerField('Dex', [DataRequired(message="Please input dex"), NumberRange(min=1, max=20, message="Outside Possible Range")])
+    constitution = IntegerField('cons', [DataRequired(message="Please input cons"), NumberRange(min=1, max=20, message="Outside Possible Range")])
+    intelligence = IntegerField('int', [DataRequired(message="Please input int"), NumberRange(min=1, max=20, message="Outside Possible Range")])
+    wisdom = IntegerField('wis', [DataRequired(message="Please input int"), NumberRange(min=1, max=20, message="Outside Possible Range")])
+    charisma = IntegerField('chr', [DataRequired(message="Please input charisma"), NumberRange(min=1, max=20, message="Outside Possible Range")])
+    hitpoints = IntegerField('hp', [DataRequired(message="Please input hp")])
+
+
+
 
 class User(UserMixin):
     def __init__(self, id_, name, email, profile_pic):
