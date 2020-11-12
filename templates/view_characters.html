@@ -4,34 +4,30 @@
 <div class="container">
     <table class="table table-bordered">
         <thead>
-            <th>Name</th>
-            <!-- <th>Race</th>
+            <th>Character Name</th>
+            <th>Race</th>
             <th>Class</th>
             <th>Subclass</th>
-            <th>Level</th>
-            <th>Strength</th>
-            <th>Dexterity</th>
-            <th>Constitution</th>
-            <th>Intelligence</th>
-            <th>Wisdom</th>
-            <th>Charisma</th>
-            <th>Hitpoints</th> -->
+            <th>Hitpoints</th>
+            <!-- <th></th> -->
+            <th class="text-center"><a href="/create_character" class="btn btn-success">Create a Character!</a></th>
         </thead>
         <tbody>
             {% for s in items %}
             <tr>
-                <td>{{ s }}</td>
-                <!-- <td>{{ s.race }}</td>
-                <td>{{ s.classname }}</td>
-                <td>{{ s.subclass }}</td>
-                <td>{{ s.level }}</td>
-                <td>{{ s.strength }}</td>
-                <td>{{ s.dexterity }}</td>
-                <td>{{ s.constitution }}</td>
-                <td>{{ s.intelligence }}</td>
-                <td>{{ s.wisdom }}</td>
-                <td>{{ s.charisma }}</td>
-                <td>{{ s.hitpoints }}</td> -->
+                <td>{{ s[2] }}</td>
+                <td>{{ s[5] }}</td>
+                <td>{{ s[3] }}</td>
+                <td>{{ s[4] }}</td>
+                <td>{{ s[6] }}</td>
+                <!-- <td class=text-center><button type="button" class="btn btn-warning btn-sm">Edit</button></td> -->
+                <td class=text-center>
+                    <form action="/characters" method="POST" class="form">
+                        <input type="submit" class="btn btn-danger btm-sm" value="Delete">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="character_name" value="{{ s[2] }}">
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

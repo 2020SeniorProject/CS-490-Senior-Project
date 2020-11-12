@@ -75,6 +75,13 @@ def read_db(db_name, rows="*", extra_clause = ""):
         return ret_lst
 
 
+def delete_from_db(db_name, extra_clause = ""):
+    with create_connection("battle_sesh.db") as conn:
+        cur = conn.cursor()
+        cur.execute(f"DELETE FROM {db_name} {extra_clause};")
+        conn.commit()
+
+
 def build_api_db(files):
     with sqlite3.connect("api.db") as conn:
         cur = conn.cursor()

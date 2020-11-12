@@ -18,12 +18,12 @@ class CharacterValidation(FlaskForm):
     classname = StringField('class', [DataRequired(message="Please choose class ")])
     subclass = StringField('subclass', [DataRequired(message ="Please choose subclass")])
     level = IntegerField('level', [DataRequired(message="Please input level"), NumberRange(min=1, max=20, message="Outside Possible Range")])
-    strength = IntegerField('Str', [DataRequired(message="Please input strength"), NumberRange(min=1, max=20, message="Outside Possible Range")])
-    dexterity = IntegerField('Dex', [DataRequired(message="Please input dex"), NumberRange(min=1, max=20, message="Outside Possible Range")])
-    constitution = IntegerField('cons', [DataRequired(message="Please input cons"), NumberRange(min=1, max=20, message="Outside Possible Range")])
-    intelligence = IntegerField('int', [DataRequired(message="Please input int"), NumberRange(min=1, max=20, message="Outside Possible Range")])
-    wisdom = IntegerField('wis', [DataRequired(message="Please input int"), NumberRange(min=1, max=20, message="Outside Possible Range")])
-    charisma = IntegerField('chr', [DataRequired(message="Please input charisma"), NumberRange(min=1, max=20, message="Outside Possible Range")])
+    strength = IntegerField('Str', [DataRequired(message="Please input strength"), NumberRange(min=1, max=30, message="Outside Possible Range")])
+    dexterity = IntegerField('Dex', [DataRequired(message="Please input dex"), NumberRange(min=1, max=30, message="Outside Possible Range")])
+    constitution = IntegerField('cons', [DataRequired(message="Please input cons"), NumberRange(min=1, max=30, message="Outside Possible Range")])
+    intelligence = IntegerField('int', [DataRequired(message="Please input int"), NumberRange(min=1, max=30, message="Outside Possible Range")])
+    wisdom = IntegerField('wis', [DataRequired(message="Please input int"), NumberRange(min=1, max=30, message="Outside Possible Range")])
+    charisma = IntegerField('chr', [DataRequired(message="Please input charisma"), NumberRange(min=1, max=30, message="Outside Possible Range")])
     hitpoints = IntegerField('hp', [DataRequired(message="Please input hp")])
 
 

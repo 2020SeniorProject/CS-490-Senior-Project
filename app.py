@@ -92,12 +92,23 @@ def load_user(user_id):
 
 ### ROUTING DIRECTIVES 
 
-@app.route("/characters")
+# Viewing characters page
+@app.route("/characters", methods=["GET", "POST"])
 @login_required
 def view_characters():
-    items = read_db("characters", "*", f"WHERE user_name = '{user_name}'")
+    # TODO: Refactor this
+    # TODO: Add in the ability to edit characters
+    user = read_db("users", "*", f"WHERE user_id = '{current_user.get_user_id()}'")
+    if request.method == "POST":
+        print("TEST DELETING")
+        print(request.form)
+        delete_from_db("characters", f"WHERE user_id = '{user[0][0]}' AND chr_name = '{request.form['character_name']}'")
+    else:
+        print("NORMAL")
+    items = read_db("characters", "*", f"WHERE user_id = '{user[0][0]}'")
     return render_template("view_characters.html", items=items)
 
+# Character creation page
 @app.route("/create_character", methods=["POST", "GET"])
 @login_required
 def character_creation():
@@ -123,10 +134,25 @@ def character_creation():
 def home():
     return render_template("base.html", async_mode=socketio.async_mode)
 
+# TODO: Will want to change how this works
+@app.route("/play/choose")
+@login_required
+def choose_character():
+    # TODO: Somehow change the database to update what game the character is in
+    # TODO: Change the page to display an "add character" button if they do not have any characters
+    user = read_db("users", "*", f"WHERE user_id = '{current_user.get_user_id()}'")
+    characters = read_db("characters", "*", f"WHERE user_id = '{user[0][0]}'")
+    print(characters)
+    return render_template("choose_character.html", characters=characters)
+
+
 # Gameplay Page
-@app.route("/play")
+@app.route("/play", methods=["POST"])
 @login_required
 def play():
+    # TODO: Integrate character name into the messages sent by the sockets
+    # TODO: Update the database to state that this character is in the game
+    print(request.form)
     return render_template("index.html", async_mode=socketio.async_mode)
 
 # Landing Login Page
