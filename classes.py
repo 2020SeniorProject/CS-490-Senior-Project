@@ -10,7 +10,7 @@ from wtforms.validators import Length, NumberRange, DataRequired, ValidationErro
 ##
 
 
-class chr_valid(FlaskForm):
+class CharacterValidation(FlaskForm):
     name = StringField('Name', [DataRequired(message="Please Input Name"), Length(min=1, max=20, message ="Bad Name Size")])
     race = StringField('Race', [DataRequired(message="Please choose a race")] )
     subrace = StringField('Subrace', [DataRequired(message="PLease choose a subrace")])
@@ -48,3 +48,6 @@ class User(UserMixin):
 
     def get_profile_pic(self):
         return self.profile_pic
+
+    def __repr__(self):
+        return f"User({self.id}, {self.name}, {self.email}, {self.profile_pic})"

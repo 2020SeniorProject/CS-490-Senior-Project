@@ -21,8 +21,7 @@ from flask_wtf.csrf import CSRFProtect
 
 
 # Internal imports
-from input_validator import *
-from classes import User, chr_valid
+from classes import User, CharacterValidation
 from db import *
 
 
@@ -38,7 +37,7 @@ GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
 
 session_id = "69BBEG69" #placeholder till we figure out id creation method, use usernames with random numbers?
-# TODO: talk about user keys and possible integration of user keys with google oauth?
+# TODO: Replace all of the user_key references with the OAuth user_key or user_name
 user_key = "BigGamer420" #placeholder till we create some sort of user database?
 
 # This disables the SSL usage check - TODO: solution to this needed as it may pose security risk. see https://oauthlib.readthedocs.io/en/latest/oauth2/security.html and https://requests-oauthlib.readthedocs.io/en/latest/examples/real_world_example.html
@@ -93,16 +92,26 @@ def load_user(user_id):
 
 ### ROUTING DIRECTIVES 
 
-# Will need to be fixed... probably
+@app.route("/characters")
+@login_required
+def view_characters():
+    items = read_db("characters", "*", f"WHERE user_name = '{user_name}'")
+    return render_template("view_characters.html", items=items)
+
 @app.route("/create_character", methods=["POST", "GET"])
 @login_required
 def character_creation():
-    form = chr_valid()
+    form = CharacterValidation()
     if request.method == "POST" and form.validate():
-        values = (user_key, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.hitpoints.data)
+        # TODO: Update this as the character db is expanded
+        user = read_db("users", "*", f"WHERE user_id = '{current_user.get_user_id()}'")
+        print(user)
+        user_id = user[0][0]
+        values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.hitpoints.data)
         add_to_db("chars", values)
         return render_template("add_character.html", message_text="Character Created!")
     elif request.method =="POST" and form.errors:
+        # TODO: Personalize Error message
         return render_template("add_character.html", message_text=form.errors)
     return render_template("add_character.html")
 

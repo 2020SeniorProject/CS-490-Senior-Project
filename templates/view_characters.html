@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <table class="table table-bordered">
+        <thead>
+            <th>Name</th>
+            <!-- <th>Race</th>
+            <th>Class</th>
+            <th>Subclass</th>
+            <th>Level</th>
+            <th>Strength</th>
+            <th>Dexterity</th>
+            <th>Constitution</th>
+            <th>Intelligence</th>
+            <th>Wisdom</th>
+            <th>Charisma</th>
+            <th>Hitpoints</th> -->
+        </thead>
+        <tbody>
+            {% for s in items %}
+            <tr>
+                <td>{{ s }}</td>
+                <!-- <td>{{ s.race }}</td>
+                <td>{{ s.classname }}</td>
+                <td>{{ s.subclass }}</td>
+                <td>{{ s.level }}</td>
+                <td>{{ s.strength }}</td>
+                <td>{{ s.dexterity }}</td>
+                <td>{{ s.constitution }}</td>
+                <td>{{ s.intelligence }}</td>
+                <td>{{ s.wisdom }}</td>
+                <td>{{ s.charisma }}</td>
+                <td>{{ s.hitpoints }}</td> -->
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
