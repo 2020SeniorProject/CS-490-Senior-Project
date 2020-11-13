@@ -95,12 +95,12 @@ def sent_to_login():
 
 ### ROUTING DIRECTIVES 
 
+# TODO: Refactor all of the character related pages
+
 # Viewing characters page
 @app.route("/characters", methods=["GET", "POST"])
 @login_required
 def view_characters():
-    # TODO: Refactor this
-    # TODO: Sort somehow... character name alphabetically?
     user = read_db("users", "*", f"WHERE user_id = '{current_user.get_user_id()}'")
     if request.method == "POST":
         if request.form['type'] == "delete":
@@ -136,7 +136,7 @@ def character_creation():
         user_id = user[0][0]
         values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.hitpoints.data)
         if read_db("characters", "*", f"WHERE chr_name = '{values[2]}'") != []:
-            return render_template("add_character.html", message_text="You already have a character with this name!")
+            return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
         else:
             add_to_db("chars", values)
             val_char_mess = f""" {values[2]}, the {values[5]} {values[4]} {values[3]} with 
@@ -162,7 +162,8 @@ def edit_character():
     character = read_db("characters", "*", f"WHERE user_id = '{current_user.get_user_id()}' AND chr_name = '{name}'")[0]
     delete_from_db("characters", f"WHERE user_id = '{current_user.get_user_id()}' AND chr_name = '{name}'")
     # TODO: Figure out how to pass the dropdown variables, update as more columns get added
-    return render_template("edit_character.html", name=character[2], hp=character[6])
+    # TODO: Fix subrace (not supported by db at the moment)
+    return render_template("edit_character.html", name=character[2], hp=character[6], old_race=character[5], old_subrace=character[5], old_class=character[3], old_subclass=character[4])
 
 
 # Post-Login Landing Page

@@ -20,6 +20,12 @@ async function populate_races() {
   }
 
   subraces = data[0].subraces;
+  
+  var old_racename = document.getElementById('old_race').value;
+  var old_subrace = document.getElementById('old_subrace').value;
+  document.getElementById('racename').value=`${old_racename}`;
+  change_race();
+  document.getElementById('subrace').value=`${old_subrace}`;
 };
 
 // Populates the select options for the "class" tab
@@ -33,6 +39,12 @@ async function populate_class() {
     $('#classname').append(`<option value="${classes[i]}">${classes[i]}</option>`);
   }
   subclasses = data[0].subclasses;
+
+  var old_class = document.getElementById('old_class').value;
+  var old_subclass = document.getElementById('old_subclass').value;
+  document.getElementById('classname').value=`${old_class}`;
+  change_class();
+  document.getElementById('subclass').value=`${old_subclass}`;
 };
 
 // Using the store objects from API (essentially dictionaries), gets the options that match the selected property
@@ -53,8 +65,10 @@ $(document).ready(function() {
 });
 
 // Updates the subraces when the selection in the "race" tab changes
-$(document).on('change', '#racename', function(){
-  let racename = $(this).val();
+$(document).on('change', '#racename', change_race);
+
+function change_race() {
+  let racename = $('#racename').val();
   let html_code = "";
 
   if (racename == "") {
@@ -65,11 +79,13 @@ $(document).on('change', '#racename', function(){
   }
 
   $('#subrace').html(html_code);
-});
+}
 
 // Updates the subclasses when the selection in the "subclass" tab changes
-$(document).on('change', '#classname', function(){
-  let classname = $(this).val();
+$(document).on('change', '#classname', change_class);
+
+function change_class(){
+  let classname = $('#classname').val();
   let html_code = "";
 
   if (classname == "") {
@@ -80,4 +96,4 @@ $(document).on('change', '#classname', function(){
   }
 
   $('#subclass').html(html_code);
-});
+}
