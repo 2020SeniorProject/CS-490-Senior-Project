@@ -24,9 +24,9 @@
     <div class="row mt-0" style="height:25%;">
         <div class="col-2 my-auto text-center">
             <form class="form" id=set_initiative>
-                <input type=text id=player_name class="form-control" placeholder="Player Name">
-                <input type=text id=initiative_roll class="form-control" placeholder="Initiative">
-                <input type=submit class="btn btn-primary form-control" value="Set Initiative">
+                <input type=text id=player_name class="form-control" placeholder="Player Name" required>
+                <input type=number id=initiative_roll class="form-control" min=0 max=50 placeholder="Initiative">
+                <input type=submit class="btn btn-primary form-control" value="Set Initiative" required>
             </form>
         </div>
         <div class="col-8 border border-dark">

@@ -48,7 +48,7 @@ def create_dbs():
                         (user_id TEXT PRIMARY KEY, user_name TEXT NOT NULL, email TEXT NOT NULL, profile_pic TEXT);""") 
 
         cur.execute(f""" CREATE TABLE IF NOT EXISTS characters
-                            (user_id TEXT, room_id TEXT, chr_name TEXT, class TEXT, subclass TEXT, race TEXT, hitpoints INT, CONSTRAINT plyr_chr PRIMARY KEY(user_id, chr_name));""")
+                            (user_id TEXT, room_id TEXT, chr_name TEXT, class TEXT, subclass TEXT, race TEXT, hitpoints INT, PRIMARY KEY(user_id, chr_name));""")
 
 
 def add_to_db(db_name, values):

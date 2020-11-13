@@ -114,6 +114,7 @@ def view_characters():
             else:
                 # TODO: Personalize error messages
                 # TODO: Figure out how to pass dropdowns
+
                 return render_template("edit_character.html", message_text=form.errors, name=form.name.data, hp=form.hitpoints.data, speed=form.hitpoints.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data)        
     else:
         print("NORMAL")
@@ -130,13 +131,17 @@ def character_creation():
         user = read_db("users", "*", f"WHERE user_id = '{current_user.get_user_id()}'")
         user_id = user[0][0]
         values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.hitpoints.data)
-        add_to_db("chars", values)
-        return render_template("add_character.html", message_text="Character Created!")
+        if read_db("characters", "*", f"WHERE chr_name = '{values[2]}'") != []:
+            return render_template("add_character.html", message_text="You already have a character with this name!")
+        else:
+            add_to_db("chars", values)
+            return render_template("add_character.html", message_text="Character Created!")
     elif request.method =="POST" and form.errors:
         # TODO: Personalize Error message
         # TODO: Pass back all of the entered information
         return render_template("add_character.html", message_text=form.errors)
     return render_template("add_character.html")
+
 
 @app.route("/characters/edit", methods=["POST"])
 @login_required
