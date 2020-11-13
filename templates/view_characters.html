@@ -9,8 +9,7 @@
             <th>Class</th>
             <th>Subclass</th>
             <th>Hitpoints</th>
-            <!-- <th></th> -->
-            <th class="text-center"><a href="/create_character" class="btn btn-success">Create a Character!</a></th>
+            <th colspan=2 class="text-center"><a href="/characters/create" class="btn btn-success">Create a Character!</a></th>
         </thead>
         <tbody>
             {% for s in items %}
@@ -20,12 +19,19 @@
                 <td>{{ s[3] }}</td>
                 <td>{{ s[4] }}</td>
                 <td>{{ s[6] }}</td>
-                <!-- <td class=text-center><button type="button" class="btn btn-warning btn-sm">Edit</button></td> -->
+                <td class=text-center>
+                    <form action="/characters/edit" method="POST" class="form">
+                        <input type="submit" class="btn btn-warning btm-sm" value="Edit">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="character_name" value="{{ s[2] }}">
+                    </form>
+                </td>
                 <td class=text-center>
                     <form action="/characters" method="POST" class="form">
                         <input type="submit" class="btn btn-danger btm-sm" value="Delete">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="hidden" name="character_name" value="{{ s[2] }}">
+                        <input type="hidden" name="type" value="delete">
                     </form>
                 </td>
             </tr>

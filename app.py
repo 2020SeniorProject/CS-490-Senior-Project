@@ -87,6 +87,9 @@ def load_user(user_id):
         return None
     return User(id_=db_response[0][0], name=db_response[0][1], email=db_response[0][2], profile_pic=db_response[0][3])
 
+@login_manager.unauthorized_handler
+def sent_to_login():
+    return redirect(url_for("login_index"))
 
 
 
@@ -97,35 +100,52 @@ def load_user(user_id):
 @login_required
 def view_characters():
     # TODO: Refactor this
-    # TODO: Add in the ability to edit characters
+    # TODO: Sort somehow... character name alphabetically?
     user = read_db("users", "*", f"WHERE user_id = '{current_user.get_user_id()}'")
     if request.method == "POST":
-        print("TEST DELETING")
-        print(request.form)
-        delete_from_db("characters", f"WHERE user_id = '{user[0][0]}' AND chr_name = '{request.form['character_name']}'")
+        if request.form['type'] == "delete":
+            delete_from_db("characters", f"WHERE user_id = '{user[0][0]}' AND chr_name = '{request.form['character_name']}'")
+        elif request.form['type'] == "edit":
+            form = CharacterValidation()
+            if form.validate():
+                user_id = user[0][0]
+                values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.hitpoints.data)
+                add_to_db("chars", values)
+            else:
+                # TODO: Personalize error messages
+                # TODO: Figure out how to pass dropdowns
+                return render_template("edit_character.html", message_text=form.errors, name=form.name.data, hp=form.hitpoints.data, speed=form.hitpoints.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data)        
     else:
         print("NORMAL")
     items = read_db("characters", "*", f"WHERE user_id = '{user[0][0]}'")
     return render_template("view_characters.html", items=items)
 
 # Character creation page
-@app.route("/create_character", methods=["POST", "GET"])
+@app.route("/characters/create", methods=["POST", "GET"])
 @login_required
 def character_creation():
     form = CharacterValidation()
     if request.method == "POST" and form.validate():
         # TODO: Update this as the character db is expanded
         user = read_db("users", "*", f"WHERE user_id = '{current_user.get_user_id()}'")
-        print(user)
         user_id = user[0][0]
         values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.hitpoints.data)
         add_to_db("chars", values)
         return render_template("add_character.html", message_text="Character Created!")
     elif request.method =="POST" and form.errors:
         # TODO: Personalize Error message
+        # TODO: Pass back all of the entered information
         return render_template("add_character.html", message_text=form.errors)
     return render_template("add_character.html")
 
+@app.route("/characters/edit", methods=["POST"])
+@login_required
+def edit_character():
+    name = request.form['character_name']
+    character = read_db("characters", "*", f"WHERE user_id = '{current_user.get_user_id()}' AND chr_name = '{name}'")[0]
+    delete_from_db("characters", f"WHERE user_id = '{current_user.get_user_id()}' AND chr_name = '{name}'")
+    # TODO: Figure out how to pass the dropdown variables, update as more columns get added
+    return render_template("edit_character.html", name=character[2], hp=character[6])
 
 
 # Post-Login Landing Page
@@ -139,11 +159,12 @@ def home():
 @login_required
 def choose_character():
     # TODO: Somehow change the database to update what game the character is in
-    # TODO: Change the page to display an "add character" button if they do not have any characters
     user = read_db("users", "*", f"WHERE user_id = '{current_user.get_user_id()}'")
     characters = read_db("characters", "*", f"WHERE user_id = '{user[0][0]}'")
-    print(characters)
-    return render_template("choose_character.html", characters=characters)
+    if characters:
+        return render_template("choose_character.html", characters=characters)
+    else:
+        return render_template("add_character.html", message_text="You need to have a character to join!")
 
 
 # Gameplay Page
@@ -152,7 +173,6 @@ def choose_character():
 def play():
     # TODO: Integrate character name into the messages sent by the sockets
     # TODO: Update the database to state that this character is in the game
-    print(request.form)
     return render_template("index.html", async_mode=socketio.async_mode)
 
 # Landing Login Page
@@ -163,8 +183,7 @@ def login_index():
         # To display current user information, use: current_user.name, current_user.email, current_user.profile_pic
         return redirect(url_for('home'))
     else:
-        # TODO: construct login landing page
-        return '<a class="button" href="/login">Google Login</a>'
+        return render_template("login.html")
 
 # Login Process
 @app.route("/login")

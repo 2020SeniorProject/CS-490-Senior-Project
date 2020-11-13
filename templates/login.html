@@ -1,0 +1,47 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/static/css/style.css">
+        <script src="//code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <div style="width:99%;">
+          <div class="row">
+              <div class="col-2"></div>
+              <div class="col-8">
+                  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-2">
+                      <!-- <a class="navbar-brand" href="/">Navbar</a> -->
+                      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                      </button>
+                    
+                      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav mr-auto">
+                          <li class="nav-item active">
+                            <a class="nav-link disabled" href="/home">Home <span class="sr-only">(current)</span></a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link disabled" href="/play/choose">Play</a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link disabled" href="/characters">Character</a>
+                          </li>
+                        </ul>
+                      </div>
+                    </nav>
+              </div>
+          </div>
+          <div class=container>
+            <p class="text-center">
+                Welcome to Wizards of the Driftless' (were Wizards of the Plains) Online Battle Simulator for DND 5e! In order to use this
+                tool, you need to be <a class="button" href="/login">logged in</a>...<br><br><br>
+
+                <form action="/login">
+                    <input type=submit style="width:20%;" class="btn btn-success form-control btn-lg" value="Click here to login!">
+                </form>
+            </p>
+          </div>
+        </div>
+    </body>
+</html>

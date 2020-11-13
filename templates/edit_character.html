@@ -4,17 +4,17 @@
 <script src="/static/js/api_calls.js"></script>
 <div class="container">
 
-    <h1 class="text-center">Add a Character</h1>
-    <form action="/characters/create" method="POST" class="form">
+    <h1 class="text-center">Edit a Character</h1>
+    <form action="/characters" method="POST" class="form">
         <div class="row">
             <div class="col form-group">
                 <label>Name</label>
-                <input type="text" name="name" class="form-control">
+                <input type="text" name="name" class="form-control" value="{{ name }}">
             </div>
             <div class="col">
                 <label>Race</label>
                 <select name="race" id="racename" class="form-control">
-                    <option id=></option>
+                    <option></option>
                 </select>
             </div>
             <!-- Perhaps only make this visible once race is chosen? -->
@@ -27,7 +27,7 @@
             <!-- Perhaps only make this visible once race is chosen? -->
             <div class="col">
                 <label>Speed</label>
-                <input type="number" name="speed" placeholder="Choose a Race!" class="form-control">
+                <input type="number" name="speed" placeholder="Choose a Race!" class="form-control" value="{{ speed }}">
             </div>
             <div class="col">
                 <label>Class</label>
@@ -46,43 +46,44 @@
         <div class="row">
             <div class="col">
                 <label>Level</label>
-                <input type="number" name="level" class="form-control">
+                <input type="number" name="level" class="form-control" value="{{ lvl }}">
             </div>
             <div class="col">
                 <label>Strength</label>
-                <input type="number" name="strength" class="form-control">
+                <input type="number" name="strength" class="form-control" value="{{ str }}">
             </div>
             <div class="col">
                 <label>Dexterity</label>
-                <input type="number" name="dexterity" class="form-control">
+                <input type="number" name="dexterity" class="form-control" value="{{ dex }}">
             </div>
             <div class="col">
                 <label>Constitution</label>
-                <input type="number" name="constitution" class="form-control">
+                <input type="number" name="constitution" class="form-control" value="{{ con }}">
             </div>
             <div class="col">
                 <label>Intelligence</label>
-                <input type="number" name="intelligence" class="form-control">
+                <input type="number" name="intelligence" class="form-control" value="{{ int }}">
             </div>
             <div class="col">
                 <label>Wisdom</label>
-                <input type="number" name="wisdom" class="form-control">
+                <input type="number" name="wisdom" class="form-control" value="{{ wis }}">
             </div>
             <div class="col">
                 <label>Charisma</label>
-                <input type="number" name="charisma" class="form-control">
+                <input type="number" name="charisma" class="form-control" value="{{ cha }}">
             </div>
             <div class="col">
                 <label>Hitpoints</label>
-                <input type="number" name="hitpoints" class="form-control">
+                <input type="number" name="hitpoints" class="form-control" value="{{ hp }}">
             </div>
         </div>
         <div class="row pt-4">
             <div class="col">
-                <input type="submit" class="btn btn-primary form-control" value="Add Character!">
+                <input type="submit" class="btn btn-primary form-control" value="Change Character!">
             </div>
         </div>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input type="hidden" name="type" value="edit">
     </form>
     <p>{{ message_text }}</p>
 </div>
