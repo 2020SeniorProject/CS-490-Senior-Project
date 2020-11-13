@@ -105,7 +105,7 @@ def view_characters():
     if request.method == "POST":
         if request.form['type'] == "delete":
             delete_from_db("characters", f"WHERE user_id = '{user[0][0]}' AND chr_name = '{request.form['character_name']}'")
-        elif request.form['type'] == "edit":
+        elif request.form['type'] == "edit":        # TODO: if user leaves this page before publishing changes, the character is lost
             form = CharacterValidation()
             if form.validate():
                 user_id = user[0][0]
@@ -114,8 +114,13 @@ def view_characters():
             else:
                 # TODO: Personalize error messages
                 # TODO: Figure out how to pass dropdowns
-
-                return render_template("edit_character.html", message_text=form.errors, name=form.name.data, hp=form.hitpoints.data, speed=form.hitpoints.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data)        
+                err_lis = []
+                for errs in form.errors.keys():
+                    for mess in form.errors[errs]:
+                        err_mes = errs + ": " + mess + "!" +"\n"
+                        err_lis += [err_mes]
+                whole_err_mes = r''.join(err_lis)
+                return render_template("edit_character.html", message_text=whole_err_mes, name=form.name.data, hp=form.hitpoints.data, speed=form.hitpoints.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data)        
     else:
         print("NORMAL")
     items = read_db("characters", "*", f"WHERE user_id = '{user[0][0]}'")
@@ -127,7 +132,6 @@ def view_characters():
 def character_creation():
     form = CharacterValidation()
     if request.method == "POST" and form.validate():
-        # TODO: Update this as the character db is expanded
         user = read_db("users", "*", f"WHERE user_id = '{current_user.get_user_id()}'")
         user_id = user[0][0]
         values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.hitpoints.data)
@@ -135,11 +139,19 @@ def character_creation():
             return render_template("add_character.html", message_text="You already have a character with this name!")
         else:
             add_to_db("chars", values)
-            return render_template("add_character.html", message_text="Character Created!")
+            val_char_mess = f""" {values[2]}, the {values[5]} {values[4]} {values[3]} with 
+                        {values[6]} hit points was created by 
+                         {current_user.get_name()}!
+                                        """
+            return render_template("add_character.html", message_text=val_char_mess)
     elif request.method =="POST" and form.errors:
-        # TODO: Personalize Error message
-        # TODO: Pass back all of the entered information
-        return render_template("add_character.html", message_text=form.errors)
+        err_lis = []
+        for errs in form.errors.keys():
+            for mess in form.errors[errs]:
+                err_mes = errs + ": " + mess + "!" +"\n"
+                err_lis += [err_mes]
+        whole_err_mes = r''.join(err_lis)
+        return render_template("add_character.html", message_text=whole_err_mes)
     return render_template("add_character.html")
 
 
