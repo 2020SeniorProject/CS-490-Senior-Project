@@ -48,7 +48,7 @@ def create_dbs():
                         (user_id TEXT PRIMARY KEY, user_name TEXT NOT NULL, email TEXT NOT NULL, profile_pic TEXT);""") 
 
         cur.execute(f""" CREATE TABLE IF NOT EXISTS characters
-                            (user_id TEXT, room_id TEXT, chr_name TEXT, class TEXT, subclass TEXT, race TEXT, hitpoints INT, PRIMARY KEY(user_id, chr_name));""")
+                            (user_id TEXT, room_id TEXT, chr_name TEXT, class TEXT, subclass TEXT, race TEXT, subrace TEXT, speed INT, level INT, strength INT, dexterity INT, constitution INT, intelligence INT, wisdom INT, charisma INT, hitpoints INT, PRIMARY KEY(user_id, chr_name));""")
 
 
 def add_to_db(db_name, values):
@@ -59,7 +59,7 @@ def add_to_db(db_name, values):
         elif db_name == "init":
             sql = f"INSERT INTO initiative(room_id, user_key, player_name, init_val) VALUES ('{values[0]}', '{values[1]}', '{values[2]}', {values[3]});"
         elif db_name == "chars":
-            sql = f"INSERT INTO characters(user_id, room_id, chr_name, class, subclass, race, hitpoints) VALUES('{values[0]}', '{values[1]}', '{values[2]}', '{values[3]}', '{values[4]}', '{values[5]}', {values[6]});"
+            sql = f"INSERT INTO characters(user_id, room_id, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints) VALUES('{values[0]}', '{values[1]}', '{values[2]}', '{values[3]}', '{values[4]}', '{values[5]}', {values[6]}, {values[7]}, {values[8]}, {values[9]}, {values[10]}, {values[11]}, {values[12]}, {values[13]}, {values[14]}, {values[15]});"
         elif db_name == "users":
             sql = f"INSERT INTO users(user_id, user_name, email, profile_pic) VALUES ('{values[0]}', '{values[1]}', '{values[2]}', '{values[3]}');"
         cur.execute(sql)

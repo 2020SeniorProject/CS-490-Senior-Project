@@ -6,8 +6,17 @@
         <thead>
             <th>Character Name</th>
             <th>Race</th>
+            <th>Subrace</th>
             <th>Class</th>
             <th>Subclass</th>
+            <th>Speed</th>
+            <th>Level</th>
+            <th>Str</th>
+            <th>Dex</th>
+            <th>Con</th>
+            <th>Int</th>
+            <th>Wis</th>
+            <th>Chr</th>
             <th>Hitpoints</th>
             <th colspan=2 class="text-center"><a href="/characters/create" class="btn btn-success">Create a Character!</a></th>
         </thead>
@@ -16,9 +25,18 @@
             <tr>
                 <td>{{ s[2] }}</td>
                 <td>{{ s[5] }}</td>
+                <td>{{ s[6] }}</td>
+                <td>{{ s[7] }}</td>
                 <td>{{ s[3] }}</td>
                 <td>{{ s[4] }}</td>
-                <td>{{ s[6] }}</td>
+                <td>{{ s[8] }}</td>
+                <td>{{ s[9] }}</td>
+                <td>{{ s[10] }}</td>
+                <td>{{ s[11] }}</td>
+                <td>{{ s[12] }}</td>
+                <td>{{ s[13] }}</td>
+                <td>{{ s[14] }}</td>
+                <td>{{ s[15] }}</td>
                 <td class=text-center>
                     <form action="/characters/edit" method="POST" class="form">
                         <input type="submit" class="btn btn-warning btm-sm" value="Edit">
