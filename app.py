@@ -142,7 +142,7 @@ def character_creation():
         else:
             print(values)
             add_to_db("chars", values)
-            val_char_mess = f""" {values[2]}, the {values[5]} {values[4]} {values[3]} with 
+            val_char_mess = f""" {values[2]}, the level {values[8]} {values[6]} {values[5]} {values[4]} {values[3]} with 
                         {values[15]} hit points was created by 
                          {current_user.get_name()}!
                                         """
@@ -320,7 +320,7 @@ def test_connect():
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     add_to_db("log", (session_id, user_key, "Connection", "User connected", s))
     init_items = read_db("initiative", "chr_name, init_val")
-    # chat_items = read_db("log", "log", "where title = 'Chat'")
+    # chat_items = read_db("log", "log", "where title = 'Chat'") # Still want this?
     chats = read_db("chat", "user_key, chr_name, chat", f"WHERE room_id = '{session_id}'")
     if init_items != []:
         for item in init_items:
