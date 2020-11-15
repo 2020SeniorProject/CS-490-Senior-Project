@@ -17,6 +17,13 @@ def create_connection(db_file):
 # Log = entry from log, entered by users. Tracked to actions in battle and other relevant info
 # timestamp = used to keep order of log entries for the room
 
+#chat table
+#(derived from log table to better ecapsulate these two tools)
+#room_id & user_key = tracks room and user who output text
+# character name = utilized to track which character in the party chatted
+# chat = holds what has been sent to chat
+# timestamp = when a chat was sent
+
 # initiative table
 # room_id = Global identifier for battle map created by user
 # user_key = Unique user ID, allows for maps to be sorted by users
@@ -40,15 +47,18 @@ def create_dbs():
         cur = conn.cursor()              
         cur.execute(f"""CREATE TABLE IF NOT EXISTS log 
                         (row_id INT PRIMARY KEY, room_id TEXT,user_key TEXT, title TEXT, log LONGTEXT, timestamp DATETIME); """)
-
+        
+        cur.execute(f"""CREATE TABLE IF NOT EXISTS chat
+                        (row_id INT PRIMARY KEY, room_id TEXT, user_key TEXT, chr_name TEXT, chat TEXT, timestamp DATETIME);""")
+        
         cur.execute(f"""CREATE TABLE IF NOT EXISTS initiative 
-                        (row_id INT PRIMARY KEY, room_id TEXT, user_key TEXT, player_name TEXT, init_val INT);""") 
+                        (row_id INT PRIMARY KEY, room_id TEXT, user_key TEXT, chr_name TEXT, init_val INT);""") 
         
         cur.execute(f"""CREATE TABLE IF NOT EXISTS users 
                         (user_id TEXT PRIMARY KEY, user_name TEXT NOT NULL, email TEXT NOT NULL, profile_pic TEXT);""") 
 
         cur.execute(f""" CREATE TABLE IF NOT EXISTS characters
-                            (user_id TEXT, room_id TEXT, chr_name TEXT, class TEXT, race TEXT, subrace TEXT, speed INT, level INT, strength INT, dexterity INT, constitution INT, intelligence INT, wisdom INT, charisma INT, hitpoints INT, PRIMARY KEY(user_id, chr_name));""")
+                            (user_key TEXT, room_id TEXT, chr_name TEXT, class TEXT, subclass TEXT, race TEXT, subrace TEXT, speed INT, level INT, strength INT, dexterity INT, constitution INT, intelligence INT, wisdom INT, charisma INT, hitpoints INT, PRIMARY KEY(user_key, chr_name));""")
 
 
 def add_to_db(db_name, values):
@@ -56,10 +66,12 @@ def add_to_db(db_name, values):
         cur = conn.cursor()
         if db_name == "log":
             sql = f"INSERT INTO {db_name}(room_id, user_key, title, log, timestamp) VALUES('{values[0]}','{values[1]}','{values[2]}','{values[3]}','{values[4]}');"
+        elif db_name == "chat":
+            sql = f"INSERT INTO chat(room_id, user_key, chr_name, chat, timestamp) VALUES('{values[0]}','{values[1]}','{values[2]}','{values[3]}',{values[4]}) "
         elif db_name == "init":
-            sql = f"INSERT INTO initiative(room_id, user_key, player_name, init_val) VALUES ('{values[0]}', '{values[1]}', '{values[2]}', {values[3]});"
+            sql = f"INSERT INTO initiative(room_id, user_key, chr_name, init_val) VALUES ('{values[0]}', '{values[1]}', '{values[2]}', {values[3]});"
         elif db_name == "chars":
-            sql = f"INSERT INTO characters(user_id, room_id, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints) VALUES('{values[0]}', '{values[1]}', '{values[2]}', '{values[3]}', '{values[4]}', '{values[5]}', '{values[6]}', {values[7]}, {values[8]}, {values[9]}, {values[10]}, {values[11]}, {values[12]}, {values[13]}, {values[14]}, {values[15]});"
+            sql = f"INSERT INTO characters(user_key, room_id, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints) VALUES('{values[0]}', '{values[1]}', '{values[2]}', '{values[3]}', '{values[4]}', '{values[5]}', '{values[6]}', {values[7]}, {values[8]}, {values[9]}, {values[10]}, {values[11]}, {values[12]}, {values[13]}, {values[14]}, {values[15]});"
         elif db_name == "users":
             sql = f"INSERT INTO users(user_id, user_name, email, profile_pic) VALUES ('{values[0]}', '{values[1]}', '{values[2]}', '{values[3]}');"
         cur.execute(sql)

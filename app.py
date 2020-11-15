@@ -104,7 +104,7 @@ def view_characters():
     user = read_db("users", "*", f"WHERE user_id = '{current_user.get_user_id()}'")
     if request.method == "POST":
         if request.form['type'] == "delete":
-            delete_from_db("characters", f"WHERE user_id = '{user[0][0]}' AND chr_name = '{request.form['character_name']}'")
+            delete_from_db("characters", f"WHERE user_key = '{user[0][0]}' AND chr_name = '{request.form['character_name']}'")
         elif request.form['type'] == "edit":        # TODO: if user leaves this page before publishing changes, the character is lost
             form = CharacterValidation()
             if form.validate():
@@ -124,7 +124,7 @@ def view_characters():
                 return render_template("edit_character.html", message_text=whole_err_mes, name=form.name.data, hp=form.hitpoints.data, speed=form.hitpoints.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data)        
     else:
         print("NORMAL")
-    items = read_db("characters", "*", f"WHERE user_id = '{user[0][0]}'")
+    items = read_db("characters", "*", f"WHERE user_key = '{user[0][0]}'")
     return render_template("view_characters.html", items=items)
 
 
@@ -181,7 +181,7 @@ def home():
 def choose_character():
     # TODO: Somehow change the database to update what game the character is in
     user = read_db("users", "*", f"WHERE user_id = '{current_user.get_user_id()}'")
-    characters = read_db("characters", "*", f"WHERE user_id = '{user[0][0]}'")
+    characters = read_db("characters", "*", f"WHERE user_key = '{user[0][0]}'")
     if characters:
         return render_template("choose_character.html", characters=characters)
     else:
@@ -307,7 +307,11 @@ def test_broadcast_message(message):
     emit('chat_update', {'data': message['data']}, broadcast=True)
     emit('log_update', {'data': "Chat update"}, broadcast=True)
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    add_to_db("log", (session_id, user_key, "Chat", message['data'][0], s))
+    # add_to_db("log", (session_id, user_key, "Chat", message['data'][0], s)) #do we still want to hold chats?
+    user_id = user[0][0]
+    chr_name = "Yanko"
+    add_to_db("chat",(session_id, user_id, char_name, message['data'][0], s))
+
 
 @socketio.on('connect', namespace='/test')
 def test_connect():
@@ -315,14 +319,15 @@ def test_connect():
     emit('log_update', {'data': "Connected"}, broadcast=True)
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     add_to_db("log", (session_id, user_key, "Connection", "User connected", s))
-    init_items = read_db("initiative", "player_name, init_val")
-    chat_items = read_db("log", "log", "where title = 'Chat'")
+    init_items = read_db("initiative", "chr_name, init_val")
+    # chat_items = read_db("log", "log", "where title = 'Chat'")
+    chats = read_db("chat", "user_key, chr_name, chat", f"WHERE room_id = '{session_id}'")
     if init_items != []:
         for item in init_items:
             emit('initiative_update', {'data': item})
         emit('log_update', {'data': "Initiative List Received"})
-    if chat_items != []:
-        for item in chat_items:
+    if chats != []:
+        for item in chats:
             emit('chat_update', {'data': item})
         emit('log_update', {'data': "Chat List Received"})
 
