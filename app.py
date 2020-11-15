@@ -110,6 +110,7 @@ def view_characters():
             if form.validate():
                 user_id = user[0][0]
                 values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data,  form.hitpoints.data)
+                print(values)
                 add_to_db("chars", values)
             else:
                 # TODO: Personalize error messages
@@ -139,6 +140,7 @@ def character_creation():
         if read_db("characters", "*", f"WHERE chr_name = '{values[2]}'") != []:
             return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
         else:
+            print(values)
             add_to_db("chars", values)
             val_char_mess = f""" {values[2]}, the {values[5]} {values[4]} {values[3]} with 
                         {values[15]} hit points was created by 
