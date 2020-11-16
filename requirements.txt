@@ -14,5 +14,4 @@ python-dotenv
 requests==2.21.0
 oauthlib==3.0.1
 pyOpenSSL==19.0.0
-flask-wtf
 WTForms==2.3.3
