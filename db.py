@@ -111,7 +111,6 @@ def build_api_db(files):
                 if file == "race":
                     for row in reader:
                         cur.execute(f"""INSERT INTO race(race, subrace, speed) VALUES('{row[0]}', '{row[1]}', '{row[2]}');""")
-                        print(row[0], row[1], row[2])
                 elif file == "class":
                     for row in reader:
                         cur.execute(f"""INSERT INTO class(class, subclass) VALUES('{row[0]}', '{row[1]}');""")
