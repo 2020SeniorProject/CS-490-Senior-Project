@@ -25,7 +25,7 @@ from classes import User, CharacterValidation
 from db import *
 
 
-
+print("app starting")
 
 
 ### SET VARIABLES AND INITIALIZE PRIMARY PROCESSES
@@ -336,7 +336,7 @@ def test_connect():
 
 
 if __name__ == "__main__":
-    app.run(ssl_context="adhoc")
+    app.run(ssl_context="adhoc", port=33507)
 
 
 
