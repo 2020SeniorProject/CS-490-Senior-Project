@@ -25,7 +25,7 @@ from classes import User, CharacterValidation
 from db import *
 
 
-
+print("app starting")
 
 
 ### SET VARIABLES AND INITIALIZE PRIMARY PROCESSES
