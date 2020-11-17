@@ -345,3 +345,5 @@ if __name__ == "__main__":
 # References
 # https://realpython.com/flask-google-login/\
 # https://blog.miguelgrinberg.com/post/easy-websockets-with-flask-and-gevent 
+# heroku specific changes - commit id: 6e0717afc16625b0cddb6410974bdb4c67bbf44f
+#	URL: https://github.com/2020SeniorProject/CS-490-Senior-Project/commit/6e0717afc16625b0cddb6410974bdb4c67bbf44f
