@@ -89,7 +89,11 @@
         <input type="hidden" id="old_class" value="{{ old_class }}">
         <input type="hidden" id="old_subclass" value="{{ old_subclass }}">
     </form>
-    <p>{{ message_text }}</p>
+    <ul>
+    {% for i in errors %}
+    <li> {{ i }} </li>
+    {% endfor %}
+    </ul>
 </div>
 
 {% endblock %}

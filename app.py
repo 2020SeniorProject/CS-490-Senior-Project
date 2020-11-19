@@ -112,15 +112,14 @@ def view_characters():
                 values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data,  form.hitpoints.data)
                 add_to_db("chars", values)
             else:
-                # TODO: Personalize error messages
+                # TODO: Personalize error messages 
                 # TODO: Figure out how to pass dropdowns
                 err_lis = []
                 for errs in form.errors.keys():
                     for mess in form.errors[errs]:
                         err_mes = errs + ": " + mess + "!" +"\n"
                         err_lis += [err_mes]
-                whole_err_mes = r''.join(err_lis)
-                return render_template("edit_character.html", message_text=whole_err_mes, name=form.name.data, hp=form.hitpoints.data, speed=form.hitpoints.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data)        
+                return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.hitpoints.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data)        
     else:
         print("NORMAL")
     items = read_db("characters", "*", f"WHERE user_key = '{user[0][0]}'")
@@ -131,6 +130,7 @@ def view_characters():
 @app.route("/characters/create", methods=["POST", "GET"])
 @login_required
 def character_creation():
+    # TODO: Personalize bad CSRF token 
     form = CharacterValidation()
     if request.method == "POST" and form.validate():
         user = read_db("users", "*", f"WHERE user_id = '{current_user.get_user_id()}'")
@@ -151,8 +151,7 @@ def character_creation():
             for mess in form.errors[errs]:
                 err_mes = errs + ": " + mess + "!" +"\n"
                 err_lis += [err_mes]
-        whole_err_mes = r''.join(err_lis)
-        return render_template("add_character.html", message_text=whole_err_mes, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
+        return render_template("add_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
     return render_template("add_character.html")
 
 
