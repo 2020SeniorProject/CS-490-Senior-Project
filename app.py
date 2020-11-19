@@ -110,7 +110,6 @@ def view_characters():
             if form.validate():
                 user_id = user[0][0]
                 values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data,  form.hitpoints.data)
-                print(values)
                 add_to_db("chars", values)
             else:
                 # TODO: Personalize error messages
@@ -162,8 +161,8 @@ def character_creation():
 @login_required
 def edit_character():
     name = request.form['character_name']
-    character = read_db("characters", "*", f"WHERE user_id = '{current_user.get_user_id()}' AND chr_name = '{name}'")[0]
-    delete_from_db("characters", f"WHERE user_id = '{current_user.get_user_id()}' AND chr_name = '{name}'")
+    character = read_db("characters", "*", f"WHERE user_key = '{current_user.get_user_id()}' AND chr_name = '{name}'")[0]
+    delete_from_db("characters", f"WHERE user_key = '{current_user.get_user_id()}' AND chr_name = '{name}'")
     # TODO: Figure out how to pass the dropdown variables, update as more columns get added
     # TODO: Fix subrace (not supported by db at the moment)
     return render_template("edit_character.html", name=character[2], hp=character[6], old_race=character[5], old_subrace=character[5], old_class=character[3], old_subclass=character[4])
@@ -295,7 +294,8 @@ def test_broadcast_message(message):
     # Sends to all connected
     emit('initiative_update', {'data': message['data']}, broadcast=True)
     emit('log_update', {'data': "Initiative Added"}, broadcast=True)
-    add_to_db("init", (session_id, user_key, message['data'][0], message['data'][1]))
+    #TODO: Implement way to set turns( setting all to not their turn for now)
+    add_to_db("room", (session_id, user_key, message['data'][0], message['data'][1], 0))
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     init_name = message['data'][0] + message['data'][1]
     add_to_db("log", (session_id, user_key, "Init", init_name, s) )

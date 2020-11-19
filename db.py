@@ -30,8 +30,8 @@ def create_connection(db_file):
 # player_name = Entered by DM/map owner, player character name associated with the given intiative
 # init_val = intiative # associated with a player
 
-# users table
-# user_id = user_id gotten from Google
+# users table ****** THIS IS THE ONLY TABLE THAT UTILIZES USER_ID INSTEAD OF USER_KEY BUT THEY ARE SYNONYMOUS ******
+# user_id = user_id gotten from Google 
 # user_name = username gotten from Google
 # email = email address gotten from Google
 # profile_pic = URL to Google profile pic
@@ -51,9 +51,9 @@ def create_dbs():
         cur.execute(f"""CREATE TABLE IF NOT EXISTS chat
                         (row_id INT PRIMARY KEY, room_id TEXT, user_key TEXT, chr_name TEXT, chat TEXT, timestamp DATETIME);""")
         
-        cur.execute(f"""CREATE TABLE IF NOT EXISTS initiative 
-                        (row_id INT PRIMARY KEY, room_id TEXT, user_key TEXT, chr_name TEXT, init_val INT);""") 
-        
+        cur.execute(f"""CREATE TABLE IF NOT EXISTS room 
+                        (room_id TEXT, user_key TEXT PRIMARY KEY, chr_name TEXT, init_val INT, isTurn INT);""") 
+
         cur.execute(f"""CREATE TABLE IF NOT EXISTS users 
                         (user_id TEXT PRIMARY KEY, user_name TEXT NOT NULL, email TEXT NOT NULL, profile_pic TEXT);""") 
 
@@ -69,9 +69,11 @@ def add_to_db(db_name, values):
         elif db_name == "chat":
             sql = f"INSERT INTO chat(room_id, user_key, chr_name, chat, timestamp) VALUES('{values[0]}','{values[1]}','{values[2]}','{values[3]}',{values[4]}) "
         elif db_name == "init":
-            sql = f"INSERT INTO initiative(room_id, user_key, chr_name, init_val) VALUES ('{values[0]}', '{values[1]}', '{values[2]}', {values[3]});"
+            sql = f"INSERT INTO room(room_id, user_key, chr_name, init_val, isTurn) VALUES ('{values[0]}', '{values[1]}', '{values[2]}', {values[3]}, {values[4]});"
         elif db_name == "chars":
-            sql = f"INSERT INTO characters(user_key, room_id, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints) VALUES('{values[0]}', '{values[1]}', '{values[2]}', '{values[3]}', '{values[4]}', '{values[5]}', '{values[6]}', {values[7]}, {values[8]}, {values[9]}, {values[10]}, {values[11]}, {values[12]}, {values[13]}, {values[14]}, {values[15]});"
+            sql = f"""INSERT INTO characters(user_key, room_id, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints) 
+            VALUES('{values[0]}', '{values[1]}', '{values[2]}', '{values[3]}', '{values[4]}', '{values[5]}', '{values[6]}', 
+            {values[7]}, {values[8]}, {values[9]}, {values[10]}, {values[11]}, {values[12]}, {values[13]}, {values[14]}, {values[15]});"""
         elif db_name == "users":
             sql = f"INSERT INTO users(user_id, user_name, email, profile_pic) VALUES ('{values[0]}', '{values[1]}', '{values[2]}', '{values[3]}');"
         cur.execute(sql)

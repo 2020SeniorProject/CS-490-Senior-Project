@@ -6,7 +6,7 @@ from wtforms.validators import Length, NumberRange, DataRequired, ValidationErro
 
 
 ##
-## Validate that initative input is valid
+## Validate that character input is valid
 ##
 
 
