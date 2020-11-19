@@ -89,8 +89,10 @@
         <input type="hidden" id="old_subrace" value="{{ old_subrace }}">
         <input type="hidden" id="old_class" value="{{ old_class }}">
         <input type="hidden" id="old_subclass" value="{{ old_subclass }}">
+        <input type="hidden" name="old_name" value="{{ old_name }}">
     </form>
     <ul>
+    {{ message_text }}
     {% for i in errors %}
     <li> {{ i }} </li>
     {% endfor %}

@@ -24,10 +24,6 @@ from flask_wtf.csrf import CSRFProtect
 from classes import User, CharacterValidation
 from db import *
 
-
-print("app starting")
-
-
 ### SET VARIABLES AND INITIALIZE PRIMARY PROCESSES
 
 # Google OAuth configurations
@@ -108,18 +104,22 @@ def view_characters():
         elif request.form['type'] == "edit":        # TODO: if user leaves this page before publishing changes, the character is lost
             form = CharacterValidation()
             if form.validate():
+                if request.form['old_name'] != request.form['name']:
+                    if read_db("characters", "*", f"WHERE user_key = '{user[0][0]}' AND chr_name = '{request.form['name']}'") != []:
+                        return render_template("edit_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'])
+        
+                delete_from_db("characters", f"WHERE user_key = '{current_user.get_user_id()}' AND chr_name = '{request.form['old_name']}'")
+
                 user_id = user[0][0]
-                values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data,  form.hitpoints.data)
+                values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data)
                 add_to_db("chars", values)
             else:
-                # TODO: Personalize error messages 
-                # TODO: Figure out how to pass dropdowns
                 err_lis = []
                 for errs in form.errors.keys():
                     for mess in form.errors[errs]:
                         err_mes = errs + ": " + mess + "!" +"\n"
                         err_lis += [err_mes]
-                return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.hitpoints.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data)        
+                return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.hitpoints.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_name=request.form['old_name'])        
     else:
         print("NORMAL")
     items = read_db("characters", "*", f"WHERE user_key = '{user[0][0]}'")
@@ -133,10 +133,9 @@ def character_creation():
     # TODO: Personalize bad CSRF token 
     form = CharacterValidation()
     if request.method == "POST" and form.validate():
-        user = read_db("users", "*", f"WHERE user_id = '{current_user.get_user_id()}'")
-        user_id = user[0][0]
+        user_id = current_user.get_user_id()
         values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data)
-        if read_db("characters", "*", f"WHERE chr_name = '{values[2]}'") != []:
+        if read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{values[2]}'") != []:
             return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
         else:
             add_to_db("chars", values)
@@ -160,10 +159,8 @@ def character_creation():
 def edit_character():
     name = request.form['character_name']
     character = read_db("characters", "*", f"WHERE user_key = '{current_user.get_user_id()}' AND chr_name = '{name}'")[0]
-    delete_from_db("characters", f"WHERE user_key = '{current_user.get_user_id()}' AND chr_name = '{name}'")
-    # TODO: Figure out how to pass the dropdown variables, update as more columns get added
-    # TODO: Fix subrace (not supported by db at the moment)
-    return render_template("edit_character.html", name=character[2], hp=character[6], old_race=character[5], old_subrace=character[5], old_class=character[3], old_subclass=character[4])
+
+    return render_template("edit_character.html", name=character[2], hp=character[15], old_race=character[5], old_subrace=character[6], old_class=character[3], old_subclass=character[4], speed=character[7], lvl=character[8], str=character[9], dex=character[10], con=character[11], int=character[12], wis=character[13], cha=character[14], old_name=character[2])
 
 
 # Post-Login Landing Page
@@ -259,7 +256,7 @@ def callback():
 
 # Logout
 @app.route("/logout")
-@login_required   # TODO: customize unauthorized page 
+@login_required
 def logout():
     logout_user()
     return redirect(url_for("login_index"))
@@ -328,9 +325,6 @@ def test_connect():
         for item in chats:
             emit('chat_update', {'data': item})
         emit('log_update', {'data': "Chat List Received"})
-
-
-
 
 
 if __name__ == "__main__":

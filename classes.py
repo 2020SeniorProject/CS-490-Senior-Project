@@ -14,7 +14,7 @@ class CharacterValidation(FlaskForm):
     name = StringField('Name', [DataRequired(message="Please Input Name"), Length(min=1, max=20, message ="Bad Name Size")])
     race = StringField('Race', [DataRequired(message="Please choose a race")] )
     subrace = StringField('Subrace', [DataRequired(message="Please choose a subrace")])
-    speed = IntegerField('speed', [DataRequired(message="Please input Speed")])
+    speed = IntegerField('speed', [DataRequired(message="Please input Speed"), NumberRange(min=1, max=100, message="Outside Possible Range")])
     classname = StringField('class', [DataRequired(message="Please choose class ")])
     subclass = StringField('subclass', [DataRequired(message ="Please choose subclass")])
     level = IntegerField('level', [DataRequired(message="Please input level"), NumberRange(min=1, max=20, message="Outside Possible Range")])

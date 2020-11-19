@@ -90,6 +90,7 @@
         <input type="hidden" id="old_subclass" value="{{ old_subclass }}">
     </form>
     <ul>
+    {{ message_text }}
     {% for i in errors %}
     <li> {{ i }} </li>
     {% endfor %}
