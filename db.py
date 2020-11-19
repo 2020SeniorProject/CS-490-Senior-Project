@@ -95,6 +95,20 @@ def delete_from_db(db_name, extra_clause = ""):
         cur.execute(f"DELETE FROM {db_name} {extra_clause};")
         conn.commit()
 
+def reset_db(db_name):
+    with create_connection("battle_sesh.db") as conn:
+        cur = conn.cursor()
+        cur.execute(f"""DROP TABLE IF EXISTS {db_name};""")
+        conn.commit()
+
+        create_dbs()
+
+def update_db(db_name, columns_values, extra_clause):
+    with create_connection("battle_sesh.db") as conn:
+        cur = conn.cursor()
+        cur.execute(f"""UPDATE {db_name} SET {columns_values} {extra_clause};""")
+        conn.commit()
+
 
 def build_api_db(files):
     with sqlite3.connect("api.db") as conn:

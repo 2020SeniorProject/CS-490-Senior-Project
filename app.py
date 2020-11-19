@@ -101,7 +101,7 @@ def view_characters():
     if request.method == "POST":
         if request.form['type'] == "delete":
             delete_from_db("characters", f"WHERE user_key = '{user[0][0]}' AND chr_name = '{request.form['character_name']}'")
-        elif request.form['type'] == "edit":        # TODO: if user leaves this page before publishing changes, the character is lost
+        elif request.form['type'] == "edit":
             form = CharacterValidation()
             if form.validate():
                 if request.form['old_name'] != request.form['name']:
@@ -173,7 +173,6 @@ def home():
 @app.route("/play/choose")
 @login_required
 def choose_character():
-    # TODO: Somehow change the database to update what game the character is in
     user = read_db("users", "*", f"WHERE user_id = '{current_user.get_user_id()}'")
     characters = read_db("characters", "*", f"WHERE user_key = '{user[0][0]}'")
     if characters:
@@ -181,14 +180,18 @@ def choose_character():
     else:
         return render_template("add_character.html", message_text="You need to have a character to join!")
 
-
 # Gameplay Page
-@app.route("/play", methods=["POST"])
+@app.route("/play", methods=["GET", "POST"])
 @login_required
 def play():
     # TODO: Integrate character name into the messages sent by the sockets
     # TODO: Update the database to state that this character is in the game
-    return render_template("index.html", async_mode=socketio.async_mode)
+    char_name = request.form['character']
+    user_id = current_user.get_user_id()
+    if not read_db("room", extra_clause=f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
+        add_to_db("room", (session_id, user_id, char_name, 0, False))
+
+    return render_template("play.html", async_mode=socketio.async_mode, char_name=char_name)
 
 # Landing Login Page
 @app.route("/")
@@ -287,13 +290,16 @@ def get_classes():
 @socketio.on('set_initiative', namespace='/test')
 def test_broadcast_message(message):
     # Sends to all connected
-    emit('initiative_update', {'data': message['data']}, broadcast=True)
-    emit('log_update', {'data': "Initiative Added"}, broadcast=True)
-    #TODO: Implement way to set turns( setting all to not their turn for now)
-    add_to_db("room", (session_id, user_key, message['data'][0], message['data'][1], 0))
+    character_name = message['character_name']
+    init_val = message['init_val']
+    user_id = current_user.get_user_id()
+
+    emit('initiative_update', {'character_name': character_name, 'init_val': init_val}, broadcast=True)
+    emit('log_update', {'data': f"{character_name}'s initiative updated"}, broadcast=True)
+    update_db("room", f"init_val = '{init_val}'", f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{character_name}'")
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    init_name = message['data'][0] + message['data'][1]
-    add_to_db("log", (session_id, user_key, "Init", init_name, s) )
+    init_name = character_name + init_val
+    add_to_db("log", (session_id, user_id, "Init", init_name, s) )
 
 
 @socketio.on('send_chat', namespace='/test')
@@ -302,7 +308,6 @@ def test_broadcast_message(message):
     emit('chat_update', {'data': message['data']}, broadcast=True)
     emit('log_update', {'data': "Chat update"}, broadcast=True)
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    # add_to_db("log", (session_id, user_key, "Chat", message['data'][0], s)) #do we still want to hold chats?
     user_id = user[0][0]
     chr_name = "Yanko"
     add_to_db("chat",(session_id, user_id, char_name, message['data'][0], s))
@@ -314,12 +319,11 @@ def test_connect():
     emit('log_update', {'data': "Connected"}, broadcast=True)
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     add_to_db("log", (session_id, user_key, "Connection", "User connected", s))
-    init_items = read_db("room", "chr_name, init_val")
-    # chat_items = read_db("log", "log", "where title = 'Chat'") # Still want this?
+    initiatives = read_db("room", "chr_name, init_val", f"WHERE room_id = '{session_id}'")
     chats = read_db("chat", "user_key, chr_name, chat", f"WHERE room_id = '{session_id}'")
-    if init_items != []:
-        for item in init_items:
-            emit('initiative_update', {'data': item})
+    if initiatives != []:
+        for item in initiatives:
+            emit('initiative_update', {'character_name': item[0], 'init_val': item[1]})
         emit('log_update', {'data': "Initiative List Received"})
     if chats != []:
         for item in chats:
