@@ -139,7 +139,6 @@ def character_creation():
         if read_db("characters", "*", f"WHERE chr_name = '{values[2]}'") != []:
             return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
         else:
-            print(values)
             add_to_db("chars", values)
             val_char_mess = f""" {values[2]}, the level {values[8]} {values[6]} {values[5]} {values[4]} {values[3]} with 
                         {values[15]} hit points was created by 
@@ -319,7 +318,7 @@ def test_connect():
     emit('log_update', {'data': "Connected"}, broadcast=True)
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     add_to_db("log", (session_id, user_key, "Connection", "User connected", s))
-    init_items = read_db("initiative", "chr_name, init_val")
+    init_items = read_db("room", "chr_name, init_val")
     # chat_items = read_db("log", "log", "where title = 'Chat'") # Still want this?
     chats = read_db("chat", "user_key, chr_name, chat", f"WHERE room_id = '{session_id}'")
     if init_items != []:

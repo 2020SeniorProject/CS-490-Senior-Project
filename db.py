@@ -68,7 +68,7 @@ def add_to_db(db_name, values):
             sql = f"INSERT INTO {db_name}(room_id, user_key, title, log, timestamp) VALUES('{values[0]}','{values[1]}','{values[2]}','{values[3]}','{values[4]}');"
         elif db_name == "chat":
             sql = f"INSERT INTO chat(room_id, user_key, chr_name, chat, timestamp) VALUES('{values[0]}','{values[1]}','{values[2]}','{values[3]}',{values[4]}) "
-        elif db_name == "init":
+        elif db_name == "room":
             sql = f"INSERT INTO room(room_id, user_key, chr_name, init_val, isTurn) VALUES ('{values[0]}', '{values[1]}', '{values[2]}', {values[3]}, {values[4]});"
         elif db_name == "chars":
             sql = f"""INSERT INTO characters(user_key, room_id, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints) 
