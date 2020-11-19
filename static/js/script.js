@@ -71,4 +71,5 @@ function compareSecondColumn(a, b) {
   else {
       return (a[1] > b[1]) ? -1 : 1;
   }
+  //https://stackoverflow.com/questions/16096872/how-to-sort-2-dimensional-array-by-column-value
 }
