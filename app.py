@@ -298,9 +298,9 @@ def test_broadcast_message(message):
 @socketio.on('send_chat', namespace='/test')
 def test_broadcast_message(message):
     emit('chat_update', {'data': message['data']}, broadcast=True)
-    emit('log_update', {'data': "Chat update"}, broadcast=True)
+    # emit('log_update', {'data': "Chat update"}, broadcast=True)
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    user_id = user[0][0]
+    user_id = current_user.get_user_id()
     chr_name = "Yanko"
     add_to_db("chat",(session_id, user_id, char_name, message['data'][0], s))
 
@@ -314,8 +314,20 @@ def start_combat_event(message):
     first_character = characters[-1]
     # TODO: Fix to work when the are multiple characters with the same name
     emit('combat_started', {'data': 'Started Combat', 'first_turn_name': first_character[1]}, broadcast=True)
-    update_db("room", f"is_turn = '{1}'", f"WHERE user_key = '{first_character[0]}' AND chr_name = '{first_character[1]}' AND init_val = '{first_character[2]}'")
-    print(read_db("room"))
+    update_db("room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}'")
+    update_db("room", f"is_turn = '{1}'", f"WHERE room_id = '{session_id}' AND user_key = '{first_character[0]}' AND chr_name = '{first_character[1]}' AND init_val = '{first_character[2]}'")
+
+
+@socketio.on('end_turn', namespace='/test')
+def end_turn_event(message):
+    # TODO: Deal with it when room_id is sent through
+    old_character = read_db("room", "user_key", f"WHERE room_id = '{session_id}' AND chr_name = '{message['old_name']}'")[0]
+    update_db("room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}' AND user_key = '{old_character[0]}' AND chr_name = '{message['old_name']}'")
+
+    new_character = read_db("room", "user_key, chr_name", f"WHERE room_id = '{session_id}' AND chr_name = '{message['next_name']}'")[0]
+    update_db("room", f"is_turn = '{1}'", f"WHERE room_id = '{session_id}' AND user_key = '{new_character[0]}' AND chr_name = '{message['next_name']}'")
+
+    emit("turn_ended", {'data': message['data']}, broadcast=True)
 
 
 @socketio.on('connect', namespace='/test')

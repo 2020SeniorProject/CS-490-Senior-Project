@@ -28,7 +28,11 @@
             <form class="form" id=set_initiative>
                 <input type=text id=player_name class="form-control" value="{{ char_name }}" disabled required>
                 <input type=number id=initiative_roll class="form-control" min=0 max=30 placeholder="Initiative" required>
-                <input type=submit class="btn btn-primary form-control" value="Update Initiative">
+                <input type=submit class="btn btn-primary form-control" value="Update Initiative" id=set_initiative_button>
+            </form>
+
+            <form class="form" id="end_turn">
+                <input type=submit class="btn btn-danger form-control" value="End Turn!" id=end_turn_button disabled>
             </form>
         </div>
         <div class="col-8 border border-dark">

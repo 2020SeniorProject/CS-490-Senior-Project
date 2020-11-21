@@ -106,6 +106,7 @@ def reset_db(db_name):
 def update_db(db_name, columns_values, extra_clause):
     with create_connection("battle_sesh.db") as conn:
         cur = conn.cursor()
+        # print(f"""UPDATE {db_name} SET {columns_values} {extra_clause};""")
         cur.execute(f"""UPDATE {db_name} SET {columns_values} {extra_clause};""")
         conn.commit()
 

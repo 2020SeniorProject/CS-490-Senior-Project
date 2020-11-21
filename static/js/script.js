@@ -1,4 +1,5 @@
 var initiatives = [];
+var turn_index = null;
 
 $(document).ready(function() {
   // Use a "/test" namespace.
@@ -27,6 +28,20 @@ $(document).ready(function() {
     // TODO: Add in the room_id for processing
     console.log("Started battle")
     socket.emit('start_combat', {data: "Start Battle"});
+    return false;
+  });
+
+  $('form#end_turn').submit(function(event) {
+    // TODO: Add in the room_id for processing
+    console.log("Turn ended")
+    var next_index = null;
+    if (turn_index + 1 == initiatives.length) {
+      next_index = 0
+    }
+    else {
+      next_index = turn_index + 1
+    }
+    socket.emit('end_turn', {data: `${initiatives[turn_index][0]}'s Turn Ended`, old_name: initiatives[turn_index][0], next_name: initiatives[next_index][0]});
     return false;
   });
 
@@ -62,7 +77,24 @@ $(document).ready(function() {
   socket.on('combat_started', function(msg) {
     $('#log').append($('<div/>').text(msg.data).html() + '<br>');
     $(`#${msg.first_turn_name}-row`).addClass("bg-warning");
+    turn_index = 0;
+    $('#end_turn_button').prop('disabled', false);
+    $('#set_initiative_button').prop('disabled', true);
     // TODO: Update "start_battle" form to "end_battle" and add socketio events
+  });
+
+  socket.on('turn_ended', function(msg) {
+    $('#log').append($('<div/>').text(msg.data).html() + '<br>');
+    var next_index = null;
+    if (turn_index + 1 == initiatives.length) {
+      next_index = 0
+    }
+    else {
+      next_index = turn_index + 1
+    }
+    $(`#${initiatives[turn_index][0]}-row`).removeClass("bg-warning");
+    $(`#${initiatives[next_index][0]}-row`).addClass("bg-warning");
+    turn_index = next_index;
   });
 });
 
