@@ -23,6 +23,13 @@ $(document).ready(function() {
     return false;
   });
 
+  $('form#start_battle').submit(function(event) {
+    // TODO: Add in the room_id for processing
+    console.log("Started battle")
+    socket.emit('start_combat', {data: "Start Battle"});
+    return false;
+  });
+
   socket.on('log_update', function(msg) {
     $('#log').append($('<div/>').text(msg.data).html() + '<br>');
   });
@@ -51,12 +58,19 @@ $(document).ready(function() {
   socket.on('chat_update', function(msg) {
     $('#chat-list').append($('<div/>').text(msg.data).html() + '<br>');
   });
+
+  socket.on('combat_started', function(msg) {
+    $('#log').append($('<div/>').text(msg.data).html() + '<br>');
+    $(`#${msg.first_turn_name}-row`).addClass("bg-warning");
+    // TODO: Update "start_battle" form to "end_battle" and add socketio events
+  });
 });
 
 function update_init_table() {
   code = "<tbody>";
   for (i = 0; i < initiatives.length; i++) {
-    code += `<tr><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td></tr>`;
+    // TODO: Fix id to work when multiple characters have the same name
+    code += `<tr id=${initiatives[i][0]}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td></tr>`;
   }
 
   code += "</tbody>";

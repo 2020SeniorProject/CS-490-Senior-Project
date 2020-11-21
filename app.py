@@ -1,6 +1,6 @@
 # Python standard libraries
 from threading import Lock
-import sqlite3
+# import sqlite3
 import json
 import os
 import datetime
@@ -8,21 +8,14 @@ import datetime
 # Third-party libraries
 from flask import Flask, render_template, session, request, redirect, url_for, jsonify
 from flask_socketio import SocketIO, emit 
-from flask_login import (
-    LoginManager,
-    current_user,
-    login_required,
-    login_user,
-    logout_user
-)
+from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 from oauthlib.oauth2 import WebApplicationClient
 import requests
 from flask_wtf.csrf import CSRFProtect
 
-
 # Internal imports
 from classes import User, CharacterValidation
-from db import *
+from db import create_dbs, add_to_db, read_db, delete_from_db, update_db, build_api_db, read_api_db, get_api_info
 
 ### SET VARIABLES AND INITIALIZE PRIMARY PROCESSES
 
@@ -189,7 +182,7 @@ def play():
     char_name = request.form['character']
     user_id = current_user.get_user_id()
     if not read_db("room", extra_clause=f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
-        add_to_db("room", (session_id, user_id, char_name, 0, False))
+        add_to_db("room", (session_id, user_id, char_name, 0, 0))
 
     return render_template("play.html", async_mode=socketio.async_mode, char_name=char_name)
 
@@ -287,9 +280,9 @@ def get_classes():
 
 ### EVENT HANDLERS
 
+# TODO: Make these pretty
 @socketio.on('set_initiative', namespace='/test')
 def test_broadcast_message(message):
-    # Sends to all connected
     character_name = message['character_name']
     init_val = message['init_val']
     user_id = current_user.get_user_id()
@@ -304,13 +297,25 @@ def test_broadcast_message(message):
 
 @socketio.on('send_chat', namespace='/test')
 def test_broadcast_message(message):
-    # Sends to all connected
     emit('chat_update', {'data': message['data']}, broadcast=True)
     emit('log_update', {'data': "Chat update"}, broadcast=True)
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = user[0][0]
     chr_name = "Yanko"
     add_to_db("chat",(session_id, user_id, char_name, message['data'][0], s))
+
+
+@socketio.on('start_combat', namespace='/test')
+def start_combat_event(message):
+    # TODO: Deal with it when room_id is sent through
+    characters = read_db("room", "user_key, chr_name, init_val", f"WHERE room_id = '{session_id}'")
+    # Sort by the 2nd column
+    characters = sorted(characters, key=lambda x: x[2])
+    first_character = characters[-1]
+    # TODO: Fix to work when the are multiple characters with the same name
+    emit('combat_started', {'data': 'Started Combat', 'first_turn_name': first_character[1]}, broadcast=True)
+    update_db("room", f"is_turn = '{1}'", f"WHERE user_key = '{first_character[0]}' AND chr_name = '{first_character[1]}' AND init_val = '{first_character[2]}'")
+    print(read_db("room"))
 
 
 @socketio.on('connect', namespace='/test')
