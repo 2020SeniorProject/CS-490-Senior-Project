@@ -179,6 +179,7 @@ def choose_character():
 def play():
     # TODO: Integrate character name into the messages sent by the sockets
     # TODO: Update the database to state that this character is in the game
+    # TODO: Check to see if combat has started
     char_name = request.form['character']
     user_id = current_user.get_user_id()
     if not read_db("room", extra_clause=f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
