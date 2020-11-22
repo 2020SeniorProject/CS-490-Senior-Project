@@ -319,6 +319,13 @@ def start_combat_event(message):
     update_db("room", f"is_turn = '{1}'", f"WHERE room_id = '{session_id}' AND user_key = '{first_character[0]}' AND chr_name = '{first_character[1]}' AND init_val = '{first_character[2]}'")
 
 
+@socketio.on('end_combat', namespace='/test')
+def end_combat_event(message):
+    current_player = read_db("room","user_key, chr_name", f"WHERE room_id = '{session_id} and is_turn = '{1}'")
+    emit('combat_ended', {'data':'Ended Combat', 'current_turn_player': current_player[1]}, broadcast=True)
+    update_db("room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}' AND user_key = '{current_player[0]}' AND chr_name = '{current_player[1]}'")
+
+
 @socketio.on('end_turn', namespace='/test')
 def end_turn_event(message):
     # TODO: Deal with it when room_id is sent through

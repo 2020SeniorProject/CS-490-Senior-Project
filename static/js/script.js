@@ -31,6 +31,12 @@ $(document).ready(function() {
     return false;
   });
 
+  $('form#end_battle').submit(function(event) {
+    console.log("Ended battle")
+    socket.emit('end_combat', {data: "End Battle"});
+    return false;
+  });
+
   $('form#end_turn').submit(function(event) {
     // TODO: Add in the room_id for processing
     console.log("Turn ended")
@@ -80,7 +86,19 @@ $(document).ready(function() {
     turn_index = 0;
     $('#end_turn_button').prop('disabled', false);
     $('#set_initiative_button').prop('disabled', true);
+    $('#start_battle').prop('disabled', true)
+    $('#end_battle').prop('disabled', true);
     // TODO: Update "start_battle" form to "end_battle" and add socketio events
+  });
+
+  socket.on('combat_ended', function(msg) {
+    $('#log').append($('<div/>').text(msg.data).html() + '<br>');
+    $(`#${msg.current_turn_player}-row`).removeClass("bg-warning");
+    turn_index = null;
+    $('#end_turn_button').prop('disabled', true);
+    $('#set_initiative_button').prop('disabled', false);
+    $('#start_battle').prop('disabled', false);
+    $('#end_battle').prop('disabled', true)
   });
 
   socket.on('turn_ended', function(msg) {
