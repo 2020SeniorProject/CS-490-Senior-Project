@@ -32,7 +32,7 @@ $(document).ready(function() {
   });
 
   $('form#end_battle').submit(function(event) {
-    console.log("Ended battle")
+    console.log("Ended battle");
     socket.emit('end_combat', {data: "End Battle"});
     return false;
   });
@@ -97,8 +97,7 @@ $(document).ready(function() {
 
   socket.on('combat_ended', function(msg) {
     $('#log').append($('<div/>').text(msg.data).html() + '<br>');
-    $(`#${msg.current_turn_player}-row`).removeClass("bg-warning");
-    turn_index = null;
+    $(`#${msg.current_turn_name}-row`).removeClass("bg-warning");
     $('#end_turn_button').prop('disabled', true);
     $('#set_initiative_button').prop('disabled', false);
     $('#start_battle').prop('disabled', false);
