@@ -309,10 +309,10 @@ def test_broadcast_message(message):
 @socketio.on('start_combat', namespace='/test')
 def start_combat_event(message):
     # TODO: Deal with it when room_id is sent through
-    characters = read_db("room", "user_key, chr_name, init_val", f"WHERE room_id = '{session_id}'")
+    characters = read_db("room", "user_key, chr_name, init_val", f"WHERE room_id = '{session_id}' ORDER BY chr_name DESC ")
     # Sort by the 2nd column
     characters = sorted(characters, key=lambda x: x[2])
-    first_character = characters[-1]
+    # TODO: Fix bug where second player with the same initiative as the first in list is highlighted
     # TODO: Fix to work when the are multiple characters with the same name
     emit('combat_started', {'data': 'Started Combat', 'first_turn_name': first_character[1]}, broadcast=True)
     update_db("room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}'")
@@ -323,7 +323,7 @@ def start_combat_event(message):
 def end_combat_event(message):
     current_player = read_db("room","user_key, chr_name", f"WHERE room_id = '{session_id} and is_turn = '{1}'")
     emit('combat_ended', {'data':'Ended Combat', 'current_turn_player': current_player[1]}, broadcast=True)
-    update_db("room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}' AND user_key = '{current_player[0]}' AND chr_name = '{current_player[1]}'")
+    update_db("room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}'")
 
 
 @socketio.on('end_turn', namespace='/test')

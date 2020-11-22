@@ -70,7 +70,11 @@ $(document).ready(function() {
       initiatives.push([msg.character_name, msg.init_val]);
     }
 
-    initiatives.sort(compareSecondColumn);
+    initiatives.sort(function(a, b) { 
+      return (b[1] - a[1]  ||  a[0].localeCompare(b[0]));
+      // https://stackoverflow.com/questions/12900058/how-can-i-sort-a-javascript-array-of-objects-numerically-and-then-alphabetically
+      // TODO: Fix the way name entry happens to conicide with SQL sort
+    });
 
     var html_code = update_init_table();
     $('#initiative-table').html(html_code);
@@ -87,7 +91,7 @@ $(document).ready(function() {
     $('#end_turn_button').prop('disabled', false);
     $('#set_initiative_button').prop('disabled', true);
     $('#start_battle').prop('disabled', true)
-    $('#end_battle').prop('disabled', true);
+    $('#end_battle').prop('disabled', false);
     // TODO: Update "start_battle" form to "end_battle" and add socketio events
   });
 
