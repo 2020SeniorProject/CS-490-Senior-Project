@@ -147,4 +147,10 @@ dmypy.json
 # database files
 *.db
 
+# Logs files
+log/
+
+# Gunicorn config
+gunicorn.config.py
+
 # End of https://www.toptal.com/developers/gitignore/api/python
