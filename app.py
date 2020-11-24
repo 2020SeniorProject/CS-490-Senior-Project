@@ -17,6 +17,8 @@ from flask_wtf.csrf import CSRFProtect
 from classes import User, CharacterValidation
 from db import create_dbs, add_to_db, read_db, delete_from_db, update_db, build_api_db, read_api_db, get_api_info
 
+import logging
+
 ### SET VARIABLES AND INITIALIZE PRIMARY PROCESSES
 
 # Google OAuth configurations
@@ -200,6 +202,14 @@ def login_index():
 # Login Process
 @app.route("/login")
 def login():
+    # TODO: Truly setup the logger
+    # It's setup... kinda
+    # app.logger.debug('this is a DEBUG message')
+    # app.logger.info('this is an INFO message')
+    # app.logger.warning('this is a WARNING message')
+    # app.logger.error('this is an ERROR message')
+    # app.logger.critical('this is a CRITICAL message')
+
     # Get the authorization endpoint for Google login
     authorization_endpoint = get_google_provider_cfg()["authorization_endpoint"]
     # Use client.prepare_request_uri to build the request to send to Google, and specify the information we want from the user
@@ -337,6 +347,7 @@ def end_turn_event(message):
     update_db("room", f"is_turn = '{1}'", f"WHERE room_id = '{session_id}' AND user_key = '{new_character[0]}' AND chr_name = '{message['next_name']}'")
 
     emit("turn_ended", {'data': message['data']}, broadcast=True)
+    # TODO: Should the database be cleared out for the room?
 
 
 @socketio.on('connect', namespace='/test')
@@ -358,7 +369,10 @@ def test_connect():
 
 
 if __name__ == "__main__":
-    app.run(ssl_context="adhoc", port=33507)
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers = gunicorn_logger.handlers
+    app.logger.setLevel(gunicorn_logger.level)
+    app.run(ssl_context="adhoc", port=33507, debug=True)
 
 
 

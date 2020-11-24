@@ -85,23 +85,27 @@ $(document).ready(function() {
   });
 
   socket.on('combat_started', function(msg) {
+    // TODO: Decide if "End combat button" should replace start combat
+    // button when combat started and vice versa
     $('#log').append($('<div/>').text(msg.data).html() + '<br>');
-    $(`#${msg.first_turn_name}-row`).addClass("bg-warning");
+    var first_turn_name = msg.first_turn_name.split(" ").join("_");
+    $(`#${first_turn_name}-row`).addClass("bg-warning");
     turn_index = 0;
     $('#end_turn_button').prop('disabled', false);
     $('#set_initiative_button').prop('disabled', true);
-    $('#start_battle').prop('disabled', true)
-    $('#end_battle').prop('disabled', false);
-    // TODO: Update "start_battle" form to "end_battle" and add socketio events
+    $('#start_battle_button').prop('disabled', true)
+    $('#end_battle_button').prop('disabled', false);
   });
 
   socket.on('combat_ended', function(msg) {
     $('#log').append($('<div/>').text(msg.data).html() + '<br>');
-    $(`#${msg.current_turn_name}-row`).removeClass("bg-warning");
+    var current_turn_name = msg.current_turn_name.split(" ").join("_");
+    $(`#${current_turn_name}-row`).removeClass("bg-warning");
     $('#end_turn_button').prop('disabled', true);
     $('#set_initiative_button').prop('disabled', false);
-    $('#start_battle').prop('disabled', false);
-    $('#end_battle').prop('disabled', true)
+    $('#start_battle_button').prop('disabled', false);
+    $('#end_battle_button').prop('disabled', true)
+    // TODO: Should it clear out the characters and send connected players to the home page?
   });
 
   socket.on('turn_ended', function(msg) {
@@ -113,8 +117,10 @@ $(document).ready(function() {
     else {
       next_index = turn_index + 1
     }
-    $(`#${initiatives[turn_index][0]}-row`).removeClass("bg-warning");
-    $(`#${initiatives[next_index][0]}-row`).addClass("bg-warning");
+    var old_id = initiatives[turn_index][0].split(" ").join("_");
+    var next_id = initiatives[next_index][0].split(" ").join("_");
+    $(`#${old_id}-row`).removeClass("bg-warning");
+    $(`#${next_id}-row`).addClass("bg-warning");
     turn_index = next_index;
   });
 });
@@ -123,7 +129,8 @@ function update_init_table() {
   code = "<tbody>";
   for (i = 0; i < initiatives.length; i++) {
     // TODO: Fix id to work when multiple characters have the same name
-    code += `<tr id=${initiatives[i][0]}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td></tr>`;
+    var id = initiatives[i][0].split(" ").join("_");
+    code += `<tr id=${id}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td></tr>`;
   }
 
   code += "</tbody>";
