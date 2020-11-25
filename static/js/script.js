@@ -7,7 +7,7 @@ $(document).ready(function() {
   // Socket.IO will multiplex all those connections on a single
   // physical channel. If you don't care about multiple channels, you
   // can set the namespace to an empty string.
-  namespace = '/test';
+  namespace = '/combat';
   
   // Connect to the Socket.IO server.
   // The connection URL has the following format, relative to the current page:

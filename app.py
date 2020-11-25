@@ -290,7 +290,7 @@ def get_classes():
 
 ### SOCKETIO EVENT HANDLERS
 
-@socketio.on('set_initiative', namespace='/test')
+@socketio.on('set_initiative', namespace='/combat')
 def set_initiative(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     character_name = message['character_name']
@@ -305,7 +305,7 @@ def set_initiative(message):
     emit('log_update', {'desc': desc}, broadcast=True)
 
 
-@socketio.on('send_chat', namespace='/test')
+@socketio.on('send_chat', namespace='/combat')
 def send_chat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
@@ -317,7 +317,7 @@ def send_chat(message):
     emit('chat_update', {'chat': message['chat'], 'character_name': message['character_name']}, broadcast=True)
 
 
-@socketio.on('start_combat', namespace='/test')
+@socketio.on('start_combat', namespace='/combat')
 def start_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
@@ -331,7 +331,7 @@ def start_combat(message):
     emit('combat_started', {'desc': 'Started Combat', 'first_turn_name': first_character[1]}, broadcast=True)
 
 
-@socketio.on('end_combat', namespace='/test')
+@socketio.on('end_combat', namespace='/combat')
 def end_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
@@ -344,7 +344,7 @@ def end_combat(message):
     # TODO: Should the database be cleared out of the room?
 
 
-@socketio.on('end_turn', namespace='/test')
+@socketio.on('end_turn', namespace='/combat')
 def end_turn(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
@@ -359,7 +359,7 @@ def end_turn(message):
     emit("turn_ended", {'desc': message['desc']}, broadcast=True)
 
 
-@socketio.on('connect', namespace='/test')
+@socketio.on('connect', namespace='/combat')
 def connect():
     # Sends upon a new connection
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
