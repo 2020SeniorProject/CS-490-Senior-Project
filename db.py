@@ -65,18 +65,16 @@ def add_to_db(db_name, values):
     with create_connection("battle_sesh.db") as conn:
         cur = conn.cursor()
         if db_name == "log":
-            sql = f"INSERT INTO {db_name}(room_id, user_key, title, log, timestamp) VALUES('{values[0]}','{values[1]}','{values[2]}','{values[3]}','{values[4]}');"
+            cur.execute("INSERT INTO log(room_id, user_key, title, log, timestamp) VALUES(?, ?, ?, ?, ?)", values)
         elif db_name == "chat":
-            sql = f"INSERT INTO chat(room_id, user_key, chr_name, chat, timestamp) VALUES('{values[0]}','{values[1]}','{values[2]}','{values[3]}',{values[4]}) "
+            cur.execute("INSERT INTO chat(room_id, user_key, chr_name, chat, timestamp) VALUES(?, ?, ?, ?, ?)", values)
         elif db_name == "room":
-            sql = f"INSERT INTO room(room_id, user_key, chr_name, init_val, is_turn) VALUES ('{values[0]}', '{values[1]}', '{values[2]}', {values[3]}, {values[4]});"
+            cur.execute("INSERT INTO room(room_id, user_key, chr_name, init_val, is_turn) VALUES(?, ?, ?, ?, ?)", values)
         elif db_name == "chars":
-            sql = f"""INSERT INTO characters(user_key, room_id, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints) 
-            VALUES('{values[0]}', '{values[1]}', '{values[2]}', '{values[3]}', '{values[4]}', '{values[5]}', '{values[6]}', 
-            {values[7]}, {values[8]}, {values[9]}, {values[10]}, {values[11]}, {values[12]}, {values[13]}, {values[14]}, {values[15]});"""
+            cur.execute("""INSERT INTO characters(user_key, room_id, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints) 
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
         elif db_name == "users":
-            sql = f"INSERT INTO users(user_id, user_name, email, profile_pic) VALUES ('{values[0]}', '{values[1]}', '{values[2]}', '{values[3]}');"
-        cur.execute(sql)
+            cur.execute("INSERT INTO users(user_id, user_name, email, profile_pic) VALUES (?, ?, ?, ?)", values)
         conn.commit()
 
 

@@ -1,9 +1,9 @@
 # Python standard libraries
 from threading import Lock
-# import sqlite3
 import json
 import os
 import datetime
+import logging
 
 # Third-party libraries
 from flask import Flask, render_template, session, request, redirect, url_for, jsonify
@@ -17,7 +17,6 @@ from flask_wtf.csrf import CSRFProtect
 from classes import User, CharacterValidation
 from db import create_dbs, add_to_db, read_db, delete_from_db, update_db, build_api_db, read_api_db, get_api_info
 
-import logging
 
 ### SET VARIABLES AND INITIALIZE PRIMARY PROCESSES
 
@@ -294,17 +293,18 @@ def get_classes():
 
 # TODO: Make these pretty
 @socketio.on('set_initiative', namespace='/test')
-def test_broadcast_message(message):
+def set_initiative(message):
     character_name = message['character_name']
     init_val = message['init_val']
     user_id = current_user.get_user_id()
+    desc = f"{character_name}'s initiative updated"
 
     emit('initiative_update', {'character_name': character_name, 'init_val': init_val}, broadcast=True)
-    emit('log_update', {'data': f"{character_name}'s initiative updated"}, broadcast=True)
+    emit('log_update', {'data': desc}, broadcast=True)
+
     update_db("room", f"init_val = '{init_val}'", f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{character_name}'")
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    init_name = character_name + init_val
-    add_to_db("log", (session_id, user_id, "Init", init_name, s) )
+    add_to_db("log", (session_id, user_id, "Init", desc, s) )
 
 
 @socketio.on('send_chat', namespace='/test')
