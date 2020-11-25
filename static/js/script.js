@@ -14,32 +14,30 @@ $(document).ready(function() {
   //     http[s]://<domain>:<port>[/<namespace>]
   var socket = io(namespace);
 
+  // TODO: Add room_id to all of the functions
   $('form#set_initiative').submit(function(event) {
     socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val()});
+    $('#initiative_roll').val(''); 
     return false;
   });
 
   $('form#send_chat').submit(function(event) {
     socket.emit('send_chat', {chat: $('#chat_text').val(), character_name: $('#player_name').val()});
+    $('#chat_text').val(''); 
     return false;
   });
 
   $('form#start_battle').submit(function(event) {
-    // TODO: Add in the room_id for processing
-    console.log("Started battle")
     socket.emit('start_combat', {desc: "Start Battle"});
     return false;
   });
 
   $('form#end_battle').submit(function(event) {
-    console.log("Ended battle");
     socket.emit('end_combat', {desc: "End Battle"});
     return false;
   });
 
   $('form#end_turn').submit(function(event) {
-    // TODO: Add in the room_id for processing
-    console.log("Turn ended")
     var next_index = null;
     if (turn_index + 1 == initiatives.length) {
       next_index = 0
@@ -87,10 +85,12 @@ $(document).ready(function() {
   socket.on('combat_started', function(msg) {
     // TODO: Decide if "End combat button" should replace start combat
     // button when combat started and vice versa
-    $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
     var first_turn_name = msg.first_turn_name.split(" ").join("_");
-    $(`#${first_turn_name}-row`).addClass("bg-warning");
     turn_index = 0;
+
+    $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
+    $(`#${first_turn_name}-row`).addClass("bg-warning");
+
     $('#end_turn_button').prop('disabled', false);
     $('#set_initiative_button').prop('disabled', true);
     $('#start_battle_button').prop('disabled', true)
@@ -98,9 +98,11 @@ $(document).ready(function() {
   });
 
   socket.on('combat_ended', function(msg) {
-    $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
     var current_turn_name = msg.current_turn_name.split(" ").join("_");
+
+    $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
     $(`#${current_turn_name}-row`).removeClass("bg-warning");
+
     $('#end_turn_button').prop('disabled', true);
     $('#set_initiative_button').prop('disabled', false);
     $('#start_battle_button').prop('disabled', false);
@@ -109,7 +111,6 @@ $(document).ready(function() {
   });
 
   socket.on('turn_ended', function(msg) {
-    $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
     var next_index = null;
     if (turn_index + 1 == initiatives.length) {
       next_index = 0
@@ -119,9 +120,11 @@ $(document).ready(function() {
     }
     var old_id = initiatives[turn_index][0].split(" ").join("_");
     var next_id = initiatives[next_index][0].split(" ").join("_");
+    turn_index = next_index;
+
     $(`#${old_id}-row`).removeClass("bg-warning");
     $(`#${next_id}-row`).addClass("bg-warning");
-    turn_index = next_index;
+    $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
   });
 });
 
