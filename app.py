@@ -203,6 +203,7 @@ def login_index():
 @app.route("/login")
 def login():
     # TODO: Truly setup the logger
+    # https://trstringer.com/logging-flask-gunicorn-the-manageable-way/
     # It's setup... kinda
     # app.logger.debug('this is a DEBUG message')
     # app.logger.info('this is an INFO message')
@@ -308,12 +309,12 @@ def test_broadcast_message(message):
 
 @socketio.on('send_chat', namespace='/test')
 def test_broadcast_message(message):
-    emit('chat_update', {'data': message['data']}, broadcast=True)
+    emit('chat_update', {'chat': message['chat'], 'character_name': message['character_name']}, broadcast=True)
     # emit('log_update', {'data': "Chat update"}, broadcast=True)
     s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
-    chr_name = "Yanko"
-    add_to_db("chat",(session_id, user_id, char_name, message['data'][0], s))
+    chr_name = message['character_name']
+    add_to_db("chat",(session_id, user_id, chr_name, message['chat'], s))
 
 
 @socketio.on('start_combat', namespace='/test')

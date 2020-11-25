@@ -20,7 +20,7 @@ $(document).ready(function() {
   });
 
   $('form#send_chat').submit(function(event) {
-    socket.emit('send_chat', {data: [$('#chat_text').val()]});
+    socket.emit('send_chat', {chat: $('#chat_text').val(), character_name: $('#player_name').val()});
     return false;
   });
 
@@ -81,7 +81,7 @@ $(document).ready(function() {
   });
 
   socket.on('chat_update', function(msg) {
-    $('#chat-list').append($('<div/>').text(msg.data).html() + '<br>');
+    $('#chat-list').append($('<div/>').text(`${msg.character_name}: ${msg.chat}`).html() + '<br>');
   });
 
   socket.on('combat_started', function(msg) {
