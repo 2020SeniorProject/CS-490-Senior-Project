@@ -27,8 +27,6 @@ GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
 
 session_id = "69BBEG69" #placeholder till we figure out id creation method, use usernames with random numbers?
-# TODO: Replace all of the user_key references with the OAuth user_key or user_name
-user_key = "BigGamer420" #placeholder till we create some sort of user database?
 
 # This disables the SSL usage check - TODO: solution to this needed as it may pose security risk. see https://oauthlib.readthedocs.io/en/latest/oauth2/security.html and https://requests-oauthlib.readthedocs.io/en/latest/examples/real_world_example.html
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -95,6 +93,7 @@ def view_characters():
     if request.method == "POST":
         if request.form['type'] == "delete":
             delete_from_db("characters", f"WHERE user_key = '{user[0][0]}' AND chr_name = '{request.form['character_name']}'")
+            delete_from_db("room", f"WHERE user_key = '{user[0][0]}' AND chr_name = '{request.form['character_name']}'")
         elif request.form['type'] == "edit":
             form = CharacterValidation()
             if form.validate():
@@ -289,86 +288,100 @@ def get_classes():
 
 
 
-### EVENT HANDLERS
+### SOCKETIO EVENT HANDLERS
 
-# TODO: Make these pretty
 @socketio.on('set_initiative', namespace='/test')
 def set_initiative(message):
+    time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     character_name = message['character_name']
     init_val = message['init_val']
     user_id = current_user.get_user_id()
     desc = f"{character_name}'s initiative updated"
 
-    emit('initiative_update', {'character_name': character_name, 'init_val': init_val}, broadcast=True)
-    emit('log_update', {'data': desc}, broadcast=True)
-
     update_db("room", f"init_val = '{init_val}'", f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{character_name}'")
-    s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    add_to_db("log", (session_id, user_id, "Init", desc, s) )
+    add_to_db("log", (session_id, user_id, "Init", desc, time_rcvd))
+
+    emit('initiative_update', {'character_name': character_name, 'init_val': init_val}, broadcast=True)
+    emit('log_update', {'desc': desc}, broadcast=True)
 
 
 @socketio.on('send_chat', namespace='/test')
-def test_broadcast_message(message):
-    emit('chat_update', {'chat': message['chat'], 'character_name': message['character_name']}, broadcast=True)
-    # emit('log_update', {'data': "Chat update"}, broadcast=True)
-    s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
+def send_chat(message):
+    time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
     chr_name = message['character_name']
-    add_to_db("chat",(session_id, user_id, chr_name, message['chat'], s))
+
+    add_to_db("chat",(session_id, user_id, chr_name, message['chat'], time_rcvd))
+    add_to_db("log", (session_id, user_id, "Chat", message['character_name'], time_rcvd))
+
+    emit('chat_update', {'chat': message['chat'], 'character_name': message['character_name']}, broadcast=True)
 
 
 @socketio.on('start_combat', namespace='/test')
-def start_combat_event(message):
-    # TODO: Deal with it when room_id is sent through
-    characters = read_db("room", "user_key, chr_name, init_val", f"WHERE room_id = '{session_id}' ORDER BY chr_name DESC ")
-    # Sort by the 2nd column
-    characters = sorted(characters, key=lambda x: x[2])
+def start_combat(message):
+    time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
+    user_id = current_user.get_user_id()
+    characters = read_db("room", "user_key, chr_name, init_val", f"WHERE room_id = '{session_id}' ORDER BY init_val, chr_name DESC ")
     first_character = characters[-1]
-    # TODO: Fix bug where second player with the same initiative as the first in list is highlighted
-    # TODO: Fix to work when the are multiple characters with the same name
-    emit('combat_started', {'data': 'Started Combat', 'first_turn_name': first_character[1]}, broadcast=True)
-    update_db("room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}'")
+
     update_db("room", f"is_turn = '{1}'", f"WHERE room_id = '{session_id}' AND user_key = '{first_character[0]}' AND chr_name = '{first_character[1]}' AND init_val = '{first_character[2]}'")
+    add_to_db("log", (session_id, user_id, "Combat", "Started Combat", time_rcvd))
+
+    # TODO: Fix to work when the are multiple characters with the same name
+    emit('combat_started', {'desc': 'Started Combat', 'first_turn_name': first_character[1]}, broadcast=True)
 
 
 @socketio.on('end_combat', namespace='/test')
-def end_combat_event(message):
-    characters = read_db("room","user_key, chr_name, is_turn", f"WHERE room_id = '{session_id}' ORDER BY is_turn DESC")
-    emit('combat_ended', {'data':'Ended Combat', 'current_turn_name': characters[0][1]}, broadcast=True)
+def end_combat(message):
+    time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
+    user_id = current_user.get_user_id()
+    character_name = read_db("room","chr_name", f"WHERE room_id = '{session_id}' AND is_turn = '1'")[0][0]
+
     update_db("room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}'")
+    add_to_db("log", (session_id, user_id, "Combat", "Ended Combat", time_rcvd))
+
+    emit('combat_ended', {'desc':'Ended Combat', 'current_turn_name': character_name}, broadcast=True)
+    # TODO: Should the database be cleared out of the room?
 
 
 @socketio.on('end_turn', namespace='/test')
-def end_turn_event(message):
-    # TODO: Deal with it when room_id is sent through
-    old_character = read_db("room", "user_key", f"WHERE room_id = '{session_id}' AND chr_name = '{message['old_name']}'")[0]
-    update_db("room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}' AND user_key = '{old_character[0]}' AND chr_name = '{message['old_name']}'")
+def end_turn(message):
+    time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
+    user_id = current_user.get_user_id()
+    old_name = message['old_name']
+    next_name = message['next_name']
+    new_character_id = read_db("room", "user_key, chr_name", f"WHERE room_id = '{session_id}' AND chr_name = '{next_name}'")[0][0]
 
-    new_character = read_db("room", "user_key, chr_name", f"WHERE room_id = '{session_id}' AND chr_name = '{message['next_name']}'")[0]
-    update_db("room", f"is_turn = '{1}'", f"WHERE room_id = '{session_id}' AND user_key = '{new_character[0]}' AND chr_name = '{message['next_name']}'")
+    update_db("room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}'")
+    update_db("room", f"is_turn = '{1}'", f"WHERE room_id = '{session_id}' AND user_key = '{new_character_id}' AND chr_name = '{next_name}'")
+    add_to_db("log", (session_id, user_id, "Combat", f"{old_name}'s Turn Ended", time_rcvd))
 
-    emit("turn_ended", {'data': message['data']}, broadcast=True)
-    # TODO: Should the database be cleared out for the room?
+    emit("turn_ended", {'desc': message['desc']}, broadcast=True)
 
 
 @socketio.on('connect', namespace='/test')
-def test_connect():
+def connect():
     # Sends upon a new connection
-    emit('log_update', {'data': "Connected"}, broadcast=True)
-    s = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    add_to_db("log", (session_id, user_key, "Connection", "User connected", s))
+    time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
+    user_id = current_user.get_user_id()
+    user_name = current_user.get_name()
     initiatives = read_db("room", "chr_name, init_val", f"WHERE room_id = '{session_id}'")
-    chats = read_db("chat", "user_key, chr_name, chat", f"WHERE room_id = '{session_id}'")
-    if initiatives != []:
-        for item in initiatives:
-            emit('initiative_update', {'character_name': item[0], 'init_val': item[1]})
-        emit('log_update', {'data': "Initiative List Received"})
-    if chats != []:
-        for item in chats:
-            emit('chat_update', {'data': item})
-        emit('log_update', {'data': "Chat List Received"})
+    chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{session_id}'")
+
+    add_to_db("log", (session_id, user_id, "Connection", f"User with id {user_id} connected", time_rcvd))
+
+    emit('log_update', {'desc': f"{user_name} Connected"}, broadcast=True)
+
+    for item in initiatives:
+        emit('initiative_update', {'character_name': item[0], 'init_val': item[1]})
+    emit('log_update', {'desc': "Initiative List Received"})
+
+    for item in chats:
+        emit('chat_update', {'chat': item[1], 'character_name': item[0]})
+    emit('log_update', {'desc': "Chat History Received"})
 
 
+# Actual code to run the app
 if __name__ == "__main__":
     gunicorn_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers = gunicorn_logger.handlers

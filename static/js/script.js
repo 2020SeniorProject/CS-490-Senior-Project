@@ -27,13 +27,13 @@ $(document).ready(function() {
   $('form#start_battle').submit(function(event) {
     // TODO: Add in the room_id for processing
     console.log("Started battle")
-    socket.emit('start_combat', {data: "Start Battle"});
+    socket.emit('start_combat', {desc: "Start Battle"});
     return false;
   });
 
   $('form#end_battle').submit(function(event) {
     console.log("Ended battle");
-    socket.emit('end_combat', {data: "End Battle"});
+    socket.emit('end_combat', {desc: "End Battle"});
     return false;
   });
 
@@ -47,12 +47,12 @@ $(document).ready(function() {
     else {
       next_index = turn_index + 1
     }
-    socket.emit('end_turn', {data: `${initiatives[turn_index][0]}'s Turn Ended`, old_name: initiatives[turn_index][0], next_name: initiatives[next_index][0]});
+    socket.emit('end_turn', {desc: `${initiatives[turn_index][0]}'s Turn Ended`, old_name: initiatives[turn_index][0], next_name: initiatives[next_index][0]});
     return false;
   });
 
   socket.on('log_update', function(msg) {
-    $('#log').append($('<div/>').text(msg.data).html() + '<br>');
+    $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
   });
 
   socket.on('initiative_update', function(msg) {
@@ -87,7 +87,7 @@ $(document).ready(function() {
   socket.on('combat_started', function(msg) {
     // TODO: Decide if "End combat button" should replace start combat
     // button when combat started and vice versa
-    $('#log').append($('<div/>').text(msg.data).html() + '<br>');
+    $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
     var first_turn_name = msg.first_turn_name.split(" ").join("_");
     $(`#${first_turn_name}-row`).addClass("bg-warning");
     turn_index = 0;
@@ -98,7 +98,7 @@ $(document).ready(function() {
   });
 
   socket.on('combat_ended', function(msg) {
-    $('#log').append($('<div/>').text(msg.data).html() + '<br>');
+    $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
     var current_turn_name = msg.current_turn_name.split(" ").join("_");
     $(`#${current_turn_name}-row`).removeClass("bg-warning");
     $('#end_turn_button').prop('disabled', true);
@@ -109,7 +109,7 @@ $(document).ready(function() {
   });
 
   socket.on('turn_ended', function(msg) {
-    $('#log').append($('<div/>').text(msg.data).html() + '<br>');
+    $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
     var next_index = null;
     if (turn_index + 1 == initiatives.length) {
       next_index = 0
