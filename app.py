@@ -94,22 +94,25 @@ def sent_to_login():
 @app.route("/characters", methods=["GET", "POST"])
 @login_required
 def view_characters():
-    user = read_db("users", "*", f"WHERE user_id = '{current_user.get_user_id()}'")
     if request.method == "POST":
         if request.form['type'] == "delete":
-            delete_from_db("characters", f"WHERE user_key = '{user[0][0]}' AND chr_name = '{request.form['character_name']}'")
-            delete_from_db("room", f"WHERE user_key = '{user[0][0]}' AND chr_name = '{request.form['character_name']}'")
+            delete_from_db("characters", f"WHERE user_key = '{current_user.get_user_id()}' AND chr_name = '{request.form['character_name']}'")
+            delete_from_db("room", f"WHERE user_key = '{current_user.get_user_id()}' AND chr_name = '{request.form['character_name']}'")
         elif request.form['type'] == "edit":
             form = CharacterValidation()
             if form.validate():
                 if request.form['old_name'] != request.form['name']:
-                    if read_db("characters", "*", f"WHERE user_key = '{user[0][0]}' AND chr_name = '{request.form['name']}'") != []:
+                    if read_db("characters", "*", f"WHERE user_key = '{current_user.get_user_id()}' AND chr_name = '{request.form['name']}'") != []:
                         return render_template("edit_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'])
-        
+
                 delete_from_db("characters", f"WHERE user_key = '{current_user.get_user_id()}' AND chr_name = '{request.form['old_name']}'")
 
-                user_id = user[0][0]
-                values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data)
+                # TODO: Add way to track if any fields have been changed
+                # for fields in form:
+                #     if fields.data != request.form[f"old_{fields}"]:
+                #         update_db("characters", f"{fields} = {fields.data}", f"WHERE user_key = {current_user.get_user_id()} and {fields} = {request.form[f'old_{fields}']}")
+
+                values = (current_user.get_user_id(), session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data)
                 add_to_db("chars", values)
             else:
                 err_lis = []
@@ -118,9 +121,7 @@ def view_characters():
                         err_mes = errs + ": " + mess + "!" +"\n"
                         err_lis += [err_mes]
                 return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.hitpoints.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_name=request.form['old_name'])        
-    else:
-        print("NORMAL")
-    items = read_db("characters", "*", f"WHERE user_key = '{user[0][0]}'")
+    items = read_db("characters", "*", f"WHERE user_key = '{current_user.get_user_id()}'")
     return render_template("view_characters.html", items=items)
 
 
