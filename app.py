@@ -11,7 +11,7 @@ from flask_socketio import SocketIO, emit
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 from oauthlib.oauth2 import WebApplicationClient
 import requests
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect, CSRFError
 
 # Internal imports
 from classes import User, CharacterValidation
@@ -50,6 +50,11 @@ create_dbs()
 
 # User session management setup
 # https://flask-login.readthedocs.io/en/latest
+# 
+# below is a link to a walkthrough on how to handle unit testing with socketio and login with flask
+# https://blog.miguelgrinberg.com/post/unit-testing-applications-that-use-flask-login-and-flask-socketio
+# 
+# 
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -379,6 +384,14 @@ def connect():
     for item in chats:
         emit('chat_update', {'chat': item[1], 'character_name': item[0]})
     emit('log_update', {'desc': "Chat History Received"})
+
+
+#Error handling
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    return render_template("login.html", errors = e.description), 400
+
 
 
 # Actual code to run the app
