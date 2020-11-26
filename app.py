@@ -129,7 +129,6 @@ def view_characters():
 @app.route("/characters/create", methods=["POST", "GET"])
 @login_required
 def character_creation():
-    # TODO: Personalize bad CSRF token 
     form = CharacterValidation()
     if request.method == "POST" and form.validate():
         user_id = current_user.get_user_id()
@@ -391,9 +390,15 @@ def connect():
 
 @app.errorhandler(CSRFError)
 def handle_csrf_error(e):
-    return render_template("login.html", errors = e.description), 400
+    return render_template("error.html", error_name="Code 400" ,error_desc = "The room you were in has closed!")
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("error.html", error_name="Code 404", error_desc = "This isn't the page you're looking for")
 
+@app.errorhandler(400)
+def bad_request(e):
+    return render_template("error.html", error_name="Code 400", error_desc = "Looks like you missed something!")
 
 # Actual code to run the app
 if __name__ == "__main__":
