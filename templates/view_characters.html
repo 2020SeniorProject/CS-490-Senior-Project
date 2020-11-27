@@ -38,10 +38,8 @@
                 <td>{{ s[14] }}</td>
                 <td>{{ s[15] }}</td>
                 <td class=text-center>
-                    <form action="/characters/edit" method="POST" class="form">
+                    <form action="/characters/edit/{{ s[2] }}" method="GET" class="form">
                         <input type="submit" class="btn btn-warning btm-sm" value="Edit">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <input type="hidden" name="character_name" value="{{ s[2] }}">
                     </form>
                 </td>
                 <td class=text-center>
@@ -49,7 +47,6 @@
                         <input type="submit" class="btn btn-danger btm-sm" value="Delete">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <input type="hidden" name="character_name" value="{{ s[2] }}">
-                        <input type="hidden" name="type" value="delete">
                     </form>
                 </td>
             </tr>

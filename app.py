@@ -12,7 +12,7 @@ from flask_login import LoginManager, current_user, login_required, login_user, 
 from oauthlib.oauth2 import WebApplicationClient
 import requests
 from flask_wtf.csrf import CSRFProtect, CSRFError
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import HTTPException, BadRequest
 
 # Internal imports
 from classes import User, CharacterValidation
@@ -86,6 +86,44 @@ def sent_to_login():
     return redirect(url_for("login_index"))
 
 
+def process_character_form(form, user_id):
+    if form.validate():
+        values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data)
+        if read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{values[2]}'") != []:
+            return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
+
+        add_to_db("chars", values)
+        # char_mess = f""" {values[2]}, the level {values[8]} {values[6]} {values[5]} {values[4]} {values[3]} with 
+        #             {values[15]} hit points was created by {current_user.get_name()}!"""
+        return redirect(url_for("view_characters"))
+
+    err_lis = []
+
+    for errs in form.errors.keys():
+        for mess in form.errors[errs]:
+            err_mes = errs + ": " + mess + "!" +"\n"
+            err_lis += [err_mes]
+
+    return render_template("add_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
+
+def process_edit_character_form(form, user_id):
+    if form.validate():
+        if request.form['old_name'] != request.form['name'] and read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['name']}'") != []:
+            return render_template("edit_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'])
+
+        values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data)
+
+        delete_from_db("characters", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['old_name']}'")
+        add_to_db("chars", values)
+        return redirect(url_for("view_characters"))
+
+    err_lis = []
+    for errs in form.errors.keys():
+        for mess in form.errors[errs]:
+            err_mes = errs + ": " + mess + "!" +"\n"
+            err_lis += [err_mes]
+
+    return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'])
 
 ### ROUTING DIRECTIVES 
 
@@ -110,66 +148,31 @@ def view_characters():
 @app.route("/characters/create", methods=["POST", "GET"])
 @login_required
 def character_creation():
+    form = CharacterValidation()
+    user_id = current_user.get_user_id()
+
+    if request.method == "POST":
+        return process_character_form(form, user_id)
+
     return render_template("add_character.html")
 
 
-@app.route("/characters/create/process", methods=["POST"])
+@app.route("/characters/edit/<name>", methods=["GET", "POST"])
 @login_required
-def create_character_process():
-    form = CharacterValidation()
-    if form.validate():
-        user_id = current_user.get_user_id()
-        values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data)
-        if read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{values[2]}'") != []:
-            return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
-
-        add_to_db("chars", values)
-            # char_mess = f""" {values[2]}, the level {values[8]} {values[6]} {values[5]} {values[4]} {values[3]} with 
-            #             {values[15]} hit points was created by {current_user.get_name()}!"""
-        return redirect(url_for("view_characters"))
-
-    err_lis = []
-
-    for errs in form.errors.keys():
-        for mess in form.errors[errs]:
-            err_mes = errs + ": " + mess + "!" +"\n"
-            err_lis += [err_mes]
-
-    return render_template("add_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
-
-
-@app.route("/characters/edit", methods=["POST"])
-@login_required
-def edit_character():
-    name = request.form['character_name']
-    character = read_db("characters", "*", f"WHERE user_key = '{current_user.get_user_id()}' AND chr_name = '{name}'")[0]
-
-    return render_template("edit_character.html", name=character[2], hp=character[15], old_race=character[5], old_subrace=character[6], old_class=character[3], old_subclass=character[4], speed=character[7], lvl=character[8], str=character[9], dex=character[10], con=character[11], int=character[12], wis=character[13], cha=character[14], old_name=character[2])
-
-
-@app.route("/characters/edit/process", methods=["POST"])
-@login_required
-def edit_character_process():
+def edit_character(name):
     user_id = current_user.get_user_id()
     form = CharacterValidation()
-    
-    if form.validate():
-        if request.form['old_name'] != request.form['name'] and read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['name']}'") != []:
-            return render_template("edit_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'])
 
-        values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data)
+    if request.method == "POST":
+        return process_edit_character_form(form, user_id)
 
-        delete_from_db("characters", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['old_name']}'")
-        add_to_db("chars", values)
-        return redirect(url_for("view_characters"))
+    character = read_db("characters", "*", f"WHERE user_key = '{current_user.get_user_id()}' AND chr_name = '{name}'")
 
-    err_lis = []
-    for errs in form.errors.keys():
-        for mess in form.errors[errs]:
-            err_mes = errs + ": " + mess + "!" +"\n"
-            err_lis += [err_mes]
+    if character:
+        character = character[0]
+        return render_template("edit_character.html", name=character[2], hp=character[15], old_race=character[5], old_subrace=character[6], old_class=character[3], old_subclass=character[4], speed=character[7], lvl=character[8], str=character[9], dex=character[10], con=character[11], int=character[12], wis=character[13], cha=character[14], old_name=character[2])
 
-    return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.hitpoints.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'])
+    raise BadRequest(description="You don't have a character with that name!")
 
 
 # Post-Login Landing Page
@@ -401,12 +404,12 @@ def connect():
 
 @app.errorhandler(CSRFError)
 def handle_csrf_error(e):
-    return render_template("error.html", error_name="Code 400" ,error_desc = "The room you were in has closed!"), 400
+    return render_template("error.html", error_name="Error Code 400" ,error_desc = "The room you were in has closed!"), 400
 
 @app.errorhandler(HTTPException)
 def generic_error(e):
     # Generic HTTP Exception handler
-    return render_template("error.html", error_name=f"Code {e.code}", error_desc=e.description), e.code
+    return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description), e.code
 
 
 ### APP RUNNING
