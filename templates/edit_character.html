@@ -5,7 +5,7 @@
 <div class="container">
 
     <h1 class="text-center">Edit a Character</h1>
-    <form action="/characters" method="POST" class="form">
+    <form action="/characters/edit/process" method="POST" class="form">
         <div class="row">
             <div class="col form-group">
                 <label>Name</label>
@@ -91,11 +91,11 @@
         <input type="hidden" id="old_subclass" value="{{ old_subclass }}">
         <input type="hidden" name="old_name" value="{{ old_name }}">
     </form>
-    <ul>
     {{ message_text }}
-    {% for i in errors %}
-    <li> {{ i }} </li>
-    {% endfor %}
+    <ul>
+        {% for i in errors %}
+        <li> {{ i }} </li>
+        {% endfor %}
     </ul>
 </div>
 
