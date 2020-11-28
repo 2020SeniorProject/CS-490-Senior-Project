@@ -182,8 +182,7 @@ def edit_character(name):
 @login_required
 def home():
     # TODO: display current user information, use: current_user.name, current_user.email, current_user.profile_pic
-    print(read_db("users", "*"))
-    return render_template("base.html")
+    return render_template("base.html", profile_pic=current_user.get_profile_pic())
 
 # TODO: Will want to change how this works
 @app.route("/play/choose")
@@ -197,7 +196,7 @@ def choose_character():
         return render_template("add_character.html", message_text="You need to have a character to join!")
 
 # Gameplay Page
-@app.route("/play", methods=["GET", "POST"])
+@app.route("/play", methods=["POST"])
 @login_required
 def play():
     # TODO: Integrate character name into the messages sent by the sockets
