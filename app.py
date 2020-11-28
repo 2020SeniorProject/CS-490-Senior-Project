@@ -85,7 +85,7 @@ def load_user(user_id):
 def sent_to_login():
     return redirect(url_for("login_index"))
 
-
+# TODO: Make these process functions better (possibly combine them)
 def process_character_form(form, user_id):
     if form.validate():
         values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data)
@@ -104,7 +104,7 @@ def process_character_form(form, user_id):
             err_mes = errs + ": " + mess + "!" +"\n"
             err_lis += [err_mes]
 
-    return render_template("add_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
+    return render_template("add_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
 
 def process_edit_character_form(form, user_id):
     if form.validate():
@@ -115,6 +115,11 @@ def process_edit_character_form(form, user_id):
 
         delete_from_db("characters", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['old_name']}'")
         add_to_db("chars", values)
+
+        if request.form['old_name'] != form.name.data:
+            update_db("room", f"chr_name = '{form.name.data}'", f"WHERE chr_name = '{request.form['old_name']}' AND user_key = '{user_id}'")
+            update_db("chat", f"chr_name = '{form.name.data}'", f"WHERE chr_name = '{request.form['old_name']}' AND user_key = '{user_id}'")
+        
         return redirect(url_for("view_characters"))
 
     err_lis = []
@@ -126,9 +131,6 @@ def process_edit_character_form(form, user_id):
     return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'])
 
 ### ROUTING DIRECTIVES 
-
-# TODO: Refactor all of the character related pages
-# TODO: Redo both of the "process" routes
 
 # Viewing characters page
 @app.route("/characters", methods=["GET", "POST"])
@@ -172,14 +174,16 @@ def edit_character(name):
         character = character[0]
         return render_template("edit_character.html", name=character[2], hp=character[15], old_race=character[5], old_subrace=character[6], old_class=character[3], old_subclass=character[4], speed=character[7], lvl=character[8], str=character[9], dex=character[10], con=character[11], int=character[12], wis=character[13], cha=character[14], old_name=character[2])
 
-    raise BadRequest(description="You don't have a character with that name!")
+    raise BadRequest(description=f"You don't have a character named {name}!")
 
 
 # Post-Login Landing Page
 @app.route("/home")
 @login_required
 def home():
-    return render_template("base.html", async_mode=socketio.async_mode)
+    # TODO: display current user information, use: current_user.name, current_user.email, current_user.profile_pic
+    print(read_db("users", "*"))
+    return render_template("base.html")
 
 # TODO: Will want to change how this works
 @app.route("/play/choose")
@@ -211,7 +215,6 @@ def play():
 def login_index():
     if current_user.is_authenticated:
         # TODO: -> need to create way to add information to the DBs via the UI
-        # To display current user information, use: current_user.name, current_user.email, current_user.profile_pic
         return redirect(url_for('home'))
     else:
         return render_template("login.html")

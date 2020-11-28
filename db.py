@@ -17,18 +17,19 @@ def create_connection(db_file):
 # Log = entry from log, entered by users. Tracked to actions in battle and other relevant info
 # timestamp = used to keep order of log entries for the room
 
-#chat table
-#(derived from log table to better ecapsulate these two tools)
-#room_id & user_key = tracks room and user who output text
+# chat table
+# (derived from log table to better ecapsulate these two tools)
+# room_id & user_key = tracks room and user who output text
 # character name = utilized to track which character in the party chatted
 # chat = holds what has been sent to chat
 # timestamp = when a chat was sent
 
-# initiative table
+# room table
 # room_id = Global identifier for battle map created by user
 # user_key = Unique user ID, allows for maps to be sorted by users
-# player_name = Entered by DM/map owner, player character name associated with the given intiative
+# chr_name = Entered by DM/map owner, player character name associated with the given intiative
 # init_val = intiative # associated with a player
+# is_turn = boolean stating whos turn it is - for any given room, only one entry will be 1 (true)
 
 # users table ****** THIS IS THE ONLY TABLE THAT UTILIZES USER_ID INSTEAD OF USER_KEY BUT THEY ARE SYNONYMOUS ******
 # user_id = user_id gotten from Google 
@@ -72,7 +73,7 @@ def add_to_db(db_name, values):
             cur.execute("INSERT INTO room(room_id, user_key, chr_name, init_val, is_turn) VALUES(?, ?, ?, ?, ?)", values)
         elif db_name == "chars":
             cur.execute("""INSERT INTO characters(user_key, room_id, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints) 
-            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
+                           VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
         elif db_name == "users":
             cur.execute("INSERT INTO users(user_id, user_name, email, profile_pic) VALUES (?, ?, ?, ?)", values)
         conn.commit()
