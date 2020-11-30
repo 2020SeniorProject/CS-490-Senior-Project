@@ -120,11 +120,10 @@ def process_character_form(form, user_id, usage):
 
 
     err_lis = []
-
+        
     for errs in form.errors.keys():
-        for mess in form.errors[errs]:
-            err_mes = errs + ": " + mess + "!" +"\n"
-            err_lis += [err_mes]
+        err_mes = errs + ": " + form.errors[errs][0] + "!" +"\n"
+        err_lis += [err_mes]
 
     return render_template("add_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
 
