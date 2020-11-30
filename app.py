@@ -85,6 +85,8 @@ def load_user(user_id):
 def sent_to_login():
     return redirect(url_for("login_index"))
 
+
+# TODO: this function does not work as intended (the logic is wrong)
 def process_character_form(form, user_id, usage):
     if form.validate():
         print(usage)
