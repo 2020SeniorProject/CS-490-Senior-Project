@@ -154,10 +154,12 @@ def character_creation(message=""):
     user_id = current_user.get_user_id()
     if request.method == "POST":
         return process_character_form(form, user_id, "create")
+
+    #TODO: Find way to redirect to /play/choose after character creation in empty char table case
+ 
     # elif request.method =="POST" and ??:
     #     return process_character_form(form, user_id, "play")
 
-    #TODO: Find way to redirect to /play/choose after character creation
 
     return render_template("add_character.html", message_text=message)
 
