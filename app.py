@@ -79,17 +79,15 @@ def load_user(user_id):
     db_response = read_db("users", "*", f"WHERE user_id = '{user_id}'")
     if not db_response:
         return None
-    return User(id_=db_response[0][0], name=db_response[0][1], email=db_response[0][2], profile_pic=db_response[0][3])
+    return User(id_=db_response[0][0], name=db_response[0][1], email=db_response[0][2], profile_pic=db_response[0][3], site_name=db_response[0][4])
 
 @login_manager.unauthorized_handler
 def sent_to_login():
     return redirect(url_for("login_index"))
 
 
-# TODO: this function does not work as intended (the logic is wrong)
 def process_character_form(form, user_id, usage):
     if form.validate():
-        print(usage)
         values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data)
     
         if usage == "create":
@@ -120,14 +118,17 @@ def process_character_form(form, user_id, usage):
 
             return redirect(url_for("choose_character"))
 
-
     err_lis = []
         
     for errs in form.errors.keys():
         err_mes = errs + ": " + form.errors[errs][0] + "!" +"\n"
         err_lis += [err_mes]
 
-    return render_template("add_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
+    if usage == "create":
+        return render_template("add_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
+        
+    if usage == "edit":    
+        return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'])
 
 ### ROUTING DIRECTIVES 
 
@@ -147,21 +148,14 @@ def view_characters():
 
 # Character creation page
 @app.route("/characters/create", methods=["POST","GET"])
-@app.route("/characters/create/<message>", methods=["GET"])
 @login_required
-def character_creation(message=""):
+def character_creation():
     form = CharacterValidation()
     user_id = current_user.get_user_id()
     if request.method == "POST":
         return process_character_form(form, user_id, "create")
 
-    #TODO: Find way to redirect to /play/choose after character creation in empty char table case
- 
-    # elif request.method =="POST" and ??:
-    #     return process_character_form(form, user_id, "play")
-
-
-    return render_template("add_character.html", message_text=message)
+    return render_template("add_character.html")
 
 
 @app.route("/characters/edit/<name>", methods=["GET", "POST"])
@@ -183,18 +177,28 @@ def edit_character(name):
 
 
 # Post-Login Landing Page
-@app.route("/home")
+@app.route("/home", methods=["GET", "POST"])
 @login_required
 def home():
+    if request.method == "POST":
+        site_name = request.form["site_name"]
+        if read_db("users", "*", f"WHERE site_name = '{site_name}'"):
+            return render_template("set_site_name.html", message="Another user has that username!")
+
+        update_db("users", f"site_name = '{site_name}'", f"WHERE user_id = '{current_user.get_user_id()}'")
+        return redirect(url_for('home'))
+
+    if not current_user.get_site_name():
+        return render_template("set_site_name.html")
+
     # TODO: display current user information, use: current_user.name, current_user.email, current_user.profile_pic
-    return render_template("base.html", profile_pic=current_user.get_profile_pic())
+    return render_template("base.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 # TODO: Will want to change how this works
 @app.route("/play/choose")
 @login_required
 def choose_character():
-    user = read_db("users", "*", f"WHERE user_id = '{current_user.get_user_id()}'")
-    characters = read_db("characters", "*", f"WHERE user_key = '{user[0][0]}'")
+    characters = read_db("characters", "*", f"WHERE user_key = '{current_user.get_user_id()}'")
     if characters:
         return render_template("choose_character.html", characters=characters)
     else:
@@ -219,7 +223,6 @@ def play():
 @app.route("/")
 def login_index():
     if current_user.is_authenticated:
-        # TODO: -> need to create way to add information to the DBs via the UI
         return redirect(url_for('home'))
     else:
         return render_template("login.html")
@@ -227,15 +230,6 @@ def login_index():
 # Login Process
 @app.route("/login")
 def login():
-    # TODO: Truly setup the logger
-    # https://trstringer.com/logging-flask-gunicorn-the-manageable-way/
-    # It's setup... kinda
-    # app.logger.debug('this is a DEBUG message')
-    # app.logger.info('this is an INFO message')
-    # app.logger.warning('this is a WARNING message')
-    # app.logger.error('this is an ERROR message')
-    # app.logger.critical('this is a CRITICAL message')
-
     # Get the authorization endpoint for Google login
     authorization_endpoint = get_google_provider_cfg()["authorization_endpoint"]
     # Use client.prepare_request_uri to build the request to send to Google, and specify the information we want from the user
@@ -280,9 +274,9 @@ def callback():
     else:
         return "User email not available or not verified by Google.", 400
     # Create a user in the datbase if they don't already exist
-    user = User(id_=unique_id, name=users_name, email=users_email, profile_pic=picture)
+    user = User(id_=unique_id, name=users_name, email=users_email, profile_pic=picture, site_name=None)
     if not read_db("users", "*", f"WHERE user_id = '{unique_id}'"):
-        add_to_db("users", (unique_id, users_name, users_email, picture))
+        add_to_db("users", (unique_id, users_name, users_email, picture, None))
     # Log the user in and send them to the homepage
     login_user(user)
     return redirect(url_for("login_index"))
@@ -425,6 +419,16 @@ if __name__ == "__main__":
     gunicorn_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers = gunicorn_logger.handlers
     app.logger.setLevel(gunicorn_logger.level)
+
+    # TODO: Truly setup the logger
+    # https://trstringer.com/logging-flask-gunicorn-the-manageable-way/
+    # It's setup... kinda
+    # app.logger.debug('this is a DEBUG message')
+    # app.logger.info('this is an INFO message')
+    # app.logger.warning('this is a WARNING message')
+    # app.logger.error('this is an ERROR message')
+    # app.logger.critical('this is a CRITICAL message')
+
     app.run(ssl_context="adhoc", port=33507, debug=True)
 
 

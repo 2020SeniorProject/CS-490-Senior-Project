@@ -33,9 +33,10 @@ def create_connection(db_file):
 
 # users table ****** THIS IS THE ONLY TABLE THAT UTILIZES USER_ID INSTEAD OF USER_KEY BUT THEY ARE SYNONYMOUS ******
 # user_id = user_id gotten from Google 
-# user_name = username gotten from Google
+# user_name = username gotten from Google (first name of Google account)
 # email = email address gotten from Google
 # profile_pic = URL to Google profile pic
+# site_name = username specific to our site. e.g. SirRunner
   
 # characters table
 # user_key = used to connect players to their created characters
@@ -56,7 +57,7 @@ def create_dbs():
                         (room_id TEXT, user_key TEXT, chr_name TEXT, init_val INT, is_turn INT, PRIMARY KEY(room_id, user_key, chr_name));""") 
 
         cur.execute(f"""CREATE TABLE IF NOT EXISTS users 
-                        (user_id TEXT PRIMARY KEY, user_name TEXT NOT NULL, email TEXT NOT NULL, profile_pic TEXT);""") 
+                        (user_id TEXT PRIMARY KEY, user_name TEXT NOT NULL, email TEXT NOT NULL, profile_pic TEXT, site_name Text);""") 
 
         cur.execute(f""" CREATE TABLE IF NOT EXISTS characters
                             (user_key TEXT, room_id TEXT, chr_name TEXT, class TEXT, subclass TEXT, race TEXT, subrace TEXT, speed INT, level INT, strength INT, dexterity INT, constitution INT, intelligence INT, wisdom INT, charisma INT, hitpoints INT, PRIMARY KEY(user_key, chr_name));""")
@@ -75,7 +76,7 @@ def add_to_db(db_name, values):
             cur.execute("""INSERT INTO characters(user_key, room_id, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints) 
                            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
         elif db_name == "users":
-            cur.execute("INSERT INTO users(user_id, user_name, email, profile_pic) VALUES (?, ?, ?, ?)", values)
+            cur.execute("INSERT INTO users(user_id, user_name, email, profile_pic, site_name) VALUES (?, ?, ?, ?, ?)", values)
         conn.commit()
 
 

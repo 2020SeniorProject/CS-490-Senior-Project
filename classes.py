@@ -30,11 +30,12 @@ class CharacterValidation(FlaskForm):
 
 
 class User(UserMixin):
-    def __init__(self, id_, name, email, profile_pic):
+    def __init__(self, id_, name, email, profile_pic, site_name=None):
         self.id = id_
         self.name = name
         self.email = email
         self.profile_pic = profile_pic
+        self.site_name = site_name
 
     # GETTERS
     def get_user_id(self):
@@ -49,5 +50,8 @@ class User(UserMixin):
     def get_profile_pic(self):
         return self.profile_pic
 
+    def get_site_name(self):
+        return self.site_name
+
     def __repr__(self):
-        return f"User({self.id}, {self.name}, {self.email}, {self.profile_pic})"
+        return f"User({self.id}, {self.name}, {self.email}, {self.profile_pic}, {self.site_name})"

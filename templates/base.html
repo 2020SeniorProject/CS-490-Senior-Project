@@ -34,8 +34,13 @@
                     </div>
                   </nav>
             </div>
-            <div class="col-2">
-              <img style="height:60%; vertical-align:middle;" class="rounded float-right" src="{{ profile_pic }}" alt="Profile Pic">
+            <div class=row>
+              <div class=col>
+                <p>{{ site_name }}</p>
+              </div>
+              <div class="col">
+                <img style="height:60%; vertical-align:middle;" class="rounded float-right" src="{{ profile_pic }}" alt="Profile Pic">
+              </div>
             </div>
         </div>
           {% block content %}

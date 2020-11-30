@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class=container>
+    <p class="text-center">Please enter in your username! It can be changed at any time in the user settings page. Please note that your username must be unique across all users.</p>
+    <form action=/home method="POST" class=form>
+        <div class=row>
+            <div class="col-9 form-group">
+                <!-- <label>Username</label> -->
+                <input type=text name=site_name class=form-control placeholder="Enter your username!">
+            </div>
+            <div class="col-3 form-group">
+                <input type="submit" class="btn btn-primary form-control" value="Set username!">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            </div>
+        </div>
+    </form>
+    <p>{{ message }}</p>
+</div>
+
+{% endblock %}
