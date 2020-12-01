@@ -113,7 +113,7 @@ def process_character_form(form, user_id, usage):
 
             if request.form['old_name'] != form.name.data:
                 app.logger.warning(f"User {current_user.get_site_name()} updating the character name. Updating all of the references to that character in the database.")
-                update_db("room", f"chr_name = '{form.name.data}'", f"WHERE chr_name = '{request.form['old_name']}' AND user_key = '{user_id}'")
+                update_db("active_room", f"chr_name = '{form.name.data}'", f"WHERE chr_name = '{request.form['old_name']}' AND user_key = '{user_id}'")
                 update_db("chat", f"chr_name = '{form.name.data}'", f"WHERE chr_name = '{request.form['old_name']}' AND user_key = '{user_id}'")
             
             app.logger.debug(f"User {current_user.get_site_name()} successfully updated a character with name {form.name.data}. Redirecting them to the View Characters page.")
@@ -150,7 +150,7 @@ def view_characters():
     if request.method == "POST":
         app.logger.debug(f"Attempting to delete character owned by {current_user.get_site_name()} named {request.form['character_name']}.")
         delete_from_db("characters", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['character_name']}'")
-        delete_from_db("room", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['character_name']}'")
+        delete_from_db("active_room", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['character_name']}'")
                         
     items = read_db("characters", "*", f"WHERE user_key = '{user_id}'")
     app.logger.debug(f"User {current_user.get_site_name()} has gone to view their characters. They have {len(items)} characters.")
@@ -237,8 +237,8 @@ def play():
     char_name = request.form['character']
     app.logger.debug(f"User {current_user.get_site_name()} has entered the room with character {char_name}.")
     user_id = current_user.get_user_id()
-    if not read_db("room", extra_clause=f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
-        add_to_db("room", (session_id, user_id, char_name, 0, 0))
+    if not read_db("active_room", extra_clause=f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
+        add_to_db("active_room", (session_id, user_id, char_name, 0, 0))
 
     return render_template("play.html", async_mode=socketio.async_mode, char_name=char_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
@@ -348,7 +348,7 @@ def set_initiative(message):
     desc = f"{character_name}'s initiative updated"
     app.logger.debug(f"Battle update: {desc}.")
 
-    update_db("room", f"init_val = '{init_val}'", f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{character_name}'")
+    update_db("active_room", f"init_val = '{init_val}'", f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{character_name}'")
     add_to_db("log", (session_id, user_id, "Init", desc, time_rcvd))
 
     emit('initiative_update', {'character_name': character_name, 'init_val': init_val}, broadcast=True)
@@ -372,11 +372,11 @@ def send_chat(message):
 def start_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
-    characters = read_db("room", "user_key, chr_name, init_val", f"WHERE room_id = '{session_id}' ORDER BY init_val, chr_name DESC ")
+    characters = read_db("active_room", "user_key, chr_name, init_val", f"WHERE room_id = '{session_id}' ORDER BY init_val, chr_name DESC ")
     first_character = characters[-1]
     app.logger.debug(f"Battle update: Combat has started.")
 
-    update_db("room", f"is_turn = '{1}'", f"WHERE room_id = '{session_id}' AND user_key = '{first_character[0]}' AND chr_name = '{first_character[1]}' AND init_val = '{first_character[2]}'")
+    update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{session_id}' AND user_key = '{first_character[0]}' AND chr_name = '{first_character[1]}' AND init_val = '{first_character[2]}'")
     add_to_db("log", (session_id, user_id, "Combat", "Started Combat", time_rcvd))
 
     # TODO: Fix to work when the are multiple characters with the same name
@@ -387,14 +387,27 @@ def start_combat(message):
 def end_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
-    character_name = read_db("room","chr_name", f"WHERE room_id = '{session_id}' AND is_turn = '1'")[0][0]
+    character_name = read_db("active_room","chr_name", f"WHERE room_id = '{session_id}' AND is_turn = '1'")[0][0]
     app.logger.debug(f"Battle update: Combat has ended.")
 
-    update_db("room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}'")
+    update_db("active_room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}'")
     add_to_db("log", (session_id, user_id, "Combat", "Ended Combat", time_rcvd))
 
     emit('combat_ended', {'desc':'Ended Combat', 'current_turn_name': character_name}, broadcast=True)
     # TODO: Should the database be cleared out of the room?
+
+
+# TODO: Will need to change this once multiple room creation is done
+@socketio.on('end_room', namespace='/combat')
+def end_session(message):
+    delete_from_db("active_room", f"WHERE room_id = {session_id}")
+    delete_from_db("chat", f"WHERE room_id = {session_id}")
+
+    app.log.debug(f"The room {session_id} owned by {current_user.get_site_name()} has closed")
+    
+    emit("room_ended", {'desc':'Closed Room'}, broadcast=True)
+    redirect(url_for('home'))
+
 
 
 @socketio.on('end_turn', namespace='/combat')
@@ -403,11 +416,11 @@ def end_turn(message):
     user_id = current_user.get_user_id()
     old_name = message['old_name']
     next_name = message['next_name']
-    new_character_id = read_db("room", "user_key, chr_name", f"WHERE room_id = '{session_id}' AND chr_name = '{next_name}'")[0][0]
+    new_character_id = read_db("active_room", "user_key, chr_name", f"WHERE room_id = '{session_id}' AND chr_name = '{next_name}'")[0][0]
     app.logger.debug(f"Battle update: {old_name}'s turn has ended. It is now {next_name}'s turn.")
 
-    update_db("room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}'")
-    update_db("room", f"is_turn = '{1}'", f"WHERE room_id = '{session_id}' AND user_key = '{new_character_id}' AND chr_name = '{next_name}'")
+    update_db("active_room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}'")
+    update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{session_id}' AND user_key = '{new_character_id}' AND chr_name = '{next_name}'")
     add_to_db("log", (session_id, user_id, "Combat", f"{old_name}'s Turn Ended", time_rcvd))
 
     emit("turn_ended", {'desc': message['desc']}, broadcast=True)
@@ -419,7 +432,7 @@ def connect():
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
     site_name = current_user.get_site_name()
-    initiatives = read_db("room", "chr_name, init_val", f"WHERE room_id = '{session_id}'")
+    initiatives = read_db("active_room", "chr_name, init_val", f"WHERE room_id = '{session_id}'")
     chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{session_id}'")
     app.logger.debug(f"Battle update: User {current_user.get_site_name()} has connected.")
 
@@ -441,13 +454,13 @@ def connect():
 @app.errorhandler(CSRFError)
 def handle_csrf_error(e):
     app.logger.warning(f"A CSRFError has occurred. How did this happen?")
-    return render_template("error.html", error_name="Error Code 400" ,error_desc = "The room you were in has closed!"), 400
+    return render_template("error.html", error_name="Error Code 400" ,error_desc = "The room you were in has closed!", site_name=current_user.get_site_name()), 400
 
 @app.errorhandler(HTTPException)
 def generic_error(e):
     # Generic HTTP Exception handler
     app.logger.warning(f"A HTTP error with code {e.code} has occurred. Handling the error.")
-    return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description), e.code
+    return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description, site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic()), e.code
 
 
 ### APP RUNNING

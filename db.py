@@ -24,12 +24,21 @@ def create_connection(db_file):
 # chat = holds what has been sent to chat
 # timestamp = when a chat was sent
 
-# room table
+# active_room table
 # room_id = Global identifier for battle map created by user
 # user_key = Unique user ID, allows for maps to be sorted by users
 # chr_name = Entered by DM/map owner, player character name associated with the given intiative
 # init_val = intiative # associated with a player
 # is_turn = boolean stating whos turn it is - for any given room, only one entry will be 1 (true)
+
+# room_object 
+# secret room ID # - incremental in the table
+# User_key - ‘owner’ of the room, needed to lock out others from editing the room
+# Name of room - what the owner of the room calls it (for visual purposes)
+# Active room id - null if room not open, changes when room is ‘opened’
+# Map_status - stringified JSON representation of NPCs and locations on map
+# Map URL - URL to the map (for the “background”)
+
 
 # users table ****** THIS IS THE ONLY TABLE THAT UTILIZES USER_ID INSTEAD OF USER_KEY BUT THEY ARE SYNONYMOUS ******
 # user_id = user_id gotten from Google 
@@ -53,15 +62,18 @@ def create_dbs():
         cur.execute(f"""CREATE TABLE IF NOT EXISTS chat
                         (row_id INT PRIMARY KEY, room_id TEXT, user_key TEXT, chr_name TEXT, chat TEXT, timestamp DATETIME);""")
         
-        cur.execute(f"""CREATE TABLE IF NOT EXISTS room 
+        cur.execute(f"""CREATE TABLE IF NOT EXISTS active_room 
                         (room_id TEXT, user_key TEXT, chr_name TEXT, init_val INT, is_turn INT, PRIMARY KEY(room_id, user_key, chr_name));""") 
 
+        cur.execute(f"""CREATE TABLE IF NOT EXISTS room_object
+                        (row_id INT PRIMARY KEY, user_key TEXT, room_name TEXT, active_room_id TEXT, map_status TEXT, map_url TEXT)""")
+        
         cur.execute(f"""CREATE TABLE IF NOT EXISTS users 
                         (user_id TEXT PRIMARY KEY, user_name TEXT NOT NULL, email TEXT NOT NULL, profile_pic TEXT, site_name Text);""") 
 
         cur.execute(f""" CREATE TABLE IF NOT EXISTS characters
                             (user_key TEXT, room_id TEXT, chr_name TEXT, class TEXT, subclass TEXT, race TEXT, subrace TEXT, speed INT, level INT, strength INT, dexterity INT, constitution INT, intelligence INT, wisdom INT, charisma INT, hitpoints INT, PRIMARY KEY(user_key, chr_name));""")
-
+        
 
 def add_to_db(db_name, values):
     with create_connection("battle_sesh.db") as conn:
@@ -70,8 +82,10 @@ def add_to_db(db_name, values):
             cur.execute("INSERT INTO log(room_id, user_key, title, log, timestamp) VALUES(?, ?, ?, ?, ?)", values)
         elif db_name == "chat":
             cur.execute("INSERT INTO chat(room_id, user_key, chr_name, chat, timestamp) VALUES(?, ?, ?, ?, ?)", values)
-        elif db_name == "room":
-            cur.execute("INSERT INTO room(room_id, user_key, chr_name, init_val, is_turn) VALUES(?, ?, ?, ?, ?)", values)
+        elif db_name == "active_room":
+            cur.execute("INSERT INTO active_room(room_id, user_key, chr_name, init_val, is_turn) VALUES(?, ?, ?, ?, ?)", values)
+        elif db_name == "room_object":
+            cur.execute("INSERT INTO room_object(user_key, room_name, active_room_id, map_status, map_url) VALUES(?,?,?,?,?)", values)
         elif db_name == "chars":
             cur.execute("""INSERT INTO characters(user_key, room_id, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints) 
                            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
