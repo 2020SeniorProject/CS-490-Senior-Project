@@ -26,17 +26,25 @@ $(document).ready(function() {
     $('#chat_text').val(''); 
     return false;
   });
-
+  
   $('form#start_battle').submit(function(event) {
     socket.emit('start_combat', {desc: "Start Battle"});
     return false;
   });
-
+  
   $('form#end_battle').submit(function(event) {
     socket.emit('end_combat', {desc: "End Battle"});
     return false;
   });
 
+  $('form#close_room').submit(function(event) {
+    if (window.confirm("This will clear all initiative and chat data for this room and kick players. Map and character token locations will be saved. Proceed?") ){
+      socket.emit('end_room', {desc: "Close Room"});
+      return false;
+    }
+    return false; 
+  });
+  
   $('form#end_turn').submit(function(event) {
     var next_index = null;
     if (turn_index + 1 == initiatives.length) {
@@ -108,6 +116,10 @@ $(document).ready(function() {
     $('#start_battle_button').prop('disabled', false);
     $('#end_battle_button').prop('disabled', true)
     // TODO: Should it clear out the characters and send connected players to the home page?
+  });
+
+  socket.on('room_ended', function(msg) {
+    $('#log').append($('</div>').text(msg.desc).html() + '<br>');
   });
 
   socket.on('turn_ended', function(msg) {
