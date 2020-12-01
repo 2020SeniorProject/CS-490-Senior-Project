@@ -230,7 +230,7 @@ def choose_character():
         return redirect(url_for('character_creation', message="You need to have a character to join!"))
 
 # Gameplay Page
-@app.route("/play", methods=["POST"])
+@app.route("/play", methods=["POST", "GET"])
 @login_required
 def play():
     # TODO: Check to see if combat has started
@@ -398,12 +398,13 @@ def end_combat(message):
 
 
 # TODO: Will need to change this once multiple room creation is done
+# currently doesn't work as intended --> need to leave room
 @socketio.on('end_room', namespace='/combat')
 def end_session(message):
-    delete_from_db("active_room", f"WHERE room_id = {session_id}")
-    delete_from_db("chat", f"WHERE room_id = {session_id}")
+    delete_from_db("active_room", f"WHERE room_id = '{session_id}'")
+    delete_from_db("chat", f"WHERE room_id = '{session_id}'")
 
-    app.log.debug(f"The room {session_id} owned by {current_user.get_site_name()} has closed")
+    app.logger.debug(f"The room {session_id} owned by {current_user.get_site_name()} has closed")
     
     emit("room_ended", {'desc':'Closed Room'}, broadcast=True)
     redirect(url_for('home'))
