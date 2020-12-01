@@ -92,7 +92,7 @@ def process_character_form(form, user_id, usage):
     
         if usage == "create":
             if read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{values[2]}'") != []:
-                return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
+                return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
             add_to_db("chars", values)
             # char_mess = f""" {values[2]}, the level {values[8]} {values[6]} {values[5]} {values[4]} {values[3]} with 
@@ -102,7 +102,7 @@ def process_character_form(form, user_id, usage):
 
         elif usage == "edit":
             if request.form['old_name'] != request.form['name'] and read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['name']}'") != []:
-                return render_template("edit_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'])
+                return render_template("edit_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'], profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
             delete_from_db("characters", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['old_name']}'")
             add_to_db("chars", values)
@@ -125,10 +125,10 @@ def process_character_form(form, user_id, usage):
         err_lis += [err_mes]
 
     if usage == "create":
-        return render_template("add_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
+        return render_template("add_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
         
     if usage == "edit":    
-        return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'])
+        return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'], profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 ### ROUTING DIRECTIVES 
 
@@ -143,7 +143,7 @@ def view_characters():
         delete_from_db("room", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['character_name']}'")
                         
     items = read_db("characters", "*", f"WHERE user_key = '{user_id}'")
-    return render_template("view_characters.html", items=items)
+    return render_template("view_characters.html", items=items, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 
 # Character creation page
@@ -155,7 +155,7 @@ def character_creation():
     if request.method == "POST":
         return process_character_form(form, user_id, "create")
 
-    return render_template("add_character.html")
+    return render_template("add_character.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 
 @app.route("/characters/edit/<name>", methods=["GET", "POST"])
@@ -171,7 +171,7 @@ def edit_character(name):
 
     if character:
         character = character[0]
-        return render_template("edit_character.html", name=character[2], hp=character[15], old_race=character[5], old_subrace=character[6], old_class=character[3], old_subclass=character[4], speed=character[7], lvl=character[8], str=character[9], dex=character[10], con=character[11], int=character[12], wis=character[13], cha=character[14], old_name=character[2])
+        return render_template("edit_character.html", name=character[2], hp=character[15], old_race=character[5], old_subrace=character[6], old_class=character[3], old_subclass=character[4], speed=character[7], lvl=character[8], str=character[9], dex=character[10], con=character[11], int=character[12], wis=character[13], cha=character[14], old_name=character[2], profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
     raise BadRequest(description=f"You don't have a character named {name}!")
 
@@ -183,13 +183,13 @@ def home():
     if request.method == "POST":
         site_name = request.form["site_name"]
         if read_db("users", "*", f"WHERE site_name = '{site_name}'"):
-            return render_template("set_site_name.html", message="Another user has that username!")
+            return render_template("set_site_name.html", message="Another user has that username!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
         update_db("users", f"site_name = '{site_name}'", f"WHERE user_id = '{current_user.get_user_id()}'")
         return redirect(url_for('home'))
 
     if not current_user.get_site_name():
-        return render_template("set_site_name.html")
+        return render_template("set_site_name.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
     # TODO: display current user information, use: current_user.name, current_user.email, current_user.profile_pic
     return render_template("base.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
@@ -200,7 +200,7 @@ def home():
 def choose_character():
     characters = read_db("characters", "*", f"WHERE user_key = '{current_user.get_user_id()}'")
     if characters:
-        return render_template("choose_character.html", characters=characters)
+        return render_template("choose_character.html", characters=characters, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
     else:
         # TODO: Have page redirect to play screen directly 
         return redirect(url_for('character_creation', message="You need to have a character to join!"))
@@ -217,7 +217,7 @@ def play():
     if not read_db("room", extra_clause=f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
         add_to_db("room", (session_id, user_id, char_name, 0, 0))
 
-    return render_template("play.html", async_mode=socketio.async_mode, char_name=char_name)
+    return render_template("play.html", async_mode=socketio.async_mode, char_name=char_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 # Landing Login Page
 @app.route("/")
@@ -385,13 +385,13 @@ def connect():
     # Sends upon a new connection
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
-    user_name = current_user.get_name()
+    site_name = current_user.get_site_name()
     initiatives = read_db("room", "chr_name, init_val", f"WHERE room_id = '{session_id}'")
     chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{session_id}'")
 
     add_to_db("log", (session_id, user_id, "Connection", f"User with id {user_id} connected", time_rcvd))
 
-    emit('log_update', {'desc': f"{user_name} Connected"}, broadcast=True)
+    emit('log_update', {'desc': f"{site_name} Connected"}, broadcast=True)
 
     for item in initiatives:
         emit('initiative_update', {'character_name': item[0], 'init_val': item[1]})

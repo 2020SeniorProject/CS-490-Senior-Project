@@ -34,12 +34,16 @@
                     </div>
                   </nav>
             </div>
-            <div class=row>
-              <div class=col>
-                <p>{{ site_name }}</p>
-              </div>
-              <div class="col">
-                <img style="height:60%; vertical-align:middle;" class="rounded float-right" src="{{ profile_pic }}" alt="Profile Pic">
+            <div class="col-2">
+              <div class="d-flex h-100">
+                <div class="row justify-content-center align-self-center">
+                  <div class=col-9>
+                    <p class="text-center">Currently logged in as: <b>{{ site_name }}</b></p>
+                  </div>
+                  <div class="col-3">
+                    <img style="height:80%;" class="rounded float-right" src="{{ profile_pic }}" alt="Profile Pic">
+                  </div>
+                </div>
               </div>
             </div>
         </div>
