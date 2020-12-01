@@ -92,28 +92,35 @@ def process_character_form(form, user_id, usage):
     
         if usage == "create":
             if read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{values[2]}'") != []:
+                app.logger.warning(f"User {current_user.get_site_name()} already has a character with name {form.name.data}. Reloading the Add Character page to allow them to change the name")
                 return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
+            app.logger.debug(f"User {current_user.get_site_name()} successfully added a character with name {form.name.data}. Redirecting them to the View Characters page.")
             add_to_db("chars", values)
             # char_mess = f""" {values[2]}, the level {values[8]} {values[6]} {values[5]} {values[4]} {values[3]} with 
-            #             {values[15]} hit points was created by {current_user.get_name()}!"""
+            #             {values[15]} hit points was created by {current_user.get_site_name()}!"""
             return redirect(url_for("view_characters"))
 
 
         elif usage == "edit":
             if request.form['old_name'] != request.form['name'] and read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['name']}'") != []:
+                app.logger.warning(f"User {current_user.get_site_name()} attempted to change the name of character {request.form['old_name']} to {request.form['name']}. They already have another character with that name. Reloading the Edit Character page to allow them to change the name.")
                 return render_template("edit_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'], profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
+            app.logger.debug(f"Updating the characters owned by user {current_user.get_site_name()}.")
             delete_from_db("characters", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['old_name']}'")
             add_to_db("chars", values)
 
             if request.form['old_name'] != form.name.data:
+                app.logger.warning(f"User {current_user.get_site_name()} updating the character name. Updating all of the references to that character in the database.")
                 update_db("room", f"chr_name = '{form.name.data}'", f"WHERE chr_name = '{request.form['old_name']}' AND user_key = '{user_id}'")
                 update_db("chat", f"chr_name = '{form.name.data}'", f"WHERE chr_name = '{request.form['old_name']}' AND user_key = '{user_id}'")
             
+            app.logger.debug(f"User {current_user.get_site_name()} successfully updated a character with name {form.name.data}. Redirecting them to the View Characters page.")
             return redirect(url_for("view_characters"))
         
         elif usage == "play":
+            # TODO: Setup logging for "play" sections of this function
             add_to_db("chars", values)
 
             return redirect(url_for("choose_character"))
@@ -125,9 +132,11 @@ def process_character_form(form, user_id, usage):
         err_lis += [err_mes]
 
     if usage == "create":
+        app.logger.warning(f"Character that user {current_user.get_site_name()} attempted to add had errors. Reloading the Add Character page to allow them to fix the errors.")
         return render_template("add_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
         
-    if usage == "edit":    
+    if usage == "edit": 
+        app.logger.warning(f"Character that user {current_user.get_site_name()} attempted to edit had errors. Reloading the Edit Character page to allow them to fix the errors.")
         return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'], profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 ### ROUTING DIRECTIVES 
@@ -139,10 +148,12 @@ def view_characters():
     user_id = current_user.get_user_id()
 
     if request.method == "POST":
+        app.logger.debug(f"Attempting to delete character owned by {current_user.get_site_name()} named {request.form['character_name']}.")
         delete_from_db("characters", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['character_name']}'")
         delete_from_db("room", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['character_name']}'")
                         
     items = read_db("characters", "*", f"WHERE user_key = '{user_id}'")
+    app.logger.debug(f"User {current_user.get_site_name()} has gone to view their characters. They have {len(items)} characters.")
     return render_template("view_characters.html", items=items, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 
@@ -153,8 +164,10 @@ def character_creation():
     form = CharacterValidation()
     user_id = current_user.get_user_id()
     if request.method == "POST":
+        app.logger.debug(f"User {current_user.get_site_name()} is attempting to register a character with name {form.name.data}.")
         return process_character_form(form, user_id, "create")
 
+    app.logger.debug(f"User {current_user.get_site_name()} has gone to add a character.")
     return render_template("add_character.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 
@@ -165,14 +178,17 @@ def edit_character(name):
     form = CharacterValidation()
 
     if request.method == "POST":
+        app.logger.warning(f"User {current_user.get_site_name()} is attempting to update a character with name {request.form['old_name']}.")
         return process_character_form(form, user_id, "edit")
 
     character = read_db("characters", "*", f"WHERE user_key = '{current_user.get_user_id()}' AND chr_name = '{name}'")
 
     if character:
         character = character[0]
+        app.logger.debug(f"User {current_user.get_site_name()} has gone to edit a character with name {character[2]}.")
         return render_template("edit_character.html", name=character[2], hp=character[15], old_race=character[5], old_subrace=character[6], old_class=character[3], old_subclass=character[4], speed=character[7], lvl=character[8], str=character[9], dex=character[10], con=character[11], int=character[12], wis=character[13], cha=character[14], old_name=character[2], profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
+    app.logger.warning(f"User attempted to edit a character with name {name}. They do not have a character with that name. Throwing a Bad Request error.")
     raise BadRequest(description=f"You don't have a character named {name}!")
 
 
@@ -182,26 +198,34 @@ def edit_character(name):
 def home():
     if request.method == "POST":
         site_name = request.form["site_name"]
+        app.logger.debug(f"User is attempting to set their site name as {site_name}")
         if read_db("users", "*", f"WHERE site_name = '{site_name}'"):
+            app.logger.warning(f"Site name {site_name} already has been used. Reloading the Set User Name with warning message.")
             return render_template("set_site_name.html", message="Another user has that username!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
+        app.logger.debug(f"{site_name} is available as a site name. Adding it to the user.")
         update_db("users", f"site_name = '{site_name}'", f"WHERE user_id = '{current_user.get_user_id()}'")
         return redirect(url_for('home'))
 
     if not current_user.get_site_name():
+        app.logger.warning("User does not have site name. Loading the Set User Name page.")
         return render_template("set_site_name.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
-    # TODO: display current user information, use: current_user.name, current_user.email, current_user.profile_pic
+    app.logger.debug(f"User {current_user.get_site_name()} has gone to the home page.")
     return render_template("base.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 # TODO: Will want to change how this works
 @app.route("/play/choose")
 @login_required
 def choose_character():
+    # TODO: Update logging stuff when multiple rooms added
+    app.logger.debug(f"User {current_user.get_site_name()} has gone to join the singular room.")
     characters = read_db("characters", "*", f"WHERE user_key = '{current_user.get_user_id()}'")
     if characters:
+        app.logger.debug(f"User {current_user.get_site_name()} has characters. Loading the Choose Character page.")
         return render_template("choose_character.html", characters=characters, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
     else:
+        app.logger.warning(f"User {current_user.get_site_name()} does not have characters. Redirecting them to the Add Character page.")
         # TODO: Have page redirect to play screen directly 
         return redirect(url_for('character_creation', message="You need to have a character to join!"))
 
@@ -209,10 +233,9 @@ def choose_character():
 @app.route("/play", methods=["POST"])
 @login_required
 def play():
-    # TODO: Integrate character name into the messages sent by the sockets
-    # TODO: Update the database to state that this character is in the game
     # TODO: Check to see if combat has started
     char_name = request.form['character']
+    app.logger.debug(f"User {current_user.get_site_name()} has entered the room with character {char_name}.")
     user_id = current_user.get_user_id()
     if not read_db("room", extra_clause=f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
         add_to_db("room", (session_id, user_id, char_name, 0, 0))
@@ -223,8 +246,10 @@ def play():
 @app.route("/")
 def login_index():
     if current_user.is_authenticated:
+        app.logger.debug(f"User logged in. Redirecting to the home page")
         return redirect(url_for('home'))
     else:
+        app.logger.debug("User not logged in. Loading the login page")
         return render_template("login.html")
 
 # Login Process
@@ -285,6 +310,7 @@ def callback():
 @app.route("/logout")
 @login_required
 def logout():
+    app.logger.debug(f"User {current_user.get_site_name()} just logged out")
     logout_user()
     return redirect(url_for("login_index"))
 
@@ -311,6 +337,8 @@ def get_classes():
 
 ### SOCKETIO EVENT HANDLERS
 
+# TODO: Update to work with real room_ids and also update logging messages at that point
+
 @socketio.on('set_initiative', namespace='/combat')
 def set_initiative(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
@@ -318,6 +346,7 @@ def set_initiative(message):
     init_val = message['init_val']
     user_id = current_user.get_user_id()
     desc = f"{character_name}'s initiative updated"
+    app.logger.debug(f"Battle update: {desc}.")
 
     update_db("room", f"init_val = '{init_val}'", f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{character_name}'")
     add_to_db("log", (session_id, user_id, "Init", desc, time_rcvd))
@@ -331,6 +360,7 @@ def send_chat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
     chr_name = message['character_name']
+    app.logger.debug(f"Battle update: {chr_name} has sent chat {message['chat']}.")
 
     add_to_db("chat",(session_id, user_id, chr_name, message['chat'], time_rcvd))
     add_to_db("log", (session_id, user_id, "Chat", message['character_name'], time_rcvd))
@@ -344,6 +374,7 @@ def start_combat(message):
     user_id = current_user.get_user_id()
     characters = read_db("room", "user_key, chr_name, init_val", f"WHERE room_id = '{session_id}' ORDER BY init_val, chr_name DESC ")
     first_character = characters[-1]
+    app.logger.debug(f"Battle update: Combat has started.")
 
     update_db("room", f"is_turn = '{1}'", f"WHERE room_id = '{session_id}' AND user_key = '{first_character[0]}' AND chr_name = '{first_character[1]}' AND init_val = '{first_character[2]}'")
     add_to_db("log", (session_id, user_id, "Combat", "Started Combat", time_rcvd))
@@ -357,6 +388,7 @@ def end_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
     character_name = read_db("room","chr_name", f"WHERE room_id = '{session_id}' AND is_turn = '1'")[0][0]
+    app.logger.debug(f"Battle update: Combat has ended.")
 
     update_db("room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}'")
     add_to_db("log", (session_id, user_id, "Combat", "Ended Combat", time_rcvd))
@@ -372,6 +404,7 @@ def end_turn(message):
     old_name = message['old_name']
     next_name = message['next_name']
     new_character_id = read_db("room", "user_key, chr_name", f"WHERE room_id = '{session_id}' AND chr_name = '{next_name}'")[0][0]
+    app.logger.debug(f"Battle update: {old_name}'s turn has ended. It is now {next_name}'s turn.")
 
     update_db("room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}'")
     update_db("room", f"is_turn = '{1}'", f"WHERE room_id = '{session_id}' AND user_key = '{new_character_id}' AND chr_name = '{next_name}'")
@@ -388,6 +421,7 @@ def connect():
     site_name = current_user.get_site_name()
     initiatives = read_db("room", "chr_name, init_val", f"WHERE room_id = '{session_id}'")
     chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{session_id}'")
+    app.logger.debug(f"Battle update: User {current_user.get_site_name()} has connected.")
 
     add_to_db("log", (session_id, user_id, "Connection", f"User with id {user_id} connected", time_rcvd))
 
@@ -406,30 +440,32 @@ def connect():
 
 @app.errorhandler(CSRFError)
 def handle_csrf_error(e):
+    app.logger.warning(f"A CSRFError has occurred. How did this happen?")
     return render_template("error.html", error_name="Error Code 400" ,error_desc = "The room you were in has closed!"), 400
 
 @app.errorhandler(HTTPException)
 def generic_error(e):
     # Generic HTTP Exception handler
+    app.logger.warning(f"A HTTP error with code {e.code} has occurred. Handling the error.")
     return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description), e.code
 
 
 ### APP RUNNING
 if __name__ == "__main__":
+    app.run(ssl_context="adhoc", port=33507, debug=True)
+
+if __name__ != "__main__":
     gunicorn_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers = gunicorn_logger.handlers
-    app.logger.setLevel(gunicorn_logger.level)
+    app.logger.setLevel(logging.DEBUG)
+    # app.logger.setLevel(gunicorn_logger.level)
 
-    # TODO: Truly setup the logger
-    # https://trstringer.com/logging-flask-gunicorn-the-manageable-way/
-    # It's setup... kinda
     # app.logger.debug('this is a DEBUG message')
     # app.logger.info('this is an INFO message')
     # app.logger.warning('this is a WARNING message')
     # app.logger.error('this is an ERROR message')
     # app.logger.critical('this is a CRITICAL message')
 
-    app.run(ssl_context="adhoc", port=33507, debug=True)
 
 
 
@@ -438,5 +474,7 @@ if __name__ == "__main__":
 # References
 # https://realpython.com/flask-google-login/\
 # https://blog.miguelgrinberg.com/post/easy-websockets-with-flask-and-gevent 
+# https://trstringer.com/logging-flask-gunicorn-the-manageable-way/
+
 # heroku specific changes - commit id: 6e0717afc16625b0cddb6410974bdb4c67bbf44f
 #	URL: https://github.com/2020SeniorProject/CS-490-Senior-Project/commit/6e0717afc16625b0cddb6410974bdb4c67bbf44f
