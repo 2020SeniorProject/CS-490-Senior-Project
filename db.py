@@ -126,6 +126,12 @@ def update_db(db_name, columns_values, extra_clause):
 
 
 def build_api_db(files):
+
+    def decomment(csvfile):
+        for row in csvfile:
+            raw = row.split('#')[0].strip()
+            if raw: yield raw
+
     with sqlite3.connect("api.db") as conn:
         cur = conn.cursor()
 
@@ -138,7 +144,7 @@ def build_api_db(files):
                 cur.execute(f"""CREATE TABLE IF NOT EXISTS class
                                 (class TEXT NOT NULL, subclass TEXT NOT NULL, PRIMARY KEY (class, subclass));""")
             with open(f"data_files/{file}.csv", 'r') as f:
-                reader = csv.reader(f)
+                reader = csv.reader(decomment(f))
                 if file == "race":
                     for row in reader:
                         cur.execute(f"""INSERT INTO race(race, subrace, speed) VALUES('{row[0]}', '{row[1]}', '{row[2]}');""")
