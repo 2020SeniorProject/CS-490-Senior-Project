@@ -85,6 +85,18 @@ def load_user(user_id):
 def sent_to_login():
     return redirect(url_for("login_index"))
 
+# TODO: Make these process functions better (possibly combine them)
+def process_character_form(form, user_id):
+    if form.validate():
+        values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data)
+        # TODO: Think through more potential checks
+        if read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{values[2]}'") != []:
+            return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data)
+
+        add_to_db("chars", values)
+        # char_mess = f""" {values[2]}, the level {values[8]} {values[6]} {values[5]} {values[4]} {values[3]} with 
+        #             {values[15]} hit points was created by {current_user.get_name()}!"""
+        return redirect(url_for("view_characters"))
 
 def process_character_form(form, user_id, usage):
     if form.validate():
@@ -237,7 +249,7 @@ def choose_character():
         if request.method == "POST":
             app.logger.debug(f"User {current_user.get_site_name()} is attempting to create their first character.")
             return process_character_form(form, user_id, "play")
-
+        # TODO: Instead of rendering this template at the route "/play/choose", redirect to characters
         return render_template("add_character.html", message_text="You need a character to enter a game!", action="/play/choose")
 
 # Gameplay Page
@@ -330,6 +342,7 @@ def logout():
 build_api_db(["race", "class"])
 
 ### API ROUTES
+# TODO: Hide these behind login requirements or create redirects page and redirect these guys
 @app.route("/api/races")
 def get_races():
     races, subraces = get_api_info("race", "race")
@@ -459,7 +472,7 @@ def connect():
     emit('log_update', {'desc': "Chat History Received"})
 
 
-### ERROR HANDLING
+### ERROR HANDLING 
 
 @app.errorhandler(CSRFError)
 def handle_csrf_error(e):
@@ -501,3 +514,8 @@ if __name__ != "__main__":
 
 # heroku specific changes - commit id: 6e0717afc16625b0cddb6410974bdb4c67bbf44f
 #	URL: https://github.com/2020SeniorProject/CS-490-Senior-Project/commit/6e0717afc16625b0cddb6410974bdb4c67bbf44f
+
+
+
+# TODO: allow characters to sleect who goes first when initiatives tied
+# TODO: Hide DM tools from the user view

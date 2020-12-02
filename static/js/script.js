@@ -164,3 +164,35 @@ function compareSecondColumn(a, b) {
   }
   //https://stackoverflow.com/questions/16096872/how-to-sort-2-dimensional-array-by-column-value
 }
+
+function onDragStart(event) {
+  event.dataTransfer.setData('text/plain', event.target.id);
+  // event.currentTarget.style.backgroundColor = 'yellow';
+}
+
+function onDragOver(event) {
+  event.preventDefault();
+}
+
+function onDrop(event) {
+  const id = "characterIcon";
+  const draggableElement = document.getElementById(id);
+  console.log(id)
+  console.log(draggableElement)
+  console.log(event)
+  console.log(event.target)
+  const dropzone = event.target;
+
+
+
+
+  // draggableElement.style.position = "absolute"
+  // dropzone.append(draggableElement);
+  event.dataTransfer.clearData();
+  var x = event.clientX;
+  var y = event.clientY;
+  var coor = "X coords: " + x + ", Y coords: " + y;
+  console.log(coor)
+  draggableElement.style.top = y + "px";
+  draggableElement.style.left = x + "px";
+} 
