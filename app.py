@@ -398,7 +398,6 @@ def end_combat(message):
 
 
 # TODO: Will need to change this once multiple room creation is done
-# currently doesn't work as intended --> need to leave room
 @socketio.on('end_room', namespace='/combat')
 def end_session(message):
     delete_from_db("active_room", f"WHERE room_id = '{session_id}'")
@@ -406,8 +405,7 @@ def end_session(message):
 
     app.logger.debug(f"The room {session_id} owned by {current_user.get_site_name()} has closed")
     
-    emit("room_ended", {'desc':'Closed Room'}, broadcast=True)
-    redirect(url_for('home'))
+    emit("room_ended", {'desc': message['desc']}, broadcast=True)
 
 
 

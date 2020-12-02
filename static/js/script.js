@@ -121,7 +121,8 @@ $(document).ready(function() {
   });
 
   socket.on('room_ended', function(msg) {
-    $('#log').append($('</div>').text(msg.desc).html() + '<br>');
+    // TODO: replace this link when going into development or deploying
+    window.location.replace("/home");
   });
 
   socket.on('turn_ended', function(msg) {
