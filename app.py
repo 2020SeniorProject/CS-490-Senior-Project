@@ -120,9 +120,8 @@ def process_character_form(form, user_id, usage):
             return redirect(url_for("view_characters"))
         
         elif usage == "play":
-            # TODO: Setup logging for "play" sections of this function
             add_to_db("chars", values)
-
+            app.logger.debug(f"User {current_turn_name.get_site_name()} successfully created their first character with name {form.name.data}. Redirecting them to the Choose Characters Page")
             return redirect(url_for("choose_character"))
 
     err_lis = []
@@ -133,12 +132,16 @@ def process_character_form(form, user_id, usage):
 
     if usage == "create":
         app.logger.warning(f"Character that user {current_user.get_site_name()} attempted to add had errors. Reloading the Add Character page to allow them to fix the errors.")
-        return render_template("add_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
-        
+        return render_template("add_character.html", errors=err_lis, action="/characters/create", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+    
     if usage == "edit": 
         app.logger.warning(f"Character that user {current_user.get_site_name()} attempted to edit had errors. Reloading the Edit Character page to allow them to fix the errors.")
         return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'], profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
+    if usage == "play":
+        app.logger.warning(f"Character user {current_user.get_site_name()} attempted to add had errors. Reloading Add Character page to allow them to fix the errors.")
+        return render_template("add_character.html", errors=err_lis, action="/play/choose", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+         
 ### ROUTING DIRECTIVES 
 
 # Viewing characters page
@@ -168,7 +171,7 @@ def character_creation():
         return process_character_form(form, user_id, "create")
 
     app.logger.debug(f"User {current_user.get_site_name()} has gone to add a character.")
-    return render_template("add_character.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+    return render_template("add_character.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), action="/characters/create")
 
 
 @app.route("/characters/edit/<name>", methods=["GET", "POST"])
@@ -212,10 +215,13 @@ def home():
         return render_template("set_site_name.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
     app.logger.debug(f"User {current_user.get_site_name()} has gone to the home page.")
+
+    created_rooms = read_db("room_object", "row_id,room_name, map_url", f"WHERE user_key = {current_user.get_user_id()}")   
+
     return render_template("base.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 # TODO: Will want to change how this works
-@app.route("/play/choose")
+@app.route("/play/choose", methods=["GET", "POST"])
 @login_required
 def choose_character():
     # TODO: Update logging stuff when multiple rooms added
@@ -225,12 +231,17 @@ def choose_character():
         app.logger.debug(f"User {current_user.get_site_name()} has characters. Loading the Choose Character page.")
         return render_template("choose_character.html", characters=characters, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
     else:
+        user_id = current_user.get_user_id()
+        form = CharacterValidation()
         app.logger.warning(f"User {current_user.get_site_name()} does not have characters. Redirecting them to the Add Character page.")
-        # TODO: Have page redirect to play screen directly 
-        return redirect(url_for('character_creation', message="You need to have a character to join!"))
+        if request.method == "POST":
+            app.logger.debug(f"User {current_user.get_site_name()} is attempting to create their first character.")
+            return process_character_form(form, user_id, "play")
+
+        return render_template("add_character.html", message_text="You need a character to enter a game!", action="/play/choose")
 
 # Gameplay Page
-@app.route("/play", methods=["POST", "GET"])
+@app.route("/play", methods=["POST"])
 @login_required
 def play():
     # TODO: Check to see if combat has started
