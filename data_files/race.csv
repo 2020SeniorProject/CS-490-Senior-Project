@@ -1,14 +1,75 @@
-Dragonborn,Dragonborn, 30
-Dwarf,Hill, 25
-Dwarf,Mountain, 25
-Elf,Drow, 30
-Elf,High, 30
-Elf,Wood, 30
-Gnome,Forest, 25
-Gnome,Rock, 25
-Half-Elf,Half-Elf, 30
-Half-Orc,Half-Orc, 30
-Halfing,Lightfoot, 25
-Halfing,Stout, 25
-Human,Human, 30,
-Tiefling,Tiefling, 30
+# Player's Handbook
+Dragonborn,Dragonborn (Default),30
+Dwarf,Hill,25
+Dwarf,Mountain,25
+Elf,Drow,30
+Elf,High,30
+Elf,Wood,30
+Gnome,Forest,25
+Gnome,Rock,25
+Half-Elf,Half-Elf (Default),30
+Half-Elf,Half-Elf (Variant),30
+Half-Orc,Half-Orc,30
+Halfing,Lightfoot,25
+Halfing,Stout,25
+Human,Human (Default),30
+Human,Human (Variant),30
+Tiefling,Tiefling,30
+#
+# Volo's Guide to Monsters
+Aasimar,Fallen,30
+Aasimar,Protector,30
+Aasimar,Scourge,30
+Bugbear,Bugbear (VGM),30
+Firbolg,Firbolg,30
+Goblin,Goblin (VGM),30
+Goliath,Goliath,30
+Hobgoblin,Hobgoblin (VGM),30
+Kenku,Kenku,30
+Kobold,Kobold,30
+Lizardfolk,Lizardfolk,30
+Orc,Orc (VGM),30
+Tabaxi,Tabaxi,30
+Triton,Triton,30
+Yuan-ti Pureblood,Yuan-ti Pureblood,30
+#
+# Eberron
+Bugbear,Bugbear (Eberron),30
+Changeling,Changeing,30
+Dwarf,Mark of Warding,25
+Elf,Mark of Shadow,30
+Gnome,Mark of Scribing,25
+Goblin,Goblin (Eberron),30
+Half-Elf,Mark of Detection,30
+Half-Elf,Mark of Storm,30
+Half-Orc,Mark of Finding,30
+Halfling,Mark of Healing,25
+Halfling,Mark of Hospitality,25
+Hobgoblin,Hobgoblin (Eberron),30
+Human,Mark of Finding,30
+Human,Mark of Handling,30
+Human,Mark of Making,30
+Human,Mark of Passage,30
+Human,Mark of Sentinel,30
+Kalashtar,Kalashtar,30
+Orc,Orc (Eberron),30
+Shifter,Beasthide,30
+Shifter,Longtooth,30
+Shifter,Swiftstride,30
+Shifter,Wildhunt,30
+Warforged,Warforged,30
+#
+# Ravnica
+Centaur,Centaur,40
+Goblin,Goblin (Ravnica),30
+Loxodon,Loxodon,30
+Minitaur,Minitaur,30
+Simic Hybrid,Simic Hybrid,30
+Vedalken,Vedalken,30
+#
+# Wildemount
+Dragonborn,Draconblood,30
+Dragonborn,Ravenite,30
+Elf,Pallid,30
+Halfing,Lotusden,30
+Orc,Orc (Wildemount),30
