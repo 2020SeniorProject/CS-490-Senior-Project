@@ -39,11 +39,10 @@ $(document).ready(function() {
 
   $('form#close_room').submit(function(event) {
     // TODO: fix this 
-    // if (window.confirm("This will clear all initiative and chat data for this room and kick players. Map and character token locations will be saved. Proceed?") ){
-    //   socket.emit('end_room', {desc: "Close Room"});
-    //   return false;
-    // }
-    socket.emit('end_room', {desc:"Close Room"})
+    if (window.confirm("This will clear all initiative and chat data for this room and kick players. Map and character token locations will be saved. Proceed?") ){
+      socket.emit('end_room', {desc: "Close Room"});
+      return false;
+    }
     return false; 
   });
   
