@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<script src="/static/js/script.js"></script>
+<script src="/static/js/script.js?n=2"></script>
 
 <div class=row style="height:65%;">
     <div class="col-2 border border-dark h-100" style="overflow:scroll;">
@@ -13,7 +13,10 @@
         </table>
     </div>
     <div class="col-8 border border-dark">
-        <div class="text-center"><img style="height:100%;width:100%;" src="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg"></div>
+        <div class="text-center" ondragover="onDragOver(event);" ondrop="onDrop(event);">
+            <img style="height:100%;width:100%;" src="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg">
+            <img id="characterIcon" style="position:absolute;height:10%;width:10%;z-index:10;top:25px;left: 25px;border: 2px;border-color: rgb(0, 0, 255);" draggable="true" ondragstart="onDragStart(event);" src="https://colourlex.com/wp-content/uploads/2015/08/Cadmium_red_nr_2_painted_swatch_Lipscher-225-opt.jpg">
+        </div>
     </div>
     <div class="col-2 border border-dark h-100">
         <h4 class="text-center">DM Tools</h4>

@@ -148,6 +148,7 @@ def build_api_db(files):
         conn.commit()
 
 
+# TODO: Combine read_api_db and read_db, create global variables for battle_shes.db and apt.db
 def read_api_db(db_name, rows="*", extra_clause = ""):
     with sqlite3.connect("api.db") as conn:
         cur = conn.cursor()
