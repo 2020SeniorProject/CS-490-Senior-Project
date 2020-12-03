@@ -355,14 +355,18 @@ def set_initiative(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     character_name = message['character_name']
     init_val = message['init_val']
+    site_name = message['site_name']
     user_id = current_user.get_user_id()
     desc = f"{character_name}'s initiative updated"
     app.logger.debug(f"Battle update: {desc}.")
 
+    if not init_val:
+        init_val = read_db("active_room", "init_val", f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{character_name}'")[0][0]
+
     update_db("active_room", f"init_val = '{init_val}'", f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{character_name}'")
     add_to_db("log", (session_id, user_id, "Init", desc, time_rcvd))
 
-    emit('initiative_update', {'character_name': character_name, 'init_val': init_val}, broadcast=True)
+    emit('initiative_update', {'character_name': character_name, 'init_val': init_val, 'site_name': site_name}, broadcast=True)
     emit('log_update', {'desc': desc}, broadcast=True)
 
 

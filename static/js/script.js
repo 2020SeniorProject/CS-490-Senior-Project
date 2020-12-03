@@ -24,7 +24,7 @@ $(document).ready(function() {
   // Socketio events
   // TODO: Add room_id to all of the functions
   $('form#set_initiative').submit(function(event) {
-    socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val()});
+    socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), site_name: site_name});
     $('#initiative_roll').val(''); 
     return false;
   });
@@ -66,6 +66,10 @@ $(document).ready(function() {
     return false;
   });
 
+  socket.on('connect', function() {
+    socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), site_name: site_name});
+  });
+
   socket.on('log_update', function(msg) {
     $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
   });
@@ -73,6 +77,7 @@ $(document).ready(function() {
   socket.on('initiative_update', function(msg) {
     // TODO: Fix to allow multiple players have the same character name
     var updated = false;
+    console.log(msg);
 
     for (i = 0; i < initiatives.length; i++) {
       if (initiatives[i][0] == msg.character_name && initiatives[i][2] == msg.site_name) {
