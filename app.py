@@ -391,7 +391,8 @@ def start_combat(message):
     add_to_db("log", (session_id, user_id, "Combat", "Started Combat", time_rcvd))
 
     # TODO: Fix to work when the are multiple characters with the same name
-    emit('combat_started', {'desc': 'Started Combat', 'first_turn_name': first_character[1]}, broadcast=True)
+    site_name = read_db("users", "site_name", f"WHERE user_id = '{first_character[0]}'")[0][0]
+    emit('combat_started', {'desc': 'Started Combat', 'first_turn_name': first_character[1], 'site_name': site_name}, broadcast=True)
 
 
 @socketio.on('end_combat', namespace='/combat')
@@ -405,7 +406,6 @@ def end_combat(message):
     add_to_db("log", (session_id, user_id, "Combat", "Ended Combat", time_rcvd))
 
     emit('combat_ended', {'desc':'Ended Combat', 'current_turn_name': character_name}, broadcast=True)
-    # TODO: Should the database be cleared out of the room?
 
 
 # TODO: Will need to change this once multiple room creation is done
@@ -433,7 +433,8 @@ def end_turn(message):
     update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{session_id}' AND user_key = '{new_character_id}' AND chr_name = '{next_name}'")
     add_to_db("log", (session_id, user_id, "Combat", f"{old_name}'s Turn Ended", time_rcvd))
 
-    emit("turn_ended", {'desc': message['desc']}, broadcast=True)
+    site_name = read_db("users", "site_name", f"WHERE user_id = '{new_character_id}'")[0][0]
+    emit("turn_ended", {'desc': message['desc'], 'site_name': site_name}, broadcast=True)
 
 
 @socketio.on('connect', namespace='/combat')
@@ -451,7 +452,8 @@ def connect():
     emit('log_update', {'desc': f"{site_name} Connected"}, broadcast=True)
 
     for item in initiatives:
-        emit('initiative_update', {'character_name': item[0], 'init_val': item[1]})
+        site_name = read_db("users", "site_name", f"WHERE user_id = '{user_id}'")[0][0]
+        emit('initiative_update', {'character_name': item[0], 'init_val': item[1], 'site_name': site_name})
     emit('log_update', {'desc': "Initiative List Received"})
 
     for item in chats:

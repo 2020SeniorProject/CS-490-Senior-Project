@@ -1,5 +1,6 @@
 var initiatives = [];
 var turn_index = null;
+var site_name = $('#site_name').text();
 
 $(document).ready(function() {
   // Use a "/test" namespace.
@@ -7,6 +8,12 @@ $(document).ready(function() {
   // Socket.IO will multiplex all those connections on a single
   // physical channel. If you don't care about multiple channels, you
   // can set the namespace to an empty string.
+
+  // var initiatives = [];
+  // var turn_index = null;
+  // var site_name = $('#site_name').text();
+
+  
   namespace = '/combat';
   
   // Connect to the Socket.IO server.
@@ -14,6 +21,7 @@ $(document).ready(function() {
   //     http[s]://<domain>:<port>[/<namespace>]
   var socket = io(namespace);
 
+  // Socketio events
   // TODO: Add room_id to all of the functions
   $('form#set_initiative').submit(function(event) {
     socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val()});
@@ -67,14 +75,14 @@ $(document).ready(function() {
     var updated = false;
 
     for (i = 0; i < initiatives.length; i++) {
-      if (initiatives[i][0] == msg.character_name) {
+      if (initiatives[i][0] == msg.character_name && initiatives[i][2] == msg.site_name) {
         initiatives[i][1] = msg.init_val;
         updated = true;
       }
     }
 
     if (!updated) {
-      initiatives.push([msg.character_name, msg.init_val]);
+      initiatives.push([msg.character_name, msg.init_val, msg.site_name]);
     }
 
     initiatives.sort(function(a, b) { 
@@ -100,10 +108,13 @@ $(document).ready(function() {
     $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
     $(`#${first_turn_name}-row`).addClass("bg-warning");
 
-    $('#end_turn_button').prop('disabled', false);
     $('#set_initiative_button').prop('disabled', true);
-    $('#start_battle_button').prop('disabled', true)
+    $('#start_battle_button').prop('disabled', true);
     $('#end_battle_button').prop('disabled', false);
+
+    if (site_name == msg.site_name) {
+      $('#end_turn_button').prop('disabled', false);
+    }
   });
 
   socket.on('combat_ended', function(msg) {
@@ -116,7 +127,6 @@ $(document).ready(function() {
     $('#set_initiative_button').prop('disabled', false);
     $('#start_battle_button').prop('disabled', false);
     $('#end_battle_button').prop('disabled', true)
-    // TODO: Should it clear out the characters and send connected players to the home page?
   });
 
   socket.on('room_ended', function(msg) {
@@ -138,22 +148,30 @@ $(document).ready(function() {
 
     $(`#${old_id}-row`).removeClass("bg-warning");
     $(`#${next_id}-row`).addClass("bg-warning");
+
+    $('#end_turn_button').prop('disabled', true);
+    if (initiatives[next_index][2] == msg.site_name) {
+      $('#end_turn_button').prop('disabled', false);
+    }
+
     $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
   });
+
+  // "Helper" functions
+  function update_init_table() {
+    code = "<tbody>";
+    for (i = 0; i < initiatives.length; i++) {
+      // TODO: Fix id to work when multiple characters have the same name
+      var id = initiatives[i][0].split(" ").join("_");
+      code += `<tr id=${id}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td></tr>`;
+    }
+  
+    code += "</tbody>";
+  
+    return code;
+  }
 });
 
-function update_init_table() {
-  code = "<tbody>";
-  for (i = 0; i < initiatives.length; i++) {
-    // TODO: Fix id to work when multiple characters have the same name
-    var id = initiatives[i][0].split(" ").join("_");
-    code += `<tr id=${id}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td></tr>`;
-  }
-
-  code += "</tbody>";
-
-  return code;
-}
 
 function compareSecondColumn(a, b) {
   if (a[1] === b[1]) {
