@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container centered">
+    {% for rooms in room_list %}
+    <div class="media striped">
+        <div class="media-left">
+            <a href="/{{ rooms[0] }}">
+                <img class="media-object" height=64 width=64 src="{{rooms[2]}}">
+            </a>
+        </div>
+        <div class="media-body">
+            <h4 class="media-heading">{{ rooms[1] }}</h4>
+            <p>
+                {{ rooms[3]}}
+            </p>
+        </div>
+    </div>
+    {% endfor %}
+    <div class=container>
+        <a href="/room/create">
+        <button class= "btn btn-success btn-lg btn-block" >Create a room</button>
+        </a>
+    </div>
+</div>
+
+
+
+{% endblock %}
