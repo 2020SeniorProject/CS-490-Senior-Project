@@ -15,7 +15,7 @@ from flask_wtf.csrf import CSRFProtect, CSRFError
 from werkzeug.exceptions import HTTPException, BadRequest
 
 # Internal imports
-from classes import User, CharacterValidation
+from classes import User, CharacterValidation, RoomValidation
 from db import create_dbs, add_to_db, read_db, delete_from_db, update_db, build_api_db, read_api_db, get_api_info
 
 
@@ -148,6 +148,7 @@ def process_room_form(form, user_id):
 
         app.logger.debug(f"User {current_user.get_site_name()} has created the room called {form.room_name.data}")
         add_to_db("room_object", values)
+        return redirect(url_for("home"))
 
     err_lis = []
         
@@ -245,10 +246,10 @@ def home():
 @login_required
 def room_creation():
     form = RoomValidation()
-    user_key = current_user.get_user_id()
+    user_id = current_user.get_user_id()
 
     if request.method == "POST":
-        app.logger.debug(f"User {current_user.get_site_name()} is attempting to create a new room named {form.room_name}")
+        app.logger.debug(f"User {current_user.get_site_name()} is attempting to create a new room named {form.room_name.data}")
         return process_room_form(form, user_id)
 
 
