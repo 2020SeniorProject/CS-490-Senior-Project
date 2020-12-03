@@ -394,14 +394,18 @@ def set_initiative(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     character_name = message['character_name']
     init_val = message['init_val']
+    site_name = message['site_name']
     user_id = current_user.get_user_id()
     desc = f"{character_name}'s initiative updated"
     app.logger.debug(f"Battle update: {desc}.")
 
+    if not init_val:
+        init_val = read_db("active_room", "init_val", f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{character_name}'")[0][0]
+
     update_db("active_room", f"init_val = '{init_val}'", f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{character_name}'")
     add_to_db("log", (session_id, user_id, "Init", desc, time_rcvd))
 
-    emit('initiative_update', {'character_name': character_name, 'init_val': init_val}, broadcast=True)
+    emit('initiative_update', {'character_name': character_name, 'init_val': init_val, 'site_name': site_name}, broadcast=True)
     emit('log_update', {'desc': desc}, broadcast=True)
 
 
@@ -429,25 +433,24 @@ def start_combat(message):
     update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{session_id}' AND user_key = '{first_character[0]}' AND chr_name = '{first_character[1]}' AND init_val = '{first_character[2]}'")
     add_to_db("log", (session_id, user_id, "Combat", "Started Combat", time_rcvd))
 
-    # TODO: Fix to work when the are multiple characters with the same name
-    emit('combat_started', {'desc': 'Started Combat', 'first_turn_name': first_character[1]}, broadcast=True)
+    site_name = read_db("users", "site_name", f"WHERE user_id = '{first_character[0]}'")[0][0]
+    emit('combat_started', {'desc': 'Started Combat', 'first_turn_name': first_character[1], 'site_name': site_name}, broadcast=True)
 
 
 @socketio.on('end_combat', namespace='/combat')
 def end_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
-    character_name = read_db("active_room","chr_name", f"WHERE room_id = '{session_id}' AND is_turn = '1'")[0][0]
+    character = read_db("active_room","user_key, chr_name", f"WHERE room_id = '{session_id}' AND is_turn = '1'")[0]
     app.logger.debug(f"Battle update: Combat has ended.")
 
     update_db("active_room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}'")
     add_to_db("log", (session_id, user_id, "Combat", "Ended Combat", time_rcvd))
 
-    emit('combat_ended', {'desc':'Ended Combat', 'current_turn_name': character_name}, broadcast=True)
-    # TODO: Should the database be cleared out of the room?
+    site_name = read_db("users", "site_name", f"WHERE user_id = '{character[0]}'")[0]
+    emit('combat_ended', {'desc':'Ended Combat', 'current_turn_name': character[1], 'site_name': site_name}, broadcast=True)
 
 
-# TODO: Will need to change this once multiple room creation is done
 @socketio.on('end_room', namespace='/combat')
 def end_session(message):
     delete_from_db("active_room", f"WHERE room_id = '{session_id}'")
@@ -465,14 +468,16 @@ def end_turn(message):
     user_id = current_user.get_user_id()
     old_name = message['old_name']
     next_name = message['next_name']
-    new_character_id = read_db("active_room", "user_key, chr_name", f"WHERE room_id = '{session_id}' AND chr_name = '{next_name}'")[0][0]
+    old_site_name = message['old_site_name']
+    next_site_name = message['next_site_name']
+    new_character_id = read_db("users", "user_id", f"WHERE site_name = '{next_site_name}'")[0][0]
     app.logger.debug(f"Battle update: {old_name}'s turn has ended. It is now {next_name}'s turn.")
 
     update_db("active_room", f"is_turn = '{0}'", f"WHERE room_id = '{session_id}'")
     update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{session_id}' AND user_key = '{new_character_id}' AND chr_name = '{next_name}'")
     add_to_db("log", (session_id, user_id, "Combat", f"{old_name}'s Turn Ended", time_rcvd))
 
-    emit("turn_ended", {'desc': message['desc']}, broadcast=True)
+    emit("turn_ended", {'desc': message['desc'], 'old_site_name': old_site_name, 'next_site_name': next_site_name}, broadcast=True)
 
 
 @socketio.on('connect', namespace='/combat')
@@ -481,7 +486,7 @@ def connect():
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
     site_name = current_user.get_site_name()
-    initiatives = read_db("active_room", "chr_name, init_val", f"WHERE room_id = '{session_id}'")
+    initiatives = read_db("active_room", "chr_name, init_val, user_key", f"WHERE room_id = '{session_id}'")
     chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{session_id}'")
     app.logger.debug(f"Battle update: User {current_user.get_site_name()} has connected.")
 
@@ -490,7 +495,8 @@ def connect():
     emit('log_update', {'desc': f"{site_name} Connected"}, broadcast=True)
 
     for item in initiatives:
-        emit('initiative_update', {'character_name': item[0], 'init_val': item[1]})
+        site_name = read_db("users", "site_name", f"WHERE user_id = '{item[2]}'")[0][0]
+        emit('initiative_update', {'character_name': item[0], 'init_val': item[1], 'site_name': site_name})
     emit('log_update', {'desc': "Initiative List Received"})
 
     for item in chats:

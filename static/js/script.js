@@ -1,5 +1,6 @@
-var initiatives = [];
-var turn_index = null;
+// var initiatives = [];
+// var turn_index = null;
+// var site_name = $('#site_name').text();
 
 $(document).ready(function() {
   // Use a "/test" namespace.
@@ -7,6 +8,12 @@ $(document).ready(function() {
   // Socket.IO will multiplex all those connections on a single
   // physical channel. If you don't care about multiple channels, you
   // can set the namespace to an empty string.
+
+  var initiatives = [];
+  var turn_index = null;
+  var site_name = $('#site_name').text();
+
+  
   namespace = '/combat';
   
   // Connect to the Socket.IO server.
@@ -14,9 +21,10 @@ $(document).ready(function() {
   //     http[s]://<domain>:<port>[/<namespace>]
   var socket = io(namespace);
 
+  // Socketio events
   // TODO: Add room_id to all of the functions
   $('form#set_initiative').submit(function(event) {
-    socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val()});
+    socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), site_name: site_name});
     $('#initiative_roll').val(''); 
     return false;
   });
@@ -38,7 +46,6 @@ $(document).ready(function() {
   });
 
   $('form#close_room').submit(function(event) {
-    // TODO: fix this 
     if (window.confirm("This will clear all initiative and chat data for this room and kick players. Map and character token locations will be saved. Proceed?") ){
       socket.emit('end_room', {desc: "Close Room"});
       return false;
@@ -54,8 +61,12 @@ $(document).ready(function() {
     else {
       next_index = turn_index + 1
     }
-    socket.emit('end_turn', {desc: `${initiatives[turn_index][0]}'s Turn Ended`, old_name: initiatives[turn_index][0], next_name: initiatives[next_index][0]});
+    socket.emit('end_turn', {desc: `${initiatives[turn_index][0]}'s Turn Ended`, old_name: initiatives[turn_index][0], next_name: initiatives[next_index][0], old_site_name: initiatives[turn_index][2], next_site_name: initiatives[next_index][2]});
     return false;
+  });
+
+  socket.on('connect', function() {
+    socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), site_name: site_name});
   });
 
   socket.on('log_update', function(msg) {
@@ -63,18 +74,17 @@ $(document).ready(function() {
   });
 
   socket.on('initiative_update', function(msg) {
-    // TODO: Fix to allow multiple players have the same character name
     var updated = false;
 
     for (i = 0; i < initiatives.length; i++) {
-      if (initiatives[i][0] == msg.character_name) {
+      if (initiatives[i][0] == msg.character_name && initiatives[i][2] == msg.site_name) {
         initiatives[i][1] = msg.init_val;
         updated = true;
       }
     }
 
     if (!updated) {
-      initiatives.push([msg.character_name, msg.init_val]);
+      initiatives.push([msg.character_name, msg.init_val, msg.site_name]);
     }
 
     initiatives.sort(function(a, b) { 
@@ -98,25 +108,27 @@ $(document).ready(function() {
     turn_index = 0;
 
     $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
-    $(`#${first_turn_name}-row`).addClass("bg-warning");
+    $(`#${first_turn_name}-${msg.site_name}-row`).addClass("bg-warning");
 
-    $('#end_turn_button').prop('disabled', false);
     $('#set_initiative_button').prop('disabled', true);
-    $('#start_battle_button').prop('disabled', true)
+    $('#start_battle_button').prop('disabled', true);
     $('#end_battle_button').prop('disabled', false);
+
+    if (site_name == msg.site_name) {
+      $('#end_turn_button').prop('disabled', false);
+    }
   });
 
   socket.on('combat_ended', function(msg) {
     var current_turn_name = msg.current_turn_name.split(" ").join("_");
 
     $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
-    $(`#${current_turn_name}-row`).removeClass("bg-warning");
+    $(`#${current_turn_name}-${msg.site_name}-row`).removeClass("bg-warning");
 
     $('#end_turn_button').prop('disabled', true);
     $('#set_initiative_button').prop('disabled', false);
     $('#start_battle_button').prop('disabled', false);
     $('#end_battle_button').prop('disabled', true)
-    // TODO: Should it clear out the characters and send connected players to the home page?
   });
 
   socket.on('room_ended', function(msg) {
@@ -125,6 +137,8 @@ $(document).ready(function() {
   });
 
   socket.on('turn_ended', function(msg) {
+    // TODO: Fix having to hit "end turn" twice when characters have the same name.
+    // I think its something to do with the way that the front end sorts the initiatives list
     var next_index = null;
     if (turn_index + 1 == initiatives.length) {
       next_index = 0
@@ -136,24 +150,32 @@ $(document).ready(function() {
     var next_id = initiatives[next_index][0].split(" ").join("_");
     turn_index = next_index;
 
-    $(`#${old_id}-row`).removeClass("bg-warning");
-    $(`#${next_id}-row`).addClass("bg-warning");
+    $(`#${old_id}-${msg.old_site_name}-row`).removeClass("bg-warning");
+    $(`#${next_id}-${msg.next_site_name}-row`).addClass("bg-warning");
+
+    $('#end_turn_button').prop('disabled', true);
+    if (site_name == msg.next_site_name) {
+      $('#end_turn_button').prop('disabled', false);
+    }
+
     $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
   });
+
+  // "Helper" functions
+  function update_init_table() {
+    code = "<tbody>";
+    for (i = 0; i < initiatives.length; i++) {
+      // TODO: Fix id to work when site_name has a space in it
+      var id = initiatives[i][0].split(" ").join("_");
+      code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td></tr>`;
+    }
+  
+    code += "</tbody>";
+  
+    return code;
+  }
 });
 
-function update_init_table() {
-  code = "<tbody>";
-  for (i = 0; i < initiatives.length; i++) {
-    // TODO: Fix id to work when multiple characters have the same name
-    var id = initiatives[i][0].split(" ").join("_");
-    code += `<tr id=${id}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td></tr>`;
-  }
-
-  code += "</tbody>";
-
-  return code;
-}
 
 function compareSecondColumn(a, b) {
   if (a[1] === b[1]) {
