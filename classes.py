@@ -28,6 +28,12 @@ class CharacterValidation(FlaskForm):
 
 
 
+class RoomValidation(FlaskForm):
+    room_name = StringField("Room", [DataRequired(message="Please input the name of your room"), Length(min=1, max=42, message="Name must be between 1 and 42 characters")])
+    # TODO: Check for valid image link? and add tokens
+    map_url = StringField("Map_URL", [DataRequired(message="Please provide a valid link to the image you are using for your map!")])
+    dm_notes = StringField("dm_notes")
+    
 
 class User(UserMixin):
     def __init__(self, id_, name, email, profile_pic, site_name=None):

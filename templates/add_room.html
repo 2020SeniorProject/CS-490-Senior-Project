@@ -40,6 +40,11 @@
         <input type="hidden" id="old_tokens" value="{{ old_tokens }}">
         <input type="hidden" id="old_url" value="{{ old_url }}">
     </form>
+    <ul>
+        {% for i in errors %}
+        <li> {{ i }} </li>
+        {% endfor %}
+    </ul>
 
 </div>
 

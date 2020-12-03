@@ -140,7 +140,24 @@ def process_character_form(form, user_id, usage):
     if usage == "play":
         app.logger.warning(f"Character user {current_user.get_site_name()} attempted to add had errors. Reloading Add Character page to allow them to fix the errors.")
         return render_template("add_character.html", errors=err_lis, action="/play/choose", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
-         
+
+#TODO: Grab token locations
+def process_room_form(form, user_id):
+    if form.validate():
+        values = (user_id, form.room_name.data, "null", "Token Locations",form.map_url.data, form.dm_notes.data)
+
+        app.logger.debug(f"User {current_user.get_site_name()} has created the room called {form.room_name.data}")
+        add_to_db("room_object", values)
+
+    err_lis = []
+        
+    for errs in form.errors.keys():
+        err_mes = errs + ": " + form.errors[errs][0] + "!" +"\n"
+        err_lis += [err_mes]
+
+    return render_template("add_room.html", errors=err_lis)
+    
+
 ### ROUTING DIRECTIVES 
 
 # Viewing characters page
@@ -215,9 +232,30 @@ def home():
 
     app.logger.debug(f"User {current_user.get_site_name()} has gone to the home page.")
 
-    created_rooms = read_db("room_object", "row_id,room_name, map_url", f"WHERE user_key = {current_user.get_user_id()}")   
+    created_rooms = read_db("room_object", "row_id,room_name,map_url,dm_notes", f"WHERE user_key = {current_user.get_user_id()}")   
 
-    return render_template("base.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+    if created_rooms == []:
+        created_rooms = [("room/create", "Looks like you don't have any encounters made!", "https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg", "Create rooms to start DMing your own game!")]
+
+    # return render_template("base.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+    return render_template("home.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms)
+
+
+@app.route("/room/create", methods=["GET", "POST"])
+@login_required
+def room_creation():
+    form = RoomValidation()
+    user_key = current_user.get_user_id()
+
+    if request.method == "POST":
+        app.logger.debug(f"User {current_user.get_site_name()} is attempting to create a new room named {form.room_name}")
+        return process_room_form(form, user_id)
+
+
+    return render_template("add_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+
+
+#TODO:Add editability to rooms
 
 # TODO: Will want to change how this works
 @app.route("/play/choose", methods=["GET", "POST"])
@@ -237,7 +275,7 @@ def choose_character():
             app.logger.debug(f"User {current_user.get_site_name()} is attempting to create their first character.")
             return process_character_form(form, user_id, "play")
         # TODO: Instead of rendering this template at the route "/play/choose", redirect to characters
-        return render_template("add_character.html", message_text="You need a character to enter a game!", action="/play/choose")
+        return render_template("add_character.html", message_text="You need a character to enter a game!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), action="/play/choose")
 
 # Gameplay Page
 @app.route("/play", methods=["POST"])

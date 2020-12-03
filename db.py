@@ -66,7 +66,7 @@ def create_dbs():
                         (room_id TEXT, user_key TEXT, chr_name TEXT, init_val INT, is_turn INT, PRIMARY KEY(room_id, user_key, chr_name));""") 
 
         cur.execute(f"""CREATE TABLE IF NOT EXISTS room_object
-                        (row_id INT PRIMARY KEY, user_key TEXT, room_name TEXT, active_room_id TEXT, map_status TEXT, map_url TEXT)""")
+                        (row_id INT PRIMARY KEY, user_key TEXT, room_name TEXT, active_room_id TEXT, map_status TEXT, map_url TEXT, dm_notes TEXT)""")
         
         cur.execute(f"""CREATE TABLE IF NOT EXISTS users 
                         (user_id TEXT PRIMARY KEY, user_name TEXT NOT NULL, email TEXT NOT NULL, profile_pic TEXT, site_name Text);""") 
@@ -85,7 +85,7 @@ def add_to_db(db_name, values):
         elif db_name == "active_room":
             cur.execute("INSERT INTO active_room(room_id, user_key, chr_name, init_val, is_turn) VALUES(?, ?, ?, ?, ?)", values)
         elif db_name == "room_object":
-            cur.execute("INSERT INTO room_object(user_key, room_name, active_room_id, map_status, map_url) VALUES(?,?,?,?,?)", values)
+            cur.execute("INSERT INTO room_object(user_key, room_name, active_room_id, map_status, map_url, dm_notes) VALUES(?,?,?,?,?,?)", values)
         elif db_name == "chars":
             cur.execute("""INSERT INTO characters(user_key, room_id, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints) 
                            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
