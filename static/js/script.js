@@ -1,6 +1,6 @@
-var initiatives = [];
-var turn_index = null;
-var site_name = $('#site_name').text();
+// var initiatives = [];
+// var turn_index = null;
+// var site_name = $('#site_name').text();
 
 $(document).ready(function() {
   // Use a "/test" namespace.
@@ -9,9 +9,9 @@ $(document).ready(function() {
   // physical channel. If you don't care about multiple channels, you
   // can set the namespace to an empty string.
 
-  // var initiatives = [];
-  // var turn_index = null;
-  // var site_name = $('#site_name').text();
+  var initiatives = [];
+  var turn_index = null;
+  var site_name = $('#site_name').text();
 
   
   namespace = '/combat';
@@ -46,7 +46,6 @@ $(document).ready(function() {
   });
 
   $('form#close_room').submit(function(event) {
-    // TODO: fix this 
     if (window.confirm("This will clear all initiative and chat data for this room and kick players. Map and character token locations will be saved. Proceed?") ){
       socket.emit('end_room', {desc: "Close Room"});
       return false;
@@ -62,7 +61,7 @@ $(document).ready(function() {
     else {
       next_index = turn_index + 1
     }
-    socket.emit('end_turn', {desc: `${initiatives[turn_index][0]}'s Turn Ended`, old_name: initiatives[turn_index][0], next_name: initiatives[next_index][0]});
+    socket.emit('end_turn', {desc: `${initiatives[turn_index][0]}'s Turn Ended`, old_name: initiatives[turn_index][0], next_name: initiatives[next_index][0], old_site_name: initiatives[turn_index][2], next_site_name: initiatives[next_index][2]});
     return false;
   });
 
@@ -75,9 +74,7 @@ $(document).ready(function() {
   });
 
   socket.on('initiative_update', function(msg) {
-    // TODO: Fix to allow multiple players have the same character name
     var updated = false;
-    console.log(msg);
 
     for (i = 0; i < initiatives.length; i++) {
       if (initiatives[i][0] == msg.character_name && initiatives[i][2] == msg.site_name) {
@@ -111,7 +108,7 @@ $(document).ready(function() {
     turn_index = 0;
 
     $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
-    $(`#${first_turn_name}-row`).addClass("bg-warning");
+    $(`#${first_turn_name}-${msg.site_name}-row`).addClass("bg-warning");
 
     $('#set_initiative_button').prop('disabled', true);
     $('#start_battle_button').prop('disabled', true);
@@ -126,7 +123,7 @@ $(document).ready(function() {
     var current_turn_name = msg.current_turn_name.split(" ").join("_");
 
     $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
-    $(`#${current_turn_name}-row`).removeClass("bg-warning");
+    $(`#${current_turn_name}-${msg.site_name}-row`).removeClass("bg-warning");
 
     $('#end_turn_button').prop('disabled', true);
     $('#set_initiative_button').prop('disabled', false);
@@ -140,6 +137,8 @@ $(document).ready(function() {
   });
 
   socket.on('turn_ended', function(msg) {
+    // TODO: Fix having to hit "end turn" twice when characters have the same name.
+    // I think its something to do with the way that the front end sorts the initiatives list
     var next_index = null;
     if (turn_index + 1 == initiatives.length) {
       next_index = 0
@@ -151,11 +150,11 @@ $(document).ready(function() {
     var next_id = initiatives[next_index][0].split(" ").join("_");
     turn_index = next_index;
 
-    $(`#${old_id}-row`).removeClass("bg-warning");
-    $(`#${next_id}-row`).addClass("bg-warning");
+    $(`#${old_id}-${msg.old_site_name}-row`).removeClass("bg-warning");
+    $(`#${next_id}-${msg.next_site_name}-row`).addClass("bg-warning");
 
     $('#end_turn_button').prop('disabled', true);
-    if (initiatives[next_index][2] == msg.site_name) {
+    if (site_name == msg.next_site_name) {
       $('#end_turn_button').prop('disabled', false);
     }
 
@@ -166,9 +165,9 @@ $(document).ready(function() {
   function update_init_table() {
     code = "<tbody>";
     for (i = 0; i < initiatives.length; i++) {
-      // TODO: Fix id to work when multiple characters have the same name
+      // TODO: Fix id to work when site_name has a space in it
       var id = initiatives[i][0].split(" ").join("_");
-      code += `<tr id=${id}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td></tr>`;
+      code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td></tr>`;
     }
   
     code += "</tbody>";
