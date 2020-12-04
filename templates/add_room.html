@@ -21,13 +21,22 @@
         </div>
         <div class="row">
             <div class="col">
-                <label>Map URL</label>
-                <input type="text" name="map_url" class="form-control" value="{{ map_url}}">
+                <label>Map URL(Optional)</label>
+                <input type="text" name="map_url" class="form-control" value="{{ map_url }}">
                 <!-- change this to dynamically preview user's map -->
                 <!-- this is where character tokens will also go -->
-                <img src="#" style="height:100%;width:100%;" alt="A map preview" id=map_preview>
+                <div class="col-8 border border-dark">
+                    <div class="text-center">
+                        <img src="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg" width= 100% alt="A map preview" id=map_preview>
+                    </div>
+                </div>
             </div>
         </div>
+        <!-- <div class="row">
+             <div class="col">
+                <button class="btn btn-primary" onclick=addtoken()>  Add a token!  </button>
+            </div> -->
+        </div> 
         <div class="row pt-4">
             <div class="col">
                 <input type="submit" class="btn btn-primary form-control" value="Add Room!">

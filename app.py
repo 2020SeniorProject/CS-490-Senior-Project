@@ -144,14 +144,18 @@ def process_character_form(form, user_id, usage):
 #TODO: Grab token locations
 def process_room_form(form, user_id):
     if form.validate():
-        values = (user_id, form.room_name.data, "null", "Token Locations",form.map_url.data, form.dm_notes.data)
-
-        app.logger.debug(f"User {current_user.get_site_name()} has created the room called {form.room_name.data}")
+        if form.map_url.data:
+            values = (user_id, form.room_name.data, "null", "Token Locations", "https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg", form.dm_notes.data)
+        else:
+            values = (user_id, form.room_name.data, "null", "Token Locations", form.map_url.data, form.dm_notes.data)
+        app.logger.debug(f"User {current_user.get_site_name()} has created the room named {form.room_name.data}")
         add_to_db("room_object", values)
         return redirect(url_for("home"))
 
     err_lis = []
-        
+
+    app.logger.debug(f"The room {current_user.get_site_name()} was attempting to create had some errors. Sending back to creation page to fix errors.")
+    
     for errs in form.errors.keys():
         err_mes = errs + ": " + form.errors[errs][0] + "!" +"\n"
         err_lis += [err_mes]
@@ -233,8 +237,7 @@ def home():
 
     app.logger.debug(f"User {current_user.get_site_name()} has gone to the home page.")
 
-    created_rooms = read_db("room_object", "row_id,room_name,map_url,dm_notes", f"WHERE user_key = {current_user.get_user_id()}")   
-
+    created_rooms = read_db("room_object", "row_id,room_name,map_url,dm_notes", f"WHERE user_key = '{current_user.get_user_id()}'")   
     if created_rooms == []:
         created_rooms = [("room/create", "Looks like you don't have any encounters made!", "https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg", "Create rooms to start DMing your own game!")]
 
@@ -249,7 +252,7 @@ def room_creation():
     user_id = current_user.get_user_id()
 
     if request.method == "POST":
-        app.logger.debug(f"User {current_user.get_site_name()} is attempting to create a new room named {form.room_name.data}")
+        app.logger.debug(f"User {current_user.get_site_name()} is attempting to create a new room")
         return process_room_form(form, user_id)
 
 
