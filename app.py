@@ -232,6 +232,32 @@ def home():
     return render_template("home.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms)
 
 
+@app.route("/user/settings", methods=["GET", "POST"])
+@login_required
+def user_settings():
+    user_id = current_user.get_user_id()
+
+    if request.method == "POST":
+        try:
+            new_site_name = request.form['username']
+
+            if read_db("users", "*", f"WHERE site_name = '{new_site_name}'"):
+                app.logger.warning(f"Site name {new_site_name} already has been used. Reloading the user settings page with warning message.")
+                return render_template("user_settings.html", username_message="Another user has that username!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+
+            app.logger.debug(f"{new_site_name} is available as a site name. Updating {current_user.get_site_name()} site name.")
+            update_db("users", f"site_name = '{new_site_name}'", f"WHERE user_id = '{user_id}'")
+            return redirect(url_for('user_settings'))
+        except:
+            pass
+
+        try:
+            
+
+    app.logger.debug(f"User {current_user.get_site_name()} is accessing their user settings")
+    return render_template("user_settings.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+
+
 @app.route("/room/create", methods=["GET", "POST"])
 @login_required
 def room_creation():
@@ -246,6 +272,7 @@ def room_creation():
     return render_template("add_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 
+#TODO:Add editability/deletability to rooms
 @app.route("/room/<room_id>", methods=["GET", "POST"])
 @login_required
 def room_edit(room_id):
@@ -267,7 +294,6 @@ def room_edit(room_id):
 
 
 
-#TODO:Add editability to rooms
 
 # TODO: Will want to change how this works
 @app.route("/play/choose", methods=["GET", "POST"])
@@ -545,7 +571,7 @@ if __name__ == "__main__":
     app.run(ssl_context="adhoc", port=33507, debug=True)
 
 if __name__ != "__main__":
-    # logging levels: debug, info, warning, error, critical
+    # logging levels: info, debug, warning, critical, error
     
     gunicorn_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers = gunicorn_logger.handlers
