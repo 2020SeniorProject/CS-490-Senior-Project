@@ -256,9 +256,9 @@ def room_edit(room_id):
         app.logger.warning(f"User {current_user.get_site_name()} is attempting to publish their room!")
         # TODO: Set up rooms and sockets for how this will process
 
-    room = read_db("room_object", "*", f"WHERE rowid = {room_id} and user_key= '{current_user.get_user_id()}'")[0]
-    print(room)
+    room = read_db("room_object", "*", f"WHERE rowid = {room_id} and user_key= '{current_user.get_user_id()}'")
     if room:
+        room = room[0]
         app.logger.debug(f"User {current_user.get_site_name()} is prepping their room for their encounter!")
         return render_template("edit_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url= room[5], room_name=room[2], dm_notes = room[6])
 
