@@ -236,6 +236,7 @@ def home():
 @login_required
 def user_settings():
     user_id = current_user.get_user_id()
+    characters = read_db("characters", "chr_name", f"WHERE user_key = '{user_id}'")
 
     if request.method == "POST":
         try:
@@ -243,7 +244,7 @@ def user_settings():
 
             if read_db("users", "*", f"WHERE site_name = '{new_site_name}'"):
                 app.logger.warning(f"Site name {new_site_name} already has been used. Reloading the user settings page with warning message.")
-                return render_template("user_settings.html", username_message="Another user has that username!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+                return render_template("user_settings.html", characters=characters, username_message="Another user has that username!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
             app.logger.debug(f"{new_site_name} is available as a site name. Updating {current_user.get_site_name()} site name.")
             update_db("users", f"site_name = '{new_site_name}'", f"WHERE user_id = '{user_id}'")
@@ -251,11 +252,8 @@ def user_settings():
         except:
             pass
 
-        try:
-            
-
     app.logger.debug(f"User {current_user.get_site_name()} is accessing their user settings")
-    return render_template("user_settings.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+    return render_template("user_settings.html", characters=characters, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 
 @app.route("/room/create", methods=["GET", "POST"])
