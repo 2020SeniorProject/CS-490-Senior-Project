@@ -31,7 +31,8 @@ class CharacterValidation(FlaskForm):
 class RoomValidation(FlaskForm):
     room_name = StringField("Room", [DataRequired(message="Please input the name of your room"), Length(min=1, max=42, message="Name must be between 1 and 42 characters")])
     # TODO: Check for valid image link? and add tokens
-    map_url =  StringField('Image Link', [validators.Regexp('^\w+$\.(gif|jpe?g|tiff?|png|webp|bmp)$/i')])
+    map_url =  StringField('Image Link')
+    # [validators.Regexp('^\w+$\.(gif|jpe?g|tiff?|png|webp|bmp)$/i')]
     dm_notes = StringField("DM_notes")
     
 

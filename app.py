@@ -144,10 +144,7 @@ def process_character_form(form, user_id, usage):
 #TODO: Grab token locations
 def process_room_form(form, user_id):
     if form.validate():
-        if form.map_url.data:
-            values = (user_id, form.room_name.data, "null", "Token Locations", "https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg", form.dm_notes.data)
-        else:
-            values = (user_id, form.room_name.data, "null", "Token Locations", form.map_url.data, form.dm_notes.data)
+        values = (user_id, form.room_name.data, "null", "Token Locations", form.map_url.data, form.dm_notes.data)
         app.logger.debug(f"User {current_user.get_site_name()} has created the room named {form.room_name.data}")
         add_to_db("room_object", values)
         return redirect(url_for("home"))
@@ -160,7 +157,7 @@ def process_room_form(form, user_id):
         err_mes = errs + ": " + form.errors[errs][0] + "!" +"\n"
         err_lis += [err_mes]
 
-    return render_template("add_room.html", errors=err_lis)
+    return render_template("add_room.html", errors=err_lis, room_name=form.room_name.data, dm_notes=form.dm_notes.data)
     
 
 ### ROUTING DIRECTIVES 
@@ -239,7 +236,7 @@ def home():
 
     created_rooms = read_db("room_object", "row_id,room_name,map_url,dm_notes", f"WHERE user_key = '{current_user.get_user_id()}'")   
     if created_rooms == []:
-        created_rooms = [("room/create", "Looks like you don't have any encounters made!", "https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg", "Create rooms to start DMing your own game!")]
+        created_rooms = [("create", "Looks like you don't have any encounters made!", "https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg", "Create rooms to start DMing your own game!")]
 
     # return render_template("base.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
     return render_template("home.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms)
@@ -257,6 +254,27 @@ def room_creation():
 
 
     return render_template("add_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+
+
+@app.route("/room/<room_id>", methods=["GET", "POST"])
+@login_required
+def room_edit(room_id):
+    user_id = current_user.get_user_id()
+    form = RoomValidation()
+
+    if request.method == "POST":
+        app.logger.warning(f"User {current_user.get_site_name()} is attempting to publish their room!")
+        # TODO: Set up rooms and sockets for how this will process
+
+    room = read_db("room_object", "*", f"WHERE rowid = {room_id} and user_key= '{current_user.get_user_id()}'")[0]
+    print(room)
+    if room:
+        app.logger.debug(f"User {current_user.get_site_name()} is prepping their room for their encounter!")
+        return render_template("edit_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url= room[5], room_name=room[2], dm_notes = room[6])
+
+    app.logger.warning(f"User attempted to prep a room with name {room_id}. They do not have a room with that id. Throwing a Bad Request error.")
+    raise BadRequest(description=f"You don't have a room with id: {room_id}!")
+
 
 
 #TODO:Add editability to rooms
