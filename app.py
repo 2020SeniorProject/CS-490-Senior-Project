@@ -1,5 +1,4 @@
 # Python standard libraries
-from threading import Lock
 import json
 import os
 import datetime
@@ -21,50 +20,43 @@ from db import create_dbs, add_to_db, read_db, delete_from_db, update_db, build_
 
 ### SET VARIABLES AND INITIALIZE PRIMARY PROCESSES
 
-# Google OAuth configurations
-# Visit https://console.developers.google.com/apis/credentials/oauthclient/211539095216-3dnbifedm4u5599jf7spaomla4thoju6.apps.googleusercontent.com?project=seniorproject-294418&supportedpurview=project to get ID and SECRET, then export them in a terminal to set them as environment variables
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
-GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
-GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
-
-session_id = "69BBEG69" #placeholder till we figure out id creation method, use usernames with random numbers?
-
-# This disables the SSL usage check - TODO: solution to this needed as it may pose security risk. see https://oauthlib.readthedocs.io/en/latest/oauth2/security.html and https://requests-oauthlib.readthedocs.io/en/latest/examples/real_world_example.html
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-# The GOOGLE_CLIENT_ID and the GOOGLE_CLIENT_SECRET are stored as environment variables. IT IS IMPORTANT THAT THEY ARE NOT STORED ANYWHERE ELSE. Not in this directory, not in this repository, and absolutely not in this file. It is a massive security risk if secret credentials are committed to a public repository.
-# To set the GOOGLE_CLIENT_ID and the GOOGLE_CLIENT_SECRET environment variables in a Linux bash terminal, use: `export GOOGLE_CLIENT_ID=your_client_id` and `export GOOGLE_CLIENT_SECRET=your_client_secret`
-# Session works on a per-user basis - can't work to store values that multiple users need to access
-# Will probably need to store in a database or something
-async_mode = None
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24) # TODO: What is the best way to get the SECRET_KEY?
 
-socketio = SocketIO(app, async_mode=async_mode)
+# Google OAuth configurations
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
+GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
 
-thread = None
-thread_lock = Lock()
+# TODO: Get rid of the placeholder
+session_id = "69BBEG69" 
+
+# This disables the SSL usage check - TODO: solution to this needed as it may pose security risk. see https://oauthlib.readthedocs.io/en/latest/oauth2/security.html and https://requests-oauthlib.readthedocs.io/en/latest/examples/real_world_example.html
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
+# Setups to the SocketIO server that is used
+async_mode = None
+socketio = SocketIO(app, async_mode=async_mode)
 
 # Create the database
 create_dbs()
 
+# Creates the API db
+build_api_db(["race", "class"])
+
 # User session management setup
-# https://flask-login.readthedocs.io/en/latest
-# 
-# below is a link to a walkthrough on how to handle unit testing with socketio and login with flask
-# https://blog.miguelgrinberg.com/post/unit-testing-applications-that-use-flask-login-and-flask-socketio
-# 
-# 
 login_manager = LoginManager()
 login_manager.init_app(app)
 
 # OAuth 2 client setup
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
-# CSRF authenticator to prevent CSRF attacks(also flask forms requires...)
+# CSRF authenticator to prevent CSRF attacks
 csrf = CSRFProtect(app)
 
+# below is a link to a walkthrough on how to handle unit testing with socketio and login with flask
+# https://blog.miguelgrinberg.com/post/unit-testing-applications-that-use-flask-login-and-flask-socketio
 
 ### FUNCTIONS
 
@@ -96,8 +88,7 @@ def process_character_form(form, user_id, usage):
 
             app.logger.debug(f"User {current_user.get_site_name()} successfully added a character with name {form.name.data}. Redirecting them to the View Characters page.")
             add_to_db("chars", values)
-            # char_mess = f""" {values[2]}, the level {values[8]} {values[6]} {values[5]} {values[4]} {values[3]} with 
-            #             {values[15]} hit points was created by {current_user.get_site_name()}!"""
+
             return redirect(url_for("view_characters"))
 
 
@@ -238,10 +229,9 @@ def home():
     app.logger.debug(f"User {current_user.get_site_name()} has gone to the home page.")
 
     created_rooms = read_db("room_object", "row_id,room_name,map_url,dm_notes", f"WHERE user_key = '{current_user.get_user_id()}'")   
-    if created_rooms == []:
+    if not created_rooms:
         created_rooms = [("room/create", "Looks like you don't have any encounters made!", "https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg", "Create rooms to start DMing your own game!")]
 
-    # return render_template("base.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
     return render_template("home.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms)
 
 
@@ -368,7 +358,6 @@ def logout():
 
 
 
-build_api_db(["race", "class"])
 
 ### API ROUTES
 # TODO: Hide these behind login requirements or create redirects page and redirect these guys
@@ -390,6 +379,7 @@ def get_classes():
 
 ### SOCKETIO EVENT HANDLERS
 
+# TODO: Hide DM tools from the user view
 # TODO: Update to work with real room_ids and also update logging messages at that point
 
 @socketio.on('set_initiative', namespace='/combat')
@@ -425,6 +415,7 @@ def send_chat(message):
     emit('chat_update', {'chat': message['chat'], 'character_name': message['character_name']}, broadcast=True)
 
 
+# TODO: allow characters to select who goes first when initiatives tied
 @socketio.on('start_combat', namespace='/combat')
 def start_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
@@ -517,40 +508,43 @@ def handle_csrf_error(e):
 @app.errorhandler(HTTPException)
 def generic_error(e):
     # Generic HTTP Exception handler
-    app.logger.warning(f"A HTTP error with code {e.code} has occurred. Handling the error.")
-    return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description, site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic()), e.code
+        app.logger.warning(f"A HTTP error with code {e.code} has occurred. Handling the error.")
+        return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description, site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic()), e.code
+
+# TODO: Add form or something so they can tell us about it
+@app.errorhandler(Exception)
+def five_hundred_error(e):
+    app.logger.warning(f"A server error occurred. Handling it, but you probably should fix the bug...")
+    app.logger.error(f"Here it is: {e}")
+    desc = "Internal Server Error. Congrats! You found an unexpected feature! Care to tell us about it?"
+    return render_template("error.html", error_name="Error Code 500", error_desc=desc, site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic()), 500
+
 
 
 ### APP RUNNING
+
 if __name__ == "__main__":
     app.run(ssl_context="adhoc", port=33507, debug=True)
 
 if __name__ != "__main__":
+    # logging levels: debug, info, warning, error, critical
+    
     gunicorn_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers = gunicorn_logger.handlers
     app.logger.setLevel(logging.DEBUG)
     # app.logger.setLevel(gunicorn_logger.level)
-
-    # app.logger.debug('this is a DEBUG message')
-    # app.logger.info('this is an INFO message')
-    # app.logger.warning('this is a WARNING message')
-    # app.logger.error('this is an ERROR message')
-    # app.logger.critical('this is a CRITICAL message')
-
-
-
-
 
 
 # References
 # https://realpython.com/flask-google-login/\
 # https://blog.miguelgrinberg.com/post/easy-websockets-with-flask-and-gevent 
 # https://trstringer.com/logging-flask-gunicorn-the-manageable-way/
+# https://flask-login.readthedocs.io/en/latest
 
-# heroku specific changes - commit id: 6e0717afc16625b0cddb6410974bdb4c67bbf44f
+# Developer Links
+# Visit https://console.developers.google.com/apis/credentials/oauthclient/211539095216-3dnbifedm4u5599jf7spaomla4thoju6.apps.googleusercontent.com?project=seniorproject-294418&supportedpurview=project to get ID and SECRET, then export them in a terminal to set them as environment variables
+
+# Heroku specific changes - commit id: 6e0717afc16625b0cddb6410974bdb4c67bbf44f
 #	URL: https://github.com/2020SeniorProject/CS-490-Senior-Project/commit/6e0717afc16625b0cddb6410974bdb4c67bbf44f
 
 
-
-# TODO: allow characters to sleect who goes first when initiatives tied
-# TODO: Hide DM tools from the user view
