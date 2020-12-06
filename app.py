@@ -209,15 +209,28 @@ def edit_character(name):
 @login_required
 def home():
     if request.method == "POST":
-        site_name = request.form["site_name"]
-        app.logger.debug(f"User is attempting to set their site name as {site_name}")
-        if read_db("users", "*", f"WHERE site_name = '{site_name}'"):
-            app.logger.warning(f"Site name {site_name} already has been used. Reloading the Set User Name with warning message.")
-            return render_template("set_site_name.html", message="Another user has that username!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+        if "site_name" in request.form:
+            site_name = request.form["site_name"]
+            app.logger.debug(f"User is attempting to set their site name as {site_name}")
+            if read_db("users", "*", f"WHERE site_name = '{site_name}'"):
+                app.logger.warning(f"Site name {site_name} already has been used. Reloading the Set User Name with warning message.")
+                return render_template("set_site_name.html", message="Another user has that username!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
-        app.logger.debug(f"{site_name} is available as a site name. Adding it to the user.")
-        update_db("users", f"site_name = '{site_name}'", f"WHERE user_id = '{current_user.get_user_id()}'")
-        return redirect(url_for('home'))
+            app.logger.debug(f"{site_name} is available as a site name. Adding it to the user.")
+            update_db("users", f"site_name = '{site_name}'", f"WHERE user_id = '{current_user.get_user_id()}'")
+            return redirect(url_for('home'))
+
+        if "room_number" in request.form:
+            app.logger.debug(f"Attempting to delete room owned by {current_user.get_site_name()} named {request.form['room_name']}.")
+            
+            if read_db("active_room", "room_id", f"WHERE room_id = {request.form['room_number']}"):
+                app.logger.warning(f"User {current_user.get_site_name()} is attempting to delete an active room {request.form['room_name']}")
+                # Do we want this responsibility to be on the user or is there merit to just scrubbing the DBs from this page
+                return render_template("home.html" , message="Room is active! Close it first!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms)
+            
+            delete_from_db("room_object", f"WHERE row_id = {request.form['room_number']}")
+            app.logger.debug(f"Deleted user {current_user.get_site_name()}'s room {request.form['room_name']}")
+            return redirect(url_for('home'))
 
     if not current_user.get_site_name():
         app.logger.warning("User does not have site name. Loading the Set User Name page.")
@@ -228,8 +241,12 @@ def home():
     created_rooms = read_db("room_object", "row_id,room_name,map_url,dm_notes", f"WHERE user_key = '{current_user.get_user_id()}'")   
     if not created_rooms:
         created_rooms = [("room/create", "Looks like you don't have any encounters made!", "https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg", "Create rooms to start DMing your own game!")]
+        default = True
+    else:
+        default = False
 
-    return render_template("home.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms)
+
+    return render_template("home.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms, defaulted = default)
 
 
 @app.route("/user/settings", methods=["GET", "POST"])

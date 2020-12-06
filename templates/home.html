@@ -1,21 +1,33 @@
 {% extends "base.html" %}
 
 {% block content %}
+<br>
 <div class="container centered">
     {% for rooms in room_list %}
-    <div class="media striped">
+    <div class="media">
         <div class="media-left">
             <a href="room/{{ rooms[0] }}">
-                <img class="media-object" height=64 width=64 src="{{rooms[2]}}">
+                <img class="media-object" name=room_map_img height=64 width=64 src="{{rooms[2]}}">
             </a>
         </div>
         <div class="media-body">
-            <h4 class="media-heading">{{ rooms[1] }}</h4>
-            <p>
+            <h4 class="media-heading" name="room_name">{{ rooms[1] }}</h4>
+            <p name="dm_notes">
                 {{ rooms[3]}}
             </p>
         </div>
+        {% if not defaulted %}
+        <div class="media-right">
+            <form onsubmit="return confirm('Deleting this room will eliminate all of its associated tokens and map images. Proceed?');" action="/home" method="POST" class="form" name="room_del">
+                <input type="submit" class="btn btn-danger btm-sm form-control" value="Delete" >
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="room_number" value="{{ rooms[0] }}">
+                <input type="hidden" name="room_name" value="{{ rooms[1] }}">
+            </form>
+        </div>
+        {% endif %}
     </div>
+
     {% endfor %}
     <div class=container>
         <a href="/room/create">
@@ -23,7 +35,17 @@
         </a>
     </div>
 </div>
+{{ message }}
 
-
+<!-- 
+<script>
+    function confirm_delete() {
+        var v = confirm('Deleting this room will eliminate all of its associated tokens and map images. Proceed?');
+        if(!v) {
+    return false;
+  }
+  this.form.submit();
+} onsubmit="return confirm('Deleting this room will eliminate all of its associated tokens and map images. Proceed?');"
+</script> -->
 
 {% endblock %}
