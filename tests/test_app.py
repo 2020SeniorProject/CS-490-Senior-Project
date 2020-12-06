@@ -2,6 +2,8 @@ import os, sys
 import tempfile
 import pytest
 
+# https://flask.palletsprojects.com/en/1.1.x/testing/
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from app import app
 
