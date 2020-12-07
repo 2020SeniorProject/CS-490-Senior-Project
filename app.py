@@ -148,7 +148,7 @@ def process_room_form(form, user_id):
         err_mes = errs + ": " + form.errors[errs][0] + "!" +"\n"
         err_lis += [err_mes]
 
-    return render_template("add_room.html", errors=err_lis, room_name=form.room_name.data, dm_notes=form.dm_notes.data)
+    return render_template("add_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name() )
     
 
 ### ROUTING DIRECTIVES 
@@ -240,11 +240,10 @@ def home():
 
     created_rooms = read_db("room_object", "row_id,room_name,map_url,dm_notes", f"WHERE user_key = '{current_user.get_user_id()}'")   
     if not created_rooms:
-        created_rooms = [("room/create", "Looks like you don't have any encounters made!", "https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg", "Create rooms to start DMing your own game!")]
+        created_rooms = [("create", "Looks like you don't have any encounters made!", "https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg", "Create rooms to start DMing your own game!")]
         default = True
     else:
         default = False
-
 
     return render_template("home.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms, defaulted = default)
 
@@ -276,6 +275,7 @@ def user_settings():
 @app.route("/room/create", methods=["GET", "POST"])
 @login_required
 def room_creation():
+    app.logger.debug(f"User {current_user.get_site_name()} is creating a new room!")
     form = RoomValidation()
     user_id = current_user.get_user_id()
 
