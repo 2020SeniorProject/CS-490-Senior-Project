@@ -2,7 +2,6 @@
 
 
 {% block content %}
-<!-- <script src="/static/js/add_room_script.js"></script> -->
 
 <div class="container">
 
@@ -28,7 +27,6 @@
                 <!-- this is where character tokens will also go -->
                 <div class="col-8 border border-dark">
                     <div class="text-center" id=prev>
-                        <img src="{{ map_url }}" width= 100% name="map" class="preview" alt="A map preview" id=map_preview>
                     </div>
                     <div id="warning">
 
@@ -60,7 +58,41 @@
     </ul>
 
 </div>
+<script>
+    $('#map_url').on('input', function() {
+  var src = jQuery(this).val();
 
+  var previews = $(".previewImage");
+  var drawPreview = true;
+
+  var PreviousSource = $(this).data('previousSource');
+
+  if(!src.match("^https?://(?:[a-z\-]+\.)+[a-z]{2,6}(?:/[^/#?]+)+\.(?:jpg|gif|png|jpeg|webp)$") && src != "") {
+    $("#warning").html("Must be an image");
+    return false;  
+  } else {
+    $("#warning").html("");
+  }
+
+  $.each(previews , function(index, value) { 
+    if (src == "" && PreviousSource == $(value).attr('src')) {
+      $(value).remove();
+      drawPreview = false;
+      return false; 
+    }
+    if($(value).attr('src') == src) {
+      drawPreview = false;
+      return false;
+    }
+  });
+
+  if(drawPreview) {
+    $('#prev').append('<img class="previewImage" width= 100% src="' + src + '">');   
+  }
+  
+  var previousSource = $(this).data('previousSource', src);
+});
+</script>
 
 
 {% endblock %}
