@@ -486,6 +486,9 @@ def connect():
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
     site_name = current_user.get_site_name()
+    # MARK
+    # TODO: replace this with user-given character image rather than user image from google
+    character_image = current_user.get_profile_pic()
     initiatives = read_db("active_room", "chr_name, init_val, user_key", f"WHERE room_id = '{session_id}'")
     chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{session_id}'")
     app.logger.debug(f"Battle update: User {current_user.get_site_name()} has connected.")
@@ -493,6 +496,8 @@ def connect():
     add_to_db("log", (session_id, user_id, "Connection", f"User with id {user_id} connected", time_rcvd))
 
     emit('log_update', {'desc': f"{site_name} Connected"}, broadcast=True)
+    # MARK
+    emit('add_character_icon', {'character_image': character_image}, broadcast = True)
 
     for item in initiatives:
         site_name = read_db("users", "site_name", f"WHERE user_id = '{item[2]}'")[0][0]
@@ -551,3 +556,18 @@ if __name__ != "__main__":
 
 # TODO: allow characters to sleect who goes first when initiatives tied
 # TODO: Hide DM tools from the user view
+# TODO: When player joins a room, automatically add their character to the battle map
+# TODO: Button to hide or show character icon on map
+# TODO: Be able to save positions of characters when room closes
+# TODO: preset sizes for character icons on map
+# TODO: Integrate character movement with turn taking
+
+### Commit specific resources:
+# http://jsfiddle.net/jcgbq46p/19/
+# https://api.jqueryui.com/droppable/#event-drop
+# https://learn.jquery.com/jquery-ui/getting-started/
+# http://jsfiddle.net/8wkj2z79/1/
+# http://jsfiddle.net/v6PME/1/
+# https://stackoverflow.com/questions/22268881/referenceerror-is-not-defined/22268906
+# https://learn.jquery.com/using-jquery-core/document-ready/
+# https://www.w3schools.com/cssref/css_selectors.asp

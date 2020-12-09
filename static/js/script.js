@@ -161,6 +161,23 @@ $(document).ready(function() {
     $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
   });
 
+// MARK
+  socket.on('add_character_icon', function(msg){
+    console.log("ACTIVATED");
+    var character_icon = document.createElement("img");
+    character_icon.setAttribute("src", msg.character_image);
+    // character_icon.setAttribute("id", "characterIcon1");
+    character_icon.setAttribute("class", "draggable ui-draggable ui-draggable-handle");
+    character_icon.setAttribute("style", "position:absolute;height:10%;width:100px;z-index:10;top:25px;left: 25px;");
+    character_icon.setAttribute("draggable", "true");
+    // character_icon.setAttribute("ondragstart", "onDragStart(event);");
+    console.log("CharacterIcon");
+    console.log(character_icon);
+    console.log("url");
+    console.log(msg.character_image);
+    document.getElementById("battle_map_container").appendChild(character_icon)
+  });
+  
   // "Helper" functions
   function update_init_table() {
     code = "<tbody>";
@@ -174,6 +191,18 @@ $(document).ready(function() {
   
     return code;
   }
+
+  //MARK
+  $(".draggable").draggable();
+  $(".droppable").droppable({
+      drop: function(event, ui) {
+          console.log("Droppable ID");
+          console.log(this.id);
+          console.log(this);
+          // $(this).addClass("ui-state-highlight").find("p").html("Dropped!");
+      }
+  });
+
 });
 
 
@@ -187,34 +216,37 @@ function compareSecondColumn(a, b) {
   //https://stackoverflow.com/questions/16096872/how-to-sort-2-dimensional-array-by-column-value
 }
 
-function onDragStart(event) {
-  event.dataTransfer.setData('text/plain', event.target.id);
-  // event.currentTarget.style.backgroundColor = 'yellow';
-}
+// MARK
+// function onDragStart(event) {
+//   console.log("Drag start EVENT INFO");
+//   console.log(event.target);
+//   console.log(event.target.id);
+//   // event.currentTarget.style.backgroundColor = 'yellow';
+// }
 
-function onDragOver(event) {
-  event.preventDefault();
-}
+// function onDragOver(event) {
+//   event.preventDefault();
+// }
 
-function onDrop(event) {
-  const id = "characterIcon";
-  const draggableElement = document.getElementById(id);
-  console.log(id)
-  console.log(draggableElement)
-  console.log(event)
-  console.log(event.target)
-  const dropzone = event.target;
-
-
-
-
-  // draggableElement.style.position = "absolute"
-  // dropzone.append(draggableElement);
-  event.dataTransfer.clearData();
-  var x = event.clientX;
-  var y = event.clientY;
-  var coor = "X coords: " + x + ", Y coords: " + y;
-  console.log(coor)
-  draggableElement.style.top = y + "px";
-  draggableElement.style.left = x + "px";
-} 
+// function onDrop(event) {
+//   const id = "characterIcon";
+//   console.log("Drop EVENT INFO");
+//   console.log(event);
+//   console.log(event.target);
+//   console.log(event.target.id);
+//   console.log(this.id);
+//   const draggableElement = document.getElementById(id);
+//   const dropzone = event.target;
+//   const parent_id = "battle_map_container";
+//   const map = document.getElementById(parent_id);
+//   event.dataTransfer.clearData();
+//   var rect = map.getBoundingClientRect();
+//   console.log("Bounds:")
+//   console.log(rect.top, rect.left);
+//   var x = event.clientX;
+//   var y = event.clientY;
+//   var coor = "X coords: " + x + ", Y coords: " + y;
+//   console.log(coor)
+//   draggableElement.style.top = (y - rect.top) + "px";
+//   draggableElement.style.left = (x - rect.left) + "px";
+// } 
