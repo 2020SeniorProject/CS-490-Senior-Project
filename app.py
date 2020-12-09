@@ -415,6 +415,23 @@ def logout():
     logout_user()
     return redirect(url_for("login_index"))
 
+# Delete Account
+@app.route("/delete")
+@login_required
+def delete_account():
+    user_id = current_user.get_user_id()
+
+    app.logger.debug(f"User {current_user.get_site_name()} is deleting their account. Deleting all associated information")
+
+    delete_from_db("log", f"WHERE user_key = '{user_id}'")
+    delete_from_db("chat", f"WHERE user_key = '{user_id}'")
+    delete_from_db("active_room", f"WHERE user_key = '{user_id}'")
+    delete_from_db("room_object", f"WHERE user_key = '{user_id}'")
+    delete_from_db("users", f"WHERE user_id = '{user_id}'")
+    delete_from_db("characters", f"WHERE user_key = '{user_id}'")
+
+    return redirect(url_for("login_index"))
+
 
 
 
