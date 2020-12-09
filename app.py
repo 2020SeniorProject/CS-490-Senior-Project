@@ -22,7 +22,7 @@ from db import create_dbs, add_to_db, read_db, delete_from_db, update_db, build_
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24) # TODO: What is the best way to get the SECRET_KEY?
+app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
 
 # Google OAuth configurations
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
@@ -310,7 +310,6 @@ def room_edit(room_id):
 
 
 
-# TODO: Will want to change how this works
 @app.route("/play/choose", methods=["GET", "POST"])
 @login_required
 def choose_character():
@@ -334,13 +333,18 @@ def choose_character():
 @app.route("/play", methods=["POST"])
 @login_required
 def play():
-    # TODO: Check to see if combat has started
     char_name = request.form['character']
-    app.logger.debug(f"User {current_user.get_site_name()} has entered the room with character {char_name}.")
     user_id = current_user.get_user_id()
+
+    if read_db("active_room", "*", f"WHERE room_id = '{session_id}' AND is_turn = '1'") and not read_db("active_room", "*", f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
+        # TODO: Do we want a /spectate or a /watch route?
+        app.logger.debug(f"User {current_user.get_site_name()} is watching the room")
+        return render_template("watch.html", async_mode=socketio.async_mode, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+
     if not read_db("active_room", extra_clause=f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
         add_to_db("active_room", (session_id, user_id, char_name, 0, 0))
 
+    app.logger.debug(f"User {current_user.get_site_name()} has entered the room with character {char_name}.")
     return render_template("play.html", async_mode=socketio.async_mode, char_name=char_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 # Landing Login Page
@@ -567,7 +571,7 @@ def connect():
 
     emit('log_update', {'desc': f"{site_name} Connected"}, broadcast=True)
     # MARK
-    emit('add_character_icon', {'character_image': character_image}, broadcast = True)
+    emit('add_character_icon', {'character_image': character_image}, broadcast=True)
 
     for item in initiatives:
         site_name = read_db("users", "site_name", f"WHERE user_id = '{item[2]}'")[0][0]
@@ -578,6 +582,13 @@ def connect():
         emit('chat_update', {'chat': item[1], 'character_name': item[0]})
     emit('log_update', {'desc': "Chat History Received"})
 
+    if read_db("active_room", "*", f"WHERE room_id = '{session_id}' AND is_turn = '1'"):
+        emit('log_update', {'desc': "Combat has already started; grabbing the latest information"})
+
+        character = read_db("active_room", "user_key, chr_name", f"WHERE room_id = '{session_id}' AND is_turn = '1'")[0]
+        turn_site_name = read_db("users", "site_name", f"WHERE user_id = '{character[0]}'")[0][0]
+
+        emit('combat_connect', {'desc': 'Rejoined Combat', 'first_turn_name': character[1], 'site_name': turn_site_name})
 
 ### ERROR HANDLING 
 

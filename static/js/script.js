@@ -1,6 +1,6 @@
-// var initiatives = [];
-// var turn_index = null;
-// var site_name = $('#site_name').text();
+var initiatives = [];
+var turn_index = null;
+var site_name = $('#site_name').text();
 
 $(document).ready(function() {
   // Use a "/test" namespace.
@@ -9,9 +9,9 @@ $(document).ready(function() {
   // physical channel. If you don't care about multiple channels, you
   // can set the namespace to an empty string.
 
-  var initiatives = [];
-  var turn_index = null;
-  var site_name = $('#site_name').text();
+  // var initiatives = [];
+  // var turn_index = null;
+  // var site_name = $('#site_name').text();
 
   // TODO: Replacing the form does not work
   // var initiative_form = $('#initiative-wrapper').html();
@@ -53,7 +53,7 @@ $(document).ready(function() {
   });
 
   $('form#send_chat').submit(function(event) {
-    socket.emit('send_chat', {chat: $('#chat_text').val(), character_name: $('#player_name').val()});
+    socket.emit('send_chat', {chat: $('#chat_text').val(), character_name: $('#player_name').val() || site_name});
     $('#chat_text').val(''); 
     return false;
   });
@@ -192,6 +192,27 @@ $(document).ready(function() {
     }
 
     $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
+  });
+
+  socket.on('combat_connect', function(msg) {
+    var first_turn_name = msg.first_turn_name.split(" ").join("_");
+    turn_index = initiatives.findIndex(x => x[0]===first_turn_name && x[2]===msg.site_name);
+
+    // $('#initiative-wrapper').html(checklist);
+
+    $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
+    $(`#${first_turn_name}-${msg.site_name}-row`).addClass("bg-warning");
+
+    $('#set_initiative_button').prop('disabled', true);
+    $('#start_battle_button').prop('disabled', true);
+    $('#end_battle_button').prop('disabled', false);
+
+    if (site_name == msg.site_name) {
+      $('#end_turn_button').prop('disabled', false);
+      $('#checklist_div').html(checklist);
+    }
+    setTimeout(() => $(`#${first_turn_name}-${msg.site_name}-row`).addClass("bg-warning"), 100);
+
   });
 
 // MARK
