@@ -1,7 +1,7 @@
 from flask_login import UserMixin
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, SubmitField, validators, Form
-from wtforms.validators import Length, NumberRange, DataRequired, ValidationError
+from wtforms import StringField, IntegerField, SubmitField, validators, Form, FileField
+from wtforms.validators import Length, NumberRange, DataRequired, ValidationError, Regexp
 
 
 
@@ -31,8 +31,9 @@ class CharacterValidation(FlaskForm):
 class RoomValidation(FlaskForm):
     room_name = StringField("Room", [DataRequired(message="Please input the name of your room"), Length(min=1, max=42, message="Name must be between 1 and 42 characters")])
     # TODO: Check for valid image link? and add tokens
-    map_url = StringField("Map_URL", [DataRequired(message="Please provide a valid link to the image you are using for your map!")])
-    dm_notes = StringField("dm_notes")
+    map_url =  StringField('Image Link')
+    # [validators.Regexp('^\w+$\.(gif|jpe?g|tiff?|png|webp|bmp)$/i')]
+    dm_notes = StringField("DM_notes")
     
 
 class User(UserMixin):

@@ -17,3 +17,4 @@ pyOpenSSL==19.0.0
 WTForms==2.3.3
 gunicorn>=19.0.0
 eventlet>=0.24.1
+pytest==6.1.2

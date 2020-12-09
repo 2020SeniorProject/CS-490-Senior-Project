@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class=container>
+    <form action="/user/settings" method=POST class=form>
+        <div class=row>
+            <label><b>Update your username:</b></label>
+            <input type="text" name=username class=form-control value="{{ site_name }}">
+        </div>
+        <div class=row>
+            <input type="submit" class="btn btn-primary form-control" value="Update">
+        </div>
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    </form>
+    {{ username_message }}
+
+    {% if characters != [] %}
+        <form action="/user/settings" method=POST class=form>
+            <div class=row>
+                <label><b>Character pictures. Coming soon!</b></label>
+                <select name=character class=form-control>
+                    <option selected hidden>Choose a character!</option>
+                    {% for char in characters %}
+                        <option>{{ char[0] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        </form>
+    {% else %}
+        <p>Create some characters for more options!</p>
+    {% endif %}
+</div>
+
+{% endblock %}

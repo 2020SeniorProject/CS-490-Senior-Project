@@ -13,6 +13,28 @@ $(document).ready(function() {
   var turn_index = null;
   var site_name = $('#site_name').text();
 
+  // TODO: Replacing the form does not work
+  // var initiative_form = $('#initiative-wrapper').html();
+  var checklist = `<ul id=checklist class="list-group list-group-flush">
+                    <li class="list-group-item">
+                      <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id=movement_checklist>
+                        <label class="custom-control-label" for=movement_checklist>Movement</label>
+                      </div>
+                    </li>
+                    <li class="list-group-item">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id=action_checklist>
+                        <label class="custom-control-label" for=action_checklist>Action</label>
+                      </div>
+                    </li>
+                    <li class="list-group-item">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id=bonus_action_checklist>
+                        <label class="custom-control-label" for=bonus_action_checklist>Bonus Action</label>
+                      </div>
+                    </li>
+                  </ul>`;
   
   namespace = '/combat';
   
@@ -24,6 +46,7 @@ $(document).ready(function() {
   // Socketio events
   // TODO: Add room_id to all of the functions
   $('form#set_initiative').submit(function(event) {
+    console.log("Update initiative");
     socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), site_name: site_name});
     $('#initiative_roll').val(''); 
     return false;
@@ -107,6 +130,8 @@ $(document).ready(function() {
     var first_turn_name = msg.first_turn_name.split(" ").join("_");
     turn_index = 0;
 
+    // $('#initiative-wrapper').html(checklist);
+
     $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
     $(`#${first_turn_name}-${msg.site_name}-row`).addClass("bg-warning");
 
@@ -116,11 +141,15 @@ $(document).ready(function() {
 
     if (site_name == msg.site_name) {
       $('#end_turn_button').prop('disabled', false);
+      $('#checklist_div').html(checklist);
     }
   });
 
   socket.on('combat_ended', function(msg) {
     var current_turn_name = msg.current_turn_name.split(" ").join("_");
+
+    // $('#initiative-wrapper').html(initiative_form);
+    $('#checklist_div').html("");
 
     $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
     $(`#${current_turn_name}-${msg.site_name}-row`).removeClass("bg-warning");
@@ -150,12 +179,16 @@ $(document).ready(function() {
     var next_id = initiatives[next_index][0].split(" ").join("_");
     turn_index = next_index;
 
+    // $('#initiative_wrapper').html(checklist);
+    $('#checklist_div').html("");
+
     $(`#${old_id}-${msg.old_site_name}-row`).removeClass("bg-warning");
     $(`#${next_id}-${msg.next_site_name}-row`).addClass("bg-warning");
 
     $('#end_turn_button').prop('disabled', true);
     if (site_name == msg.next_site_name) {
       $('#end_turn_button').prop('disabled', false);
+      $('#checklist_div').html(checklist);
     }
 
     $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
