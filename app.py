@@ -9,7 +9,7 @@ from flask import Flask, render_template, session, request, redirect, url_for, j
 from flask_socketio import SocketIO, emit 
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 from oauthlib.oauth2 import WebApplicationClient
-import requests
+from requests import get, post
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from werkzeug.exceptions import HTTPException, BadRequest
 
@@ -63,7 +63,7 @@ csrf = CSRFProtect(app)
 # TODO: move functions to their own .py file to avoid bloating and promote encapsulation
 # Retrieves Google's provider configuration
 def get_google_provider_cfg():
-    return requests.get(GOOGLE_DISCOVERY_URL).json()
+    return get(GOOGLE_DISCOVERY_URL).json()
 
 # Flask-Login helper to retrieve a user from our db
 @login_manager.user_loader
@@ -76,6 +76,15 @@ def load_user(user_id):
 @login_manager.unauthorized_handler
 def sent_to_login():
     return redirect(url_for("login_index"))
+
+def readify_form_errors(form):
+    errs_lis = []
+
+    for errs in form.errors.keys():
+        err_mes = errs + ": " + form.errors[errs][0] + "!" +"\n"
+        errs_lis += [err_mes]
+
+    return errs_lis
 
 def process_character_form(form, user_id, usage):
     if form.validate():
@@ -114,11 +123,7 @@ def process_character_form(form, user_id, usage):
             app.logger.debug(f"User {current_user.get_site_name()} successfully created their first character with name {form.name.data}. Redirecting them to the Choose Characters Page")
             return redirect(url_for("choose_character"))
 
-    err_lis = []
-        
-    for errs in form.errors.keys():
-        err_mes = errs + ": " + form.errors[errs][0] + "!" +"\n"
-        err_lis += [err_mes]
+    err_lis = readify_form_errors(form)
 
     if usage == "create":
         app.logger.warning(f"Character that user {current_user.get_site_name()} attempted to add had errors. Reloading the Add Character page to allow them to fix the errors.")
@@ -140,13 +145,9 @@ def process_room_form(form, user_id):
         add_to_db("room_object", values)
         return redirect(url_for("home"))
 
-    err_lis = []
+    err_lis = readify_form_errors(form)
 
     app.logger.debug(f"The room {current_user.get_site_name()} was attempting to create had some errors. Sending back to creation page to fix errors.")
-    
-    for errs in form.errors.keys():
-        err_mes = errs + ": " + form.errors[errs][0] + "!" +"\n"
-        err_lis += [err_mes]
 
     return render_template("add_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name() )
     
@@ -215,13 +216,14 @@ def home():
             form = SitenameValidation()
 
             if not form.validate():
+                err_lis = readify_form_errors(form)
                 app.logger.warning(f"There were errors in the chosen site name. Reloading the page")
-                return render_template("set_site_name.html", message=form.errors, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+                return render_template("set_site_name.html", errors=err_lis, error_site_name=site_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
             app.logger.debug(f"User is attempting to set their site name as {site_name}")
             if read_db("users", "*", f"WHERE site_name = '{site_name}'"):
                 app.logger.warning(f"Site name {site_name} already has been used. Reloading the Set User Name with warning message.")
-                return render_template("set_site_name.html", message="Another user has that username!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+                return render_template("set_site_name.html", message="Another user has that username!" ,error_site_name=site_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
             app.logger.debug(f"{site_name} is available as a site name. Adding it to the user.")
             update_db("users", f"site_name = '{site_name}'", f"WHERE user_id = '{current_user.get_user_id()}'")
@@ -268,8 +270,9 @@ def user_settings():
             form = SitenameValidation()
 
             if not form.validate():
+                err_lis = readify_form_errors(form)
                 app.logger.warning(f"There are issues in the renaming form. Allowing the user to change it")
-                return render_template("user_settings.html", characters=characters, username_message=form.errors, new_site_name=new_site_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+                return render_template("user_settings.html", characters=characters, username_errors=err_lis, new_site_name=new_site_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
             if read_db("users", "*", f"WHERE site_name = '{new_site_name}'"):
                 app.logger.warning(f"Site name {new_site_name} already has been used. Reloading the user settings page with warning message.")
@@ -280,7 +283,7 @@ def user_settings():
             return redirect(url_for('user_settings'))
 
     app.logger.debug(f"User {current_user.get_site_name()} is accessing their user settings")
-    return render_template("user_settings.html", characters=characters, new_site_name=site_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+    return render_template("user_settings.html", characters=characters, new_site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 
 @app.route("/room/create", methods=["GET", "POST"])
@@ -319,8 +322,6 @@ def room_edit(room_id):
     raise BadRequest(description=f"You don't have a room with id: {room_id}!")
 
 
-
-
 @app.route("/play/choose", methods=["GET", "POST"])
 @login_required
 def choose_character():
@@ -344,6 +345,7 @@ def choose_character():
 @app.route("/play", methods=["POST"])
 @login_required
 def play():
+    # TODO: When player joins a room, automatically add their character to the battle map
     char_name = request.form['character']
     user_id = current_user.get_user_id()
 
@@ -396,7 +398,7 @@ def callback():
         redirect_url=request.base_url,
         code=code
     )
-    token_response = requests.post(
+    token_response = post(
         token_url,
         headers=headers,
         data=body,
@@ -405,7 +407,7 @@ def callback():
     client.parse_request_body_response(json.dumps(token_response.json()))
     # Lookup URL provided by Google that has the user information we want 
     uri, headers, body = client.add_token(google_provider_cfg["userinfo_endpoint"])
-    userinfo_response = requests.get(uri, headers=headers, data=body)
+    userinfo_response = get(uri, headers=headers, data=body)
     # Verify email that Google served us is valid, and verify that the user has authorized us to get their information
     if userinfo_response.json().get("email_verified"):
         unique_id = userinfo_response.json()["sub"]
@@ -507,6 +509,8 @@ def send_chat(message):
 
 
 # TODO: allow characters to select who goes first when initiatives tied
+# TODO: Button to hide or show character icon on map
+# TODO: preset sizes for character icons on map
 @socketio.on('start_combat', namespace='/combat')
 def start_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
@@ -522,6 +526,7 @@ def start_combat(message):
     emit('combat_started', {'desc': 'Started Combat', 'first_turn_name': first_character[1], 'site_name': site_name}, broadcast=True)
 
 
+# TODO: Be able to save positions of characters when room closes
 @socketio.on('end_combat', namespace='/combat')
 def end_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
@@ -546,7 +551,7 @@ def end_session(message):
     emit("room_ended", {'desc': message['desc']}, broadcast=True)
 
 
-
+# TODO: Integrate character movement with turn taking
 @socketio.on('end_turn', namespace='/combat')
 def end_turn(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
@@ -649,15 +654,6 @@ if __name__ != "__main__":
 
 # Heroku specific changes - commit id: 6e0717afc16625b0cddb6410974bdb4c67bbf44f
 #	URL: https://github.com/2020SeniorProject/CS-490-Senior-Project/commit/6e0717afc16625b0cddb6410974bdb4c67bbf44f
-
-
-# TODO: allow characters to sleect who goes first when initiatives tied
-# TODO: Hide DM tools from the user view
-# TODO: When player joins a room, automatically add their character to the battle map
-# TODO: Button to hide or show character icon on map
-# TODO: Be able to save positions of characters when room closes
-# TODO: preset sizes for character icons on map
-# TODO: Integrate character movement with turn taking
 
 ### Commit specific resources:
 # http://jsfiddle.net/jcgbq46p/19/
