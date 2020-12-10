@@ -14,7 +14,7 @@ from flask_wtf.csrf import CSRFProtect, CSRFError
 from werkzeug.exceptions import HTTPException, BadRequest
 
 # Internal imports
-from classes import User, CharacterValidation, RoomValidation
+from classes import User, CharacterValidation, RoomValidation, SitenameValidation
 from db import create_dbs, add_to_db, read_db, delete_from_db, update_db, build_api_db, read_api_db, get_api_info
 
 
@@ -211,6 +211,13 @@ def home():
     if request.method == "POST":
         if "site_name" in request.form:
             site_name = request.form["site_name"]
+
+            form = SitenameValidation()
+
+            if not form.validate():
+                app.logger.warning(f"There were errors in the chosen site name. Reloading the page")
+                return render_template("set_site_name.html", message=form.errors, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+
             app.logger.debug(f"User is attempting to set their site name as {site_name}")
             if read_db("users", "*", f"WHERE site_name = '{site_name}'"):
                 app.logger.warning(f"Site name {site_name} already has been used. Reloading the Set User Name with warning message.")
@@ -255,21 +262,25 @@ def user_settings():
     characters = read_db("characters", "chr_name", f"WHERE user_key = '{user_id}'")
 
     if request.method == "POST":
-        try:
-            new_site_name = request.form['username']
+        if 'site_name' in request.form:
+            new_site_name = request.form['site_name']
+
+            form = SitenameValidation()
+
+            if not form.validate():
+                app.logger.warning(f"There are issues in the renaming form. Allowing the user to change it")
+                return render_template("user_settings.html", characters=characters, username_message=form.errors, new_site_name=new_site_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
             if read_db("users", "*", f"WHERE site_name = '{new_site_name}'"):
                 app.logger.warning(f"Site name {new_site_name} already has been used. Reloading the user settings page with warning message.")
-                return render_template("user_settings.html", characters=characters, username_message="Another user has that username!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+                return render_template("user_settings.html", characters=characters, username_message="That username is already in use!", new_site_name=new_site_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
             app.logger.debug(f"{new_site_name} is available as a site name. Updating {current_user.get_site_name()} site name.")
             update_db("users", f"site_name = '{new_site_name}'", f"WHERE user_id = '{user_id}'")
             return redirect(url_for('user_settings'))
-        except:
-            pass
 
     app.logger.debug(f"User {current_user.get_site_name()} is accessing their user settings")
-    return render_template("user_settings.html", characters=characters, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+    return render_template("user_settings.html", characters=characters, new_site_name=site_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 
 @app.route("/room/create", methods=["GET", "POST"])

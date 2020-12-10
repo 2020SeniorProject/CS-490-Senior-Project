@@ -1,6 +1,6 @@
-var initiatives = [];
-var turn_index = null;
-var site_name = $('#site_name').text();
+  // var initiatives = [];
+  // var turn_index = null;
+  // var site_name = $('#site_name').text();
 
 $(document).ready(function() {
   // Use a "/test" namespace.
@@ -9,9 +9,9 @@ $(document).ready(function() {
   // physical channel. If you don't care about multiple channels, you
   // can set the namespace to an empty string.
 
-  // var initiatives = [];
-  // var turn_index = null;
-  // var site_name = $('#site_name').text();
+  var initiatives = [];
+  var turn_index = null;
+  var site_name = $('#site_name').text();
 
   // TODO: Replacing the form does not work
   // var initiative_form = $('#initiative-wrapper').html();

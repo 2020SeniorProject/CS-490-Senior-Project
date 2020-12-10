@@ -2,7 +2,7 @@ from flask_login import UserMixin
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SubmitField, validators, Form, FileField
 from wtforms.validators import Length, NumberRange, DataRequired, ValidationError, Regexp
-
+from wtforms_validators import AlphaNumeric
 
 
 ##
@@ -27,13 +27,26 @@ class CharacterValidation(FlaskForm):
     hitpoints = IntegerField('hp', [DataRequired(message="Please input hp")])
 
 
-
 class RoomValidation(FlaskForm):
     room_name = StringField("Room", [DataRequired(message="Please input the name of your room"), Length(min=1, max=42, message="Name must be between 1 and 42 characters")])
     # TODO: Check for valid image link? and add tokens
     map_url =  StringField('Image Link')
     # [validators.Regexp('^\w+$\.(gif|jpe?g|tiff?|png|webp|bmp)$/i')]
     dm_notes = StringField("DM_notes")
+
+
+# def check_char():
+#     def _check_char(form, field):
+#         semicolon_check = field.data.split(';')
+#         if len(semicolon_check) != 1:
+#             raise ValidationError("';' are not allowed in usernames")
+#         space_check = field.data.split(' ')
+#         if len(space_check) != 1:
+#             raise ValidationError("Spaces are not allowed in usernames")
+#     return _check_char
+
+class SitenameValidation(FlaskForm):
+    site_name = StringField('Username', [DataRequired(message="You need to enter some text!"), AlphaNumeric(message="Only alphanumeric characters are allowed")])
     
 
 class User(UserMixin):
