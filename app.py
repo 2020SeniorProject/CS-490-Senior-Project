@@ -669,6 +669,7 @@ if __name__ != "__main__":
 # https://blog.miguelgrinberg.com/post/easy-websockets-with-flask-and-gevent 
 # https://trstringer.com/logging-flask-gunicorn-the-manageable-way/
 # https://flask-login.readthedocs.io/en/latest
+# https://stackoverflow.com/a/30779367
 
 # Developer Links
 # Visit https://console.developers.google.com/apis/credentials/oauthclient/211539095216-3dnbifedm4u5599jf7spaomla4thoju6.apps.googleusercontent.com?project=seniorproject-294418&supportedpurview=project to get ID and SECRET, then export them in a terminal to set them as environment variables
