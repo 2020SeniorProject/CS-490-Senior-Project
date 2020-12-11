@@ -65,6 +65,7 @@ def create_dbs():
         cur.execute(f"""CREATE TABLE IF NOT EXISTS active_room 
                         (room_id TEXT, user_key TEXT, chr_name TEXT, init_val INT, is_turn INT, PRIMARY KEY(room_id, user_key, chr_name));""") 
 
+        # TODO: Make room_name and user_key primary keys 
         cur.execute(f"""CREATE TABLE IF NOT EXISTS room_object
                         (row_id INTEGER PRIMARY KEY, user_key TEXT, room_name TEXT, active_room_id TEXT, map_status TEXT, map_url TEXT, dm_notes TEXT)""")
         

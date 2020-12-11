@@ -1,7 +1,7 @@
 from flask_login import UserMixin
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SubmitField, validators, Form, FileField
-from wtforms.validators import Length, NumberRange, DataRequired, ValidationError, Regexp
+from wtforms.validators import Length, NumberRange, DataRequired, ValidationError, Regexp, URL, Optional
 from wtforms_validators import AlphaNumeric
 
 
@@ -30,9 +30,9 @@ class CharacterValidation(FlaskForm):
 class RoomValidation(FlaskForm):
     room_name = StringField("Room", [DataRequired(message="Please input the name of your room"), Length(min=1, max=42, message="Name must be between 1 and 42 characters")])
     # TODO: Check for valid image link? and add tokens
-    map_url =  StringField('Image Link')
+    map_url =  StringField('Image Link', [URL(message="Image must be a valid URL")])
     # [validators.Regexp('^\w+$\.(gif|jpe?g|tiff?|png|webp|bmp)$/i')]
-    dm_notes = StringField("DM_notes")
+    dm_notes = StringField("DM_notes", [Optional()])
 
 
 # def check_char():

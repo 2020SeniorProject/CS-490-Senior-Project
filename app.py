@@ -3,6 +3,8 @@ import json
 import os
 import datetime
 import logging
+import random
+import string
 
 # Third-party libraries
 from flask import Flask, render_template, session, request, redirect, url_for, jsonify
@@ -298,7 +300,7 @@ def room_creation():
         return process_room_form(form, user_id)
 
 
-    return render_template("add_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+    return render_template("add_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg")
 
 
 #TODO:Add editability/deletability to rooms
@@ -320,6 +322,25 @@ def room_edit(room_id):
 
     app.logger.warning(f"User attempted to prep a room with name {room_id}. They do not have a room with that id. Throwing a Bad Request error.")
     raise BadRequest(description=f"You don't have a room with id: {room_id}!")
+
+@app.route("/generate_room", methods=["POST"])
+@login_required
+def generate_room_id():
+    user_id = current_user.get_user_id()
+    room_name = request.form["room_name"]
+    random_key = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
+
+    while read_db("room_object", "*", f"WHERE active_room_id = '{random_key}'"):
+        random_key = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
+
+    update_db("room_object", f"active_room_id = '{random_key}'", f"WHERE user_key = '{user_id}' AND room_name = '{room_name}'")
+
+    return redirect(url_for('enter_room', room_id=random_key))
+
+@app.route("/play/<room_id>")
+@login_required
+def enter_room(room_id):
+    return render_template("base.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 
 @app.route("/play/choose", methods=["GET", "POST"])
