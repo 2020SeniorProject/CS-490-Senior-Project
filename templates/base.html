@@ -10,7 +10,15 @@
     <body>
       <div style="width:99%;">
         <div class="row" style="height:10%;">
-            <div class="col-2"></div>
+          <div class="col-2">
+              {% if in_room %}
+              <!-- <div class="d-flex h-100"> -->
+                <div class="row justify-content-center align-self-center">
+                  <p class="text-center">Currently in room: <b id="room_id">{{ in_room }}</b></p>
+                </div>
+              <!-- </div> -->
+              {% endif %}
+            </div>
             <div class="col-8">
                 <nav class="navbar navbar-expand-lg navbar-light bg-light mb-2">
                     <!-- <a class="navbar-brand" href="/">Navbar</a> -->

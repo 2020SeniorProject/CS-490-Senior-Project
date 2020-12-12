@@ -1,6 +1,8 @@
-  // var initiatives = [];
-  // var turn_index = null;
-  // var site_name = $('#site_name').text();
+var initiatives = [];
+var turn_index = null;
+var site_name = $('#site_name').text();
+var room_id = $('#room_id').text();
+
 
 $(document).ready(function() {
   // Use a "/test" namespace.
@@ -9,9 +11,11 @@ $(document).ready(function() {
   // physical channel. If you don't care about multiple channels, you
   // can set the namespace to an empty string.
 
-  var initiatives = [];
-  var turn_index = null;
-  var site_name = $('#site_name').text();
+  // var initiatives = [];
+  // var turn_index = null;
+  // var site_name = $('#site_name').text();
+  // var room_id = $('#room_id').text();
+
 
   // TODO: Replacing the form does not work
   // var initiative_form = $('#initiative-wrapper').html();
@@ -47,30 +51,30 @@ $(document).ready(function() {
   // TODO: Add room_id to all of the functions
   $('form#set_initiative').submit(function(event) {
     console.log("Update initiative");
-    socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), site_name: site_name});
+    socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), site_name: site_name, room_id: room_id});
     $('#initiative_roll').val(''); 
     return false;
   });
 
   $('form#send_chat').submit(function(event) {
-    socket.emit('send_chat', {chat: $('#chat_text').val(), character_name: $('#player_name').val() || site_name});
+    socket.emit('send_chat', {chat: $('#chat_text').val(), character_name: $('#player_name').val() || site_name, room_id: room_id});
     $('#chat_text').val(''); 
     return false;
   });
   
   $('form#start_battle').submit(function(event) {
-    socket.emit('start_combat', {desc: "Start Battle"});
+    socket.emit('start_combat', {desc: "Start Battle", room_id: room_id});
     return false;
   });
   
   $('form#end_battle').submit(function(event) {
-    socket.emit('end_combat', {desc: "End Battle"});
+    socket.emit('end_combat', {desc: "End Battle", room_id: room_id});
     return false;
   });
 
   $('form#close_room').submit(function(event) {
     if (window.confirm("This will clear all initiative and chat data for this room and kick players. Map and character token locations will be saved. Proceed?") ){
-      socket.emit('end_room', {desc: "Close Room"});
+      socket.emit('end_room', {desc: "Close Room", room_id: room_id});
       return false;
     }
     return false; 
@@ -84,12 +88,17 @@ $(document).ready(function() {
     else {
       next_index = turn_index + 1
     }
-    socket.emit('end_turn', {desc: `${initiatives[turn_index][0]}'s Turn Ended`, old_name: initiatives[turn_index][0], next_name: initiatives[next_index][0], old_site_name: initiatives[turn_index][2], next_site_name: initiatives[next_index][2]});
+    socket.emit('end_turn', {desc: `${initiatives[turn_index][0]}'s Turn Ended`, old_name: initiatives[turn_index][0], next_name: initiatives[next_index][0], old_site_name: initiatives[turn_index][2], next_site_name: initiatives[next_index][2], room_id: room_id});
     return false;
   });
 
   socket.on('connect', function() {
-    socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), site_name: site_name});
+    socket.emit('on_join', {room_id: room_id})
+    // socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), site_name: site_name, room_id: room_id});
+  });
+
+  socket.on('joined', function(msg) {
+    socket.emit('join_actions', {room_id: room_id})
   });
 
   socket.on('log_update', function(msg) {
