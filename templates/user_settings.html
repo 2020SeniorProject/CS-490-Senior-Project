@@ -19,22 +19,6 @@
     <li> {{ i }} </li>
     {% endfor %}
 
-    {% if characters != [] %}
-        <form action="/user/settings" method=POST class=form>
-            <div class=row>
-                <label><b>Character pictures. Coming soon!</b></label>
-                <select name=character class=form-control>
-                    <option selected hidden>Choose a character!</option>
-                    {% for char in characters %}
-                        <option>{{ char[0] }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        </form>
-    {% else %}
-        <p>Create some characters for more options!</p>
-    {% endif %}
 </div>
 
 {% endblock %}

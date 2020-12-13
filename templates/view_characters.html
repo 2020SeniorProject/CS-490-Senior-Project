@@ -18,6 +18,7 @@
             <th>Wis</th>
             <th>Chr</th>
             <th>Hitpoints</th>
+            <th>Character Token</th>
             <th colspan=2 class="text-center"><a href="/characters/create" class="btn btn-success">Create a Character!</a></th>
         </thead>
         <tbody>
@@ -37,6 +38,7 @@
                 <td>{{ s[13] }}</td>
                 <td>{{ s[14] }}</td>
                 <td>{{ s[15] }}</td>
+                <td><img src="{{ s[16] }}" width=64 length=64 alt="{{ s[2]}}'s token"></td>
                 <td class=text-center>
                     <form action="/characters/edit/{{ s[2] }}" method="GET" class="form">
                         <input type="submit" class="btn btn-warning btm-sm" value="Edit">

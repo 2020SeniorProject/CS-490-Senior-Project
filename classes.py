@@ -25,6 +25,7 @@ class CharacterValidation(FlaskForm):
     wisdom = IntegerField('wis', [DataRequired(message="Please input int"), NumberRange(min=1, max=30, message="Outside Possible Range")])
     charisma = IntegerField('chr', [DataRequired(message="Please input charisma"), NumberRange(min=1, max=30, message="Outside Possible Range")])
     hitpoints = IntegerField('hp', [DataRequired(message="Please input hp")])
+    char_token = StringField('token', [DataRequired(message="Please choose a character token image!")])
 
 
 class RoomValidation(FlaskForm):

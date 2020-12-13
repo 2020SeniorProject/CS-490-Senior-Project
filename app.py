@@ -90,12 +90,12 @@ def readify_form_errors(form):
 
 def process_character_form(form, user_id, usage):
     if form.validate():
-        values = (user_id, "null", form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data)
+        values = (user_id, "null", form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data, form.char_token.data)
     
         if usage == "create":
             if read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{values[2]}'") != []:
                 app.logger.warning(f"User {current_user.get_site_name()} already has a character with name {form.name.data}. Reloading the Add Character page to allow them to change the name")
-                return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+                return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, char_token=form.char_token.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
             app.logger.debug(f"User {current_user.get_site_name()} successfully added a character with name {form.name.data}. Redirecting them to the View Characters page.")
             add_to_db("chars", values)
@@ -106,7 +106,7 @@ def process_character_form(form, user_id, usage):
         elif usage == "edit":
             if request.form['old_name'] != request.form['name'] and read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['name']}'") != []:
                 app.logger.warning(f"User {current_user.get_site_name()} attempted to change the name of character {request.form['old_name']} to {request.form['name']}. They already have another character with that name. Reloading the Edit Character page to allow them to change the name.")
-                return render_template("edit_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'], profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+                return render_template("edit_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'], char_token=form.char_token.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
             app.logger.debug(f"Updating the characters owned by user {current_user.get_site_name()}.")
             delete_from_db("characters", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['old_name']}'")
@@ -129,15 +129,15 @@ def process_character_form(form, user_id, usage):
 
     if usage == "create":
         app.logger.warning(f"Character that user {current_user.get_site_name()} attempted to add had errors. Reloading the Add Character page to allow them to fix the errors.")
-        return render_template("add_character.html", errors=err_lis, action="/characters/create", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+        return render_template("add_character.html", errors=err_lis, action="/characters/create", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data,  char_token=form.char_token.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
     
     if usage == "edit": 
         app.logger.warning(f"Character that user {current_user.get_site_name()} attempted to edit had errors. Reloading the Edit Character page to allow them to fix the errors.")
-        return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'], profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+        return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'],  char_token=form.char_token.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
     if usage == "play":
         app.logger.warning(f"Character user {current_user.get_site_name()} attempted to add had errors. Reloading Add Character page to allow them to fix the errors.")
-        return render_template("add_character.html", errors=err_lis, action="/play/choose", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+        return render_template("add_character.html", errors=err_lis, action="/play/choose", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data,  char_token=form.char_token.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 #TODO: Grab token locations
 def process_room_form(form, user_id):
@@ -201,7 +201,7 @@ def edit_character(name):
     if character:
         character = character[0]
         app.logger.debug(f"User {current_user.get_site_name()} has gone to edit a character with name {character[2]}.")
-        return render_template("edit_character.html", name=character[2], hp=character[15], old_race=character[5], old_subrace=character[6], old_class=character[3], old_subclass=character[4], speed=character[7], lvl=character[8], str=character[9], dex=character[10], con=character[11], int=character[12], wis=character[13], cha=character[14], old_name=character[2], profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+        return render_template("edit_character.html", name=character[2], hp=character[15], old_race=character[5], old_subrace=character[6], old_class=character[3], old_subclass=character[4], speed=character[7], lvl=character[8], str=character[9], dex=character[10], con=character[11], int=character[12], wis=character[13], cha=character[14], old_name=character[2], char_token=character[16], profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
     app.logger.warning(f"User attempted to edit a character with name {name}. They do not have a character with that name. Throwing a Bad Request error.")
     raise BadRequest(description=f"You don't have a character named {name}!")
@@ -274,7 +274,7 @@ def home():
 @login_required
 def user_settings():
     user_id = current_user.get_user_id()
-    characters = read_db("characters", "chr_name", f"WHERE user_key = '{user_id}'")
+    characters = read_db("characters", "chr_name, character_token", f"WHERE user_key = '{user_id}'")
 
     if request.method == "POST":
         if 'site_name' in request.form:
@@ -294,6 +294,12 @@ def user_settings():
             app.logger.debug(f"{new_site_name} is available as a site name. Updating {current_user.get_site_name()} site name.")
             update_db("users", f"site_name = '{new_site_name}'", f"WHERE user_id = '{user_id}'")
             return redirect(url_for('user_settings'))
+        
+        if 'token_url' in request.form:
+            new_char_token = request.form['token_url']
+
+            app.logger.debug(f"User's")
+
 
     app.logger.debug(f"User {current_user.get_site_name()} is accessing their user settings")
     return render_template("user_settings.html", characters=characters, new_site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
@@ -314,7 +320,7 @@ def room_creation():
     return render_template("add_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg")
 
 
-#TODO:Add editability/deletability to rooms
+#TODO:Add editability to rooms
 @app.route("/room/<room_id>", methods=["GET", "POST"])
 @login_required
 def room_edit(room_id):
