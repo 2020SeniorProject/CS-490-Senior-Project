@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- TODO: Change the form width -->
+<div class="container">
+    <form action="/play" method="POST" class="form">
+        <div class="row">
+            <div class="col form-group">
+                <input type=text name="room_id" id="room_id" class="form-control" placeholder="Enter an 8 character room id" value="{{ room_id }}">
+            </div>
+            <div class="col form-group">
+                <input type="submit" class="btn btn-danger btm-sm form-control" value="Choose room">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            </div>
+        </div>
+    </form>
+    {{ message }}
+</div>
+
+{% endblock %}

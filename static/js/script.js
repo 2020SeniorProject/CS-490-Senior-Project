@@ -1,7 +1,7 @@
-var initiatives = [];
-var turn_index = null;
-var site_name = $('#site_name').text();
-var room_id = $('#room_id').text();
+// var initiatives = [];
+// var turn_index = null;
+// var site_name = $('#site_name').text();
+// var room_id = $('#room_id').text();
 
 
 $(document).ready(function() {
@@ -11,10 +11,10 @@ $(document).ready(function() {
   // physical channel. If you don't care about multiple channels, you
   // can set the namespace to an empty string.
 
-  // var initiatives = [];
-  // var turn_index = null;
-  // var site_name = $('#site_name').text();
-  // var room_id = $('#room_id').text();
+  var initiatives = [];
+  var turn_index = null;
+  var site_name = $('#site_name').text();
+  var room_id = $('#room_id').text();
 
 
   // TODO: Replacing the form does not work
@@ -98,7 +98,8 @@ $(document).ready(function() {
   });
 
   socket.on('joined', function(msg) {
-    socket.emit('join_actions', {room_id: room_id})
+    socket.emit('join_actions', {room_id: room_id});
+    socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), site_name: site_name, room_id: room_id});
   });
 
   socket.on('log_update', function(msg) {

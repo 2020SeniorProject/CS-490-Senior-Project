@@ -90,7 +90,7 @@ def readify_form_errors(form):
 
 def process_character_form(form, user_id, usage):
     if form.validate():
-        values = (user_id, session_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data)
+        values = (user_id, "null", form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data)
     
         if usage == "create":
             if read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{values[2]}'") != []:
@@ -312,7 +312,6 @@ def room_edit(room_id):
 
     if request.method == "POST":
         app.logger.warning(f"User {current_user.get_site_name()} is attempting to publish their room!")
-        # TODO: Set up rooms and sockets for how this will process
 
     room = read_db("room_object", "*", f"WHERE rowid = {room_id} and user_key= '{current_user.get_user_id()}'")
     if room:
@@ -340,9 +339,7 @@ def generate_room_id():
 @app.route("/play/<room_id>/choose", methods=["GET", "POST"])
 @login_required
 def enter_room(room_id):
-    # return render_template("base.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
-    # TODO: Update logging stuff when multiple rooms added
-    app.logger.debug(f"User {current_user.get_site_name()} has gone to join the singular room.")
+    app.logger.debug(f"User {current_user.get_site_name()} has gone to join the room with id {room_id}.")
     characters = read_db("characters", "*", f"WHERE user_key = '{current_user.get_user_id()}'")
     if characters:
         app.logger.debug(f"User {current_user.get_site_name()} has characters. Loading the Choose Character page.")
@@ -360,61 +357,39 @@ def enter_room(room_id):
 @app.route("/play/<room_id>", methods=["GET", "POST"])
 @login_required
 def playy(room_id):
-    # print(request.form)
-    # return render_template("base.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
     # TODO: When player joins a room, automatically add their character to the battle map
     char_name = request.form['character']
     user_id = current_user.get_user_id()
 
     if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'") and not read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
         # TODO: Do we want a /spectate or a /watch route?
-        app.logger.debug(f"User {current_user.get_site_name()} is watching the room")
+        app.logger.debug(f"User {current_user.get_site_name()} is watching the room {room_id}")
         return render_template("watch.html", async_mode=socketio.async_mode, in_room=room_id, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
     if not read_db("active_room", extra_clause=f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
         add_to_db("active_room", (room_id, user_id, char_name, 0, 0))
 
-    app.logger.debug(f"User {current_user.get_site_name()} has entered the room with character {char_name}.")
+    app.logger.debug(f"User {current_user.get_site_name()} has entered the room {room_id} with character {char_name}")
     return render_template("play.html", async_mode=socketio.async_mode, char_name=char_name, in_room=room_id, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 
-@app.route("/play/choose", methods=["GET", "POST"])
-@login_required
-def choose_character():
-    # TODO: Update logging stuff when multiple rooms added
-    app.logger.debug(f"User {current_user.get_site_name()} has gone to join the singular room.")
-    characters = read_db("characters", "*", f"WHERE user_key = '{current_user.get_user_id()}'")
-    if characters:
-        app.logger.debug(f"User {current_user.get_site_name()} has characters. Loading the Choose Character page.")
-        return render_template("choose_character.html", characters=characters, route="/play", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
-    else:
-        user_id = current_user.get_user_id()
-        form = CharacterValidation()
-        app.logger.warning(f"User {current_user.get_site_name()} does not have characters. Redirecting them to the Add Character page.")
-        if request.method == "POST":
-            app.logger.debug(f"User {current_user.get_site_name()} is attempting to create their first character.")
-            return process_character_form(form, user_id, "play")
-        # TODO: Instead of rendering this template at the route "/play/choose", redirect to characters
-        return render_template("add_character.html", message_text="You need a character to enter a game!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), action="/play/choose")
-
 # Gameplay Page
-@app.route("/play", methods=["POST"])
+@app.route("/play", methods=["GET", "POST"])
 @login_required
 def play():
-    # TODO: When player joins a room, automatically add their character to the battle map
-    char_name = request.form['character']
-    user_id = current_user.get_user_id()
+    if request.method == "POST":
+        room_id = request.form['room_id']
 
-    if read_db("active_room", "*", f"WHERE room_id = '{session_id}' AND is_turn = '1'") and not read_db("active_room", "*", f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
-        # TODO: Do we want a /spectate or a /watch route?
-        app.logger.debug(f"User {current_user.get_site_name()} is watching the room")
-        return render_template("watch.html", async_mode=socketio.async_mode, in_room=session_id, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+        if read_db("active_room", "*", f"WHERE room_id = '{room_id}'"):
+            app.logger.debug(f"User {current_user.get_site_name()} is entering room {room_id}")
+            return redirect(url_for('enter_room', room_id=room_id))
+        
+        app.logger.warning(f"User {current_user.get_site_name()} attempted to enter an nonexistant room. Reloading to form with a message")
+        return render_template("choose_room.html", message="There is not an open room with that key!", room_id=room_id, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
-    if not read_db("active_room", extra_clause=f"WHERE room_id = '{session_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
-        add_to_db("active_room", (session_id, user_id, char_name, 0, 0))
+    app.logger.debug(f"User {current_user.get_site_name()} is attempting to enter a room")
+    return render_template("choose_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
-    app.logger.debug(f"User {current_user.get_site_name()} has entered the room with character {char_name}.")
-    return render_template("play.html", async_mode=socketio.async_mode, char_name=char_name, in_room=session_id, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 # Landing Login Page
 @app.route("/")
@@ -529,18 +504,16 @@ def get_classes():
 ### SOCKETIO EVENT HANDLERS
 
 # TODO: Hide DM tools from the user view
-# TODO: Update to work with real room_ids and also update logging messages at that point
 
 @socketio.on('set_initiative', namespace='/combat')
 def set_initiative(message):
-    print('set_initiative')
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     character_name = message['character_name']
     init_val = message['init_val']
     site_name = message['site_name']
     room_id = message['room_id']
     user_id = current_user.get_user_id()
-    desc = f"{character_name}'s initiative updated"
+    desc = f"{character_name}'s initiative updated in room {room_id}"
     app.logger.debug(f"Battle update: {desc}.")
 
     if not init_val:
@@ -555,12 +528,11 @@ def set_initiative(message):
 
 @socketio.on('send_chat', namespace='/combat')
 def send_chat(message):
-    print('send_chat')
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
     chr_name = message['character_name']
     room_id = message['room_id']
-    app.logger.debug(f"Battle update: {chr_name} has sent chat {message['chat']}.")
+    app.logger.debug(f"Battle update: {chr_name} has sent chat {message['chat']} in room {room_id}")
 
     add_to_db("chat",(room_id, user_id, chr_name, message['chat'], time_rcvd))
     add_to_db("log", (room_id, user_id, "Chat", message['character_name'], time_rcvd))
@@ -573,13 +545,12 @@ def send_chat(message):
 # TODO: preset sizes for character icons on map
 @socketio.on('start_combat', namespace='/combat')
 def start_combat(message):
-    print('start_combat')
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
     room_id = message['room_id']
     characters = read_db("active_room", "user_key, chr_name, init_val", f"WHERE room_id = '{room_id}' ORDER BY init_val, chr_name DESC ")
     first_character = characters[-1]
-    app.logger.debug(f"Battle update: Combat has started.")
+    app.logger.debug(f"Battle update: Combat has started in room {room_id}")
 
     update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_key = '{first_character[0]}' AND chr_name = '{first_character[1]}' AND init_val = '{first_character[2]}'")
     add_to_db("log", (room_id, user_id, "Combat", "Started Combat", time_rcvd))
@@ -591,12 +562,11 @@ def start_combat(message):
 # TODO: Be able to save positions of characters when room closes
 @socketio.on('end_combat', namespace='/combat')
 def end_combat(message):
-    print('end_combat')
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
     room_id = message['room_id']
     character = read_db("active_room","user_key, chr_name", f"WHERE room_id = '{room_id}' AND is_turn = '1'")[0]
-    app.logger.debug(f"Battle update: Combat has ended.")
+    app.logger.debug(f"Battle update: Combat has ended in room {room_id}")
 
     update_db("active_room", f"is_turn = '{0}'", f"WHERE room_id = '{room_id}'")
     add_to_db("log", (room_id, user_id, "Combat", "Ended Combat", time_rcvd))
@@ -607,7 +577,6 @@ def end_combat(message):
 
 @socketio.on('end_room', namespace='/combat')
 def end_session(message):
-    print('end_room')
     room_id = message['room_id']
     delete_from_db("active_room", f"WHERE room_id = '{room_id}'")
     delete_from_db("chat", f"WHERE room_id = '{room_id}'")
@@ -620,7 +589,6 @@ def end_session(message):
 # TODO: Integrate character movement with turn taking
 @socketio.on('end_turn', namespace='/combat')
 def end_turn(message):
-    print('end_turn')
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
     old_name = message['old_name']
@@ -629,7 +597,7 @@ def end_turn(message):
     next_site_name = message['next_site_name']
     room_id = message['room_id']
     new_character_id = read_db("users", "user_id", f"WHERE site_name = '{next_site_name}'")[0][0]
-    app.logger.debug(f"Battle update: {old_name}'s turn has ended. It is now {next_name}'s turn.")
+    app.logger.debug(f"Battle update: {old_name}'s turn has ended. It is now {next_name}'s turn in room {room_id}")
 
     update_db("active_room", f"is_turn = '{0}'", f"WHERE room_id = '{room_id}'")
     update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_key = '{new_character_id}' AND chr_name = '{next_name}'")
@@ -640,14 +608,13 @@ def end_turn(message):
 
 @socketio.on('on_join', namespace='/combat')
 def on_join(message):
-    print('join_room')
+    app.logger.debug(f"Battle update: User {current_user.get_site_name()} has entered room {message['room_id']}")
     join_room(message['room_id'])
     emit('joined', {'desc': 'Joined room'})
 
 
 @socketio.on('join_actions', namespace='/combat')
 def connect(message):
-    print('join_actions')
     # Sends upon a new connection
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.get_user_id()
@@ -658,7 +625,7 @@ def connect(message):
     character_image = current_user.get_profile_pic()
     initiatives = read_db("active_room", "chr_name, init_val, user_key", f"WHERE room_id = '{room_id}'")
     chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{room_id}'")
-    app.logger.debug(f"Battle update: User {current_user.get_site_name()} has connected.")
+    app.logger.debug(f"Battle update: User {current_user.get_site_name()} has connected to room {room_id}")
 
     add_to_db("log", (room_id, user_id, "Connection", f"User with id {user_id} connected", time_rcvd))
 
