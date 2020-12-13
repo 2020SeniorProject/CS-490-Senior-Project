@@ -3,3 +3,16 @@
   bottom: 0;
   right: 0;
 }
+
+.resizable {
+  display: inline-block;
+  background: red;
+  resize: both;
+  overflow: hidden;
+  line-height: 0;
+  }
+
+.resizable img {
+  width: 100%;
+  height: 100%;
+}

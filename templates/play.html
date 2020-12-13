@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<script src="/static/js/script.js?n=33"></script>
+<script src="/static/js/script.js?n=34"></script>
 
 <div class=row style="height:65%;">
     <div class="col-2 border border-dark h-100" style="overflow:scroll;">
@@ -13,13 +13,14 @@
         </table>
     </div>
     <div class="col-8 border border-dark">
-        <!-- MARK -->
-        <!-- <div id="battle_map_container" class="text-center droppable" ondragover="onDragOver(event);" ondrop="onDrop(event);"> -->
-        <div id="battle_map_container" class="text-center droppable" style="width:100%">
+        <!-- MARK -->	
+        <div id="battle_map_container" class="text-center droppable ui-droppable" style="width:100%">	
             <img id="battle_map" style="height:100%;width:100%;" draggable="false" src="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg">
-            <!-- <img id="characterIcon" class="draggable" style="position:absolute;height:10%;width:10%;z-index:10;top:25px;left: 25px;border: 2px;border-color: rgb(0, 0, 255);" draggable="true" ondragstart="onDragStart(event);" src="https://colourlex.com/wp-content/uploads/2015/08/Cadmium_red_nr_2_painted_swatch_Lipscher-225-opt.jpg"> -->
-            <img id="characterIcon" class="draggable" style="position:absolute;height:10%;width:100px;z-index:10;top:25px;left: 25px;" draggable="true" src="https://colourlex.com/wp-content/uploads/2015/08/Cadmium_red_nr_2_painted_swatch_Lipscher-225-opt.jpg">
-
+<!-- 
+            <div class="characterIconWrapper draggable ui-draggable ui-draggable-handle" style="position:absolute; z-index:10; top:25px; left:25px; display:inline-block;">
+                <img id="characterIcon" class="charcterIcon resizable ui-resizable" style="position: static; height: 2em; width: 2em; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block;" src="https://colourlex.com/wp-content/uploads/2015/08/Cadmium_red_nr_2_painted_swatch_Lipscher-225-opt.jpg">
+            </div>
+             -->
         </div>
     </div>
     <div class="col-2 border border-dark h-100">

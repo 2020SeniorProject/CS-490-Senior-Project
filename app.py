@@ -6,6 +6,7 @@ import logging
 import random
 import string
 
+#TODO: version ALL requirements in requirements.txt
 # Third-party libraries
 from flask import Flask, render_template, session, request, redirect, url_for, jsonify
 from flask_socketio import SocketIO, emit, join_room
@@ -368,7 +369,6 @@ def enter_room(room_id):
 @app.route("/play/<room_id>", methods=["GET", "POST"])
 @login_required
 def playy(room_id):
-    # TODO: When player joins a room, automatically add their character to the battle map
     char_name = request.form['character']
     user_id = current_user.get_user_id()
 
@@ -637,9 +637,7 @@ def connect(message):
     user_id = current_user.get_user_id()
     site_name = current_user.get_site_name()
     room_id = message['room_id']
-    # MARK
-    # TODO: replace this with user-given character image rather than user image from google
-    character_image = current_user.get_profile_pic()
+    
     initiatives = read_db("active_room", "chr_name, init_val, user_key", f"WHERE room_id = '{room_id}'")
     chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{room_id}'")
     app.logger.debug(f"Battle update: User {current_user.get_site_name()} has connected to room {room_id}")
@@ -648,7 +646,9 @@ def connect(message):
 
     emit('log_update', {'desc': f"{site_name} Connected"}, room=room_id)
     # MARK
-    emit('add_character_icon', {'character_image': character_image}, room=room_id)
+    # TODO: replace this with user-given character image rather than user image from google
+    # character_image = current_user.get_profile_pic()
+    # emit('add_character_icon', {'character_image': character_image}, room=room_id)
 
     for item in initiatives:
         site_name = read_db("users", "site_name", f"WHERE user_id = '{item[2]}'")[0][0]
@@ -733,3 +733,15 @@ if __name__ != "__main__":
 # https://stackoverflow.com/questions/22268881/referenceerror-is-not-defined/22268906
 # https://learn.jquery.com/using-jquery-core/document-ready/
 # https://www.w3schools.com/cssref/css_selectors.asp
+
+# TODO: allow characters to sleect who goes first when initiatives tied
+# TODO: Hide DM tools from the user view
+# TODO: When player joins a room, automatically add their character to the battle map
+# TODO: Button to hide or show character icon on map
+# TODO: Be able to save positions of characters when room closes
+# TODO: preset sizes for character icons on map
+# TODO: allow characters to resize character icons
+# TODO: Integrate character movement with turn taking
+# TODO: Prevent chat spam!
+# TODO: When DM's upload batlle maps, have the optioon to speicfy how many squares wide and how many tall, then have selectors for character tokens for different sizes, and have character tokens snap into the grid
+# TODO: Rename script.js
