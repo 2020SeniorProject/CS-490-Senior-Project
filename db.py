@@ -1,9 +1,6 @@
 import sqlite3
 
-# Needed for API
 import csv
-
-# TODO: Combine API db and battle_sesh db functions together
 
 def create_connection(db_file):
     conn = sqlite3.connect(db_file)
@@ -38,7 +35,6 @@ def create_connection(db_file):
 # Active room id - null if room not open, changes when room is ‘opened’
 # Map_status - stringified JSON representation of NPCs and locations on map
 # Map URL - URL to the map (for the “background”)
-
 
 # users table ****** THIS IS THE ONLY TABLE THAT UTILIZES USER_ID INSTEAD OF USER_KEY BUT THEY ARE SYNONYMOUS ******
 # user_id = user_id gotten from Google 
@@ -121,7 +117,6 @@ def reset_db(db_name):
 def update_db(db_name, columns_values, extra_clause):
     with create_connection("battle_sesh.db") as conn:
         cur = conn.cursor()
-        # print(f"""UPDATE {db_name} SET {columns_values} {extra_clause};""")
         cur.execute(f"""UPDATE {db_name} SET {columns_values} {extra_clause};""")
         conn.commit()
 

@@ -94,7 +94,6 @@ $(document).ready(function() {
 
   socket.on('connect', function() {
     socket.emit('on_join', {room_id: room_id})
-    // socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), site_name: site_name, room_id: room_id});
   });
 
   socket.on('joined', function(msg) {
