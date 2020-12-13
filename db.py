@@ -180,3 +180,24 @@ def get_api_info(table, row):
         column_subsets[row[0]].append(row[1])
 
     return main_column_set, column_subsets
+
+
+def build_error_db():
+    with create_connection("error.db") as conn:
+        cur = conn.cursor()              
+        cur.execute(f"""CREATE TABLE IF NOT EXISTS error 
+                        (row_id INT PRIMARY KEY, error_desc TEXT); """)
+
+def add_to_error_db(values):
+    with create_connection("error.db") as conn:
+        cur = conn.cursor()
+        cur.execute("INSERT INTO error(error_desc) VALUES(?)", (values,))
+        conn.commit()
+    
+def read_error_db():
+    with create_connection("error.db") as conn:
+        cur = conn.cursor()
+        ret_lst = []
+        for row in cur.execute(f"SELECT * FROM error;"):
+            ret_lst.append(row)
+        return ret_lst

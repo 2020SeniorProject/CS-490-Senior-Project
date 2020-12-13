@@ -6,6 +6,16 @@
     <h1 class="text-center"> {{ error_name }} </h1>
     <p class="text-center"> {{ error_desc }}</p>
 
+    <form action="/process_error", method="POST", class=form>
+        <div class="col-9 form-group">
+            <!-- <label>Username</label> -->
+            <input type=text name=error_desc class=form-control placeholder="Describe your error!">
+        </div>
+        <div class="col-3 form-group">
+            <input type="submit" class="btn btn-primary form-control" value="Thank you!">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        </div>
+    </form>
 </div>
 
 

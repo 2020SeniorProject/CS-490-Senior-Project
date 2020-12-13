@@ -17,7 +17,7 @@ from werkzeug.exceptions import HTTPException, BadRequest
 
 # Internal imports
 from classes import User, CharacterValidation, RoomValidation, SitenameValidation
-from db import create_dbs, add_to_db, read_db, delete_from_db, update_db, build_api_db, read_api_db, get_api_info
+from db import create_dbs, add_to_db, read_db, delete_from_db, update_db, build_api_db, read_api_db, get_api_info, build_error_db, add_to_error_db, read_error_db
 
 
 ### SET VARIABLES AND INITIALIZE PRIMARY PROCESSES
@@ -31,9 +31,6 @@ GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
 
-# TODO: Get rid of the placeholder
-session_id = "69BBEG69" 
-
 # This disables the SSL usage check - TODO: solution to this needed as it may pose security risk. see https://oauthlib.readthedocs.io/en/latest/oauth2/security.html and https://requests-oauthlib.readthedocs.io/en/latest/examples/real_world_example.html
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
@@ -46,6 +43,9 @@ create_dbs()
 
 # Creates the API db
 build_api_db(["race", "class"])
+
+# Creates the error holding db
+build_error_db()
 
 # User session management setup
 login_manager = LoginManager()
@@ -255,6 +255,17 @@ def home():
         default = True
     else:
         default = False
+
+    app.logger.debug("DB's status:")
+    print("room_object")
+    for row in read_db("room_object"):
+        print(row)
+    print("active_room")
+    for row in read_db("active_room"):
+        print(row)
+    print("error")
+    for row in read_error_db():
+        print(row)
 
     return render_template("home.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms, defaulted = default)
 
@@ -484,14 +495,15 @@ def delete_account():
 
 
 ### API ROUTES
-# TODO: Hide these behind login requirements or create redirects page and redirect these guys
 @app.route("/api/races")
+@login_required
 def get_races():
     races, subraces = get_api_info("race", "race")
 
     return jsonify(races=list(races), subraces=subraces)
 
 @app.route("/api/classes")
+@login_required
 def get_classes():
     classes, subclasses = get_api_info("class", "class")
 
@@ -508,11 +520,15 @@ def get_classes():
 @socketio.on('set_initiative', namespace='/combat')
 def set_initiative(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    character_name = message['character_name']
+    character_name = message['character_name'] or None
     init_val = message['init_val']
     site_name = message['site_name']
     room_id = message['room_id']
     user_id = current_user.get_user_id()
+
+    if not character_name and not init_val:
+        return
+
     desc = f"{character_name}'s initiative updated in room {room_id}"
     app.logger.debug(f"Battle update: {desc}.")
 
@@ -580,6 +596,7 @@ def end_session(message):
     room_id = message['room_id']
     delete_from_db("active_room", f"WHERE room_id = '{room_id}'")
     delete_from_db("chat", f"WHERE room_id = '{room_id}'")
+    update_db("room_object", "active_room_id = 'null'", f"WHERE active_room_id = '{room_id}'")
 
     app.logger.debug(f"The room {room_id} owned by {current_user.get_site_name()} has closed")
     
@@ -663,13 +680,20 @@ def generic_error(e):
         app.logger.warning(f"A HTTP error with code {e.code} has occurred. Handling the error.")
         return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description, site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic()), e.code
 
-# TODO: Add form or something so they can tell us about it
 @app.errorhandler(Exception)
 def five_hundred_error(e):
     app.logger.warning(f"A server error occurred. Handling it, but you probably should fix the bug...")
     app.logger.error(f"Here it is: {e}")
     desc = "Internal Server Error. Congrats! You found an unexpected feature! Care to tell us about it?"
     return render_template("error.html", error_name="Error Code 500", error_desc=desc, site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic()), 500
+
+@app.route("/process_error", methods=["POST"])
+@login_required
+def process_error():
+    if 'error_desc' in request.form:
+        add_to_error_db(request.form['error_desc'])
+    
+    return redirect(url_for("home"))
 
 
 
