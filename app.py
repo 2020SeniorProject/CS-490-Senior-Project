@@ -377,14 +377,14 @@ def playy(room_id):
     # TODO: When player joins a room, automatically add their character to the battle map
     char_name = request.form['character']
     user_id = current_user.get_user_id()
-
+    char_token = read_db("characters", "char_token", f"WHERE user_key='{user_id}' and chr_name='{char_name}'")[0][0]
     if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'") and not read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
         # TODO: Do we want a /spectate or a /watch route?
         app.logger.debug(f"User {current_user.get_site_name()} is watching the room {room_id}")
         return render_template("watch.html", async_mode=socketio.async_mode, in_room=room_id, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
     if not read_db("active_room", extra_clause=f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
-        add_to_db("active_room", (room_id, user_id, char_name, 0, 0))
+        add_to_db("active_room", (room_id, user_id, char_name, 0, 0, char_token))
 
     app.logger.debug(f"User {current_user.get_site_name()} has entered the room {room_id} with character {char_name}")
     return render_template("play.html", async_mode=socketio.async_mode, char_name=char_name, in_room=room_id, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
@@ -644,8 +644,7 @@ def connect(message):
     site_name = current_user.get_site_name()
     room_id = message['room_id']
     # MARK
-    # TODO: replace this with user-given character image rather than user image from google
-    character_image = current_user.get_profile_pic()
+    character_image = read_db("active_room", "char_token", f"WHERE chr_name='{message['character_name']}' and user_key='{current_user.get_user_id()}'")[0][0]
     initiatives = read_db("active_room", "chr_name, init_val, user_key", f"WHERE room_id = '{room_id}'")
     chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{room_id}'")
     app.logger.debug(f"Battle update: User {current_user.get_site_name()} has connected to room {room_id}")

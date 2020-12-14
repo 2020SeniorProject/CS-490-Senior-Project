@@ -97,7 +97,7 @@ $(document).ready(function() {
   });
 
   socket.on('joined', function(msg) {
-    socket.emit('join_actions', {room_id: room_id});
+    socket.emit('join_actions', {room_id: room_id, character_name: $('#player_name').val() || ""});
     socket.emit('set_initiative', {character_name: $('#player_name').val() || "", init_val: $('#initiative_roll').val() || "", site_name: site_name, room_id: room_id});
   });
 
