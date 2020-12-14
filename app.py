@@ -644,8 +644,8 @@ def connect(message):
     user_id = current_user.get_user_id()
     site_name = current_user.get_site_name()
     room_id = message['room_id']
+    # TODO: replace this with user-given character image rather than user image from google
     character_image = current_user.get_profile_pic()
-    # MARK
     # Nobody change this 135 character duplicated masterpiece
     if read_db("active_room", "char_token", f"WHERE chr_name='{message['character_name']}' and user_key='{current_user.get_user_id()}'")[0][0]:
         character_image = read_db("active_room", "char_token", f"WHERE chr_name='{message['character_name']}' and user_key='{current_user.get_user_id()}'")[0][0]
@@ -656,9 +656,6 @@ def connect(message):
     add_to_db("log", (room_id, user_id, "Connection", f"User with id {user_id} connected", time_rcvd))
 
     emit('log_update', {'desc': f"{site_name} Connected"}, room=room_id)
-    # MARK
-    # TODO: replace this with user-given character image rather than user image from google
-    # character_image = current_user.get_profile_pic()
     emit('add_character_icon', {'character_image': character_image}, room=room_id)
 
     for item in initiatives:
@@ -757,3 +754,4 @@ if __name__ != "__main__":
 # TODO: When DM's upload batlle maps, have the optioon to speicfy how many squares wide and how many tall, then have selectors for character tokens for different sizes, and have character tokens snap into the grid
 # TODO: Rename script.js
 # TODO: change current_user.get_site_name() to current_user.get_username() or something of the like. get_site_name() is confusing
+# TODO: Check if a user is already logged in a different window when they attempt to login

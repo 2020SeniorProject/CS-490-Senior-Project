@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<script src="/static/js/script.js?n=34"></script>
+<script src="/static/js/script.js?n=35"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js" integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ==" crossorigin="anonymous"></script>
 
 <div class=row style="height:65%;">
@@ -14,14 +14,8 @@
         </table>
     </div>
     <div class="col-8 border border-dark">
-        <!-- MARK -->	
         <div id="battle_map_container" class="text-center droppable ui-droppable" style="width:100%">	
             <img id="battle_map" style="height:100%;width:100%;" draggable="false" src="{{ image_url }}">
-<!-- 
-            <div class="characterIconWrapper draggable ui-draggable ui-draggable-handle" style="position:absolute; z-index:10; top:25px; left:25px; display:inline-block;">
-                <img id="characterIcon" class="charcterIcon resizable ui-resizable" style="position: static; height: 2em; width: 2em; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block;" src="https://colourlex.com/wp-content/uploads/2015/08/Cadmium_red_nr_2_painted_swatch_Lipscher-225-opt.jpg">
-            </div>
-             -->
         </div>
     </div>
     <div class="col-2 border border-dark h-100">

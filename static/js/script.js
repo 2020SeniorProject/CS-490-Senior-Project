@@ -47,6 +47,8 @@ $(document).ready(function() {
   //     http[s]://<domain>:<port>[/<namespace>]
   var socket = io(namespace);
 
+
+
   // Socketio events
   // TODO: Add room_id to all of the functions
   $('form#set_initiative').submit(function(event) {
@@ -225,22 +227,24 @@ $(document).ready(function() {
 
   });
 
-// MARK
   socket.on('add_character_icon', function(msg){
     console.log("ACTIVATED");
-    var character_icon = document.createElement("img");
-    character_icon.setAttribute("src", msg.character_image);
-    character_icon.setAttribute("class", "charcterIcon resizable ui-resizable");
-    character_icon.setAttribute("style", "position: static; height: 2em; width: 2em; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block;");
-    character_icon.setAttribute("id", "characterIcon");
-    // console.log("CharacterIcon");
-    // console.log(character_icon);
-    // console.log("url");
-    // console.log(msg.character_image);
-    var character_icon_wrapper = document.createElement("div");
+    let character_icon_wrapper = document.createElement("div");
     character_icon_wrapper.setAttribute("class", "characterIconWrapper draggable ui-draggable ui-draggable-handle");
     character_icon_wrapper.setAttribute("style", "position:absolute; z-index:10; top:25px; left:25px; display:inline-block;");
-    document.getElementById("battle_map_container").appendChild(character_icon);
+
+    let character_icon = document.createElement("img");
+    character_icon.setAttribute("id", "characterIcon");
+    character_icon.setAttribute("class", "charcterIcon resizable ui-resizable");
+    character_icon.setAttribute("style", "position: static; height: 2em; width: 2em; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block; draggable: true;");
+    character_icon.setAttribute("src", msg.character_image);
+
+    character_icon_wrapper.appendChild(character_icon);
+    document.getElementById("battle_map_container").appendChild(character_icon_wrapper);
+
+    reloadDraggable();
+    reloadDroppable();
+    reloadResizable();
   });
   
   // "Helper" functions
@@ -256,37 +260,6 @@ $(document).ready(function() {
   
     return code;
   }
-
-  //MARK
-  $(".draggable").draggable({
-    containment: 'parent',
-    stack: ".charcterIcon",
-    zIndex: 100
-  });
-  $(".droppable").droppable({
-    accept: ".draggable",
-    drop: function(event, ui) {
-      // TODO: Log character icon postion when dropped
-    }
-  });
-  $(".resizable" ).resizable({
-    autoHide: true,
-    ghost: true,
-    // get size of battle map and then set max size for resizing to that
-    maxHeight: 300,
-    maxWidth: 300,
-    minHeight: 25,
-    minWidth: 25,
-    stop: function( event, ui ) {
-      // TODO: Log chracter icon size when done resizing.
-    }
-  });
-
-  // https://api.jqueryui.com/resizable/
-  // https://api.jqueryui.com/draggable
-  // https://api.jqueryui.com/droppable
-
-
 });
 
 
@@ -298,4 +271,44 @@ function compareSecondColumn(a, b) {
       return (a[1] > b[1]) ? -1 : 1;
   }
   //https://stackoverflow.com/questions/16096872/how-to-sort-2-dimensional-array-by-column-value
+}
+
+function reloadDraggable(){
+  $(".draggable").draggable({
+    containment: 'parent',
+    stack: ".charcterIcon",
+    zIndex: 100
+  });
+
+// https://api.jqueryui.com/draggable
+}
+
+
+function reloadDroppable(){
+  $(".droppable").droppable({
+    accept: ".draggable",
+    drop: function(event, ui) {
+      // TODO: Log character icon postion when dropped
+    }
+  });
+
+// https://api.jqueryui.com/droppable
+}
+
+function reloadResizable(){
+  $(".resizable" ).resizable({
+    autoHide: true,
+    ghost: true,
+    // get size of battle map and then set max size for resizing to that
+    maxHeight: 300,
+    maxWidth: 300,
+    minHeight: 25,
+    minWidth: 25,
+    stop: function( event, ui ) {
+      // TODO: Log chracter icon size when done resizing.
+      console.log("RESIZE");
+    }
+  });
+
+// https://api.jqueryui.com/resizable/
 }
