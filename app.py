@@ -646,6 +646,7 @@ def connect(message):
     room_id = message['room_id']
     character_image = current_user.get_profile_pic()
     # MARK
+    # Nobody change this 135 character duplicated masterpiece
     if read_db("active_room", "char_token", f"WHERE chr_name='{message['character_name']}' and user_key='{current_user.get_user_id()}'")[0][0]:
         character_image = read_db("active_room", "char_token", f"WHERE chr_name='{message['character_name']}' and user_key='{current_user.get_user_id()}'")[0][0]
     initiatives = read_db("active_room", "chr_name, init_val, user_key", f"WHERE room_id = '{room_id}'")
