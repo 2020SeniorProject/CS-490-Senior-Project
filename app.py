@@ -645,7 +645,10 @@ def connect(message):
     site_name = current_user.get_site_name()
     room_id = message['room_id']
     # MARK
-    character_image = read_db("active_room", "char_token", f"WHERE chr_name='{message['character_name']}' and user_key='{current_user.get_user_id()}'")[0][0]
+    if read_db("active_room", "char_token", f"WHERE chr_name='{message['character_name']}' and user_key='{current_user.get_user_id()}'")[0][0]:
+        character_image = read_db("active_room", "char_token", f"WHERE chr_name='{message['character_name']}' and user_key='{current_user.get_user_id()}'")[0][0]
+    else:
+        character_image = current_user.get_profile_pic()
     initiatives = read_db("active_room", "chr_name, init_val, user_key", f"WHERE room_id = '{room_id}'")
     chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{room_id}'")
     app.logger.debug(f"Battle update: User {current_user.get_site_name()} has connected to room {room_id}")
@@ -656,7 +659,7 @@ def connect(message):
     # MARK
     # TODO: replace this with user-given character image rather than user image from google
     # character_image = current_user.get_profile_pic()
-    # emit('add_character_icon', {'character_image': character_image}, room=room_id)
+    emit('add_character_icon', {'character_image': character_image}, room=room_id)
 
     for item in initiatives:
         site_name = read_db("users", "site_name", f"WHERE user_id = '{item[2]}'")[0][0]
