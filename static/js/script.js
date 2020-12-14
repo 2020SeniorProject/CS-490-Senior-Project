@@ -83,17 +83,18 @@ $(document).ready(function() {
   $('form#end_turn').submit(function(event) {
     var next_index = null;
     if (turn_index + 1 == initiatives.length) {
-      next_index = 0
+      next_index = 0;
     }
     else {
-      next_index = turn_index + 1
+      next_index = turn_index + 1;
     }
     socket.emit('end_turn', {desc: `${initiatives[turn_index][0]}'s Turn Ended`, old_name: initiatives[turn_index][0], next_name: initiatives[next_index][0], old_site_name: initiatives[turn_index][2], next_site_name: initiatives[next_index][2], room_id: room_id});
     return false;
   });
 
   socket.on('connect', function() {
-    socket.emit('on_join', {room_id: room_id})
+    socket.emit('on_join', {room_id: room_id});
+    // socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), site_name: site_name, room_id: room_id});
   });
 
   socket.on('joined', function(msg) {
@@ -166,7 +167,7 @@ $(document).ready(function() {
     $('#end_turn_button').prop('disabled', true);
     $('#set_initiative_button').prop('disabled', false);
     $('#start_battle_button').prop('disabled', false);
-    $('#end_battle_button').prop('disabled', true)
+    $('#end_battle_button').prop('disabled', true);
   });
 
   socket.on('room_ended', function(msg) {
@@ -179,10 +180,10 @@ $(document).ready(function() {
     // I think its something to do with the way that the front end sorts the initiatives list
     var next_index = null;
     if (turn_index + 1 == initiatives.length) {
-      next_index = 0
+      next_index = 0;
     }
     else {
-      next_index = turn_index + 1
+      next_index = turn_index + 1;
     }
     var old_id = initiatives[turn_index][0].split(" ").join("_");
     var next_id = initiatives[next_index][0].split(" ").join("_");
@@ -229,16 +230,17 @@ $(document).ready(function() {
     console.log("ACTIVATED");
     var character_icon = document.createElement("img");
     character_icon.setAttribute("src", msg.character_image);
-    // character_icon.setAttribute("id", "characterIcon1");
-    character_icon.setAttribute("class", "draggable ui-draggable ui-draggable-handle");
-    character_icon.setAttribute("style", "position:absolute;height:10%;width:100px;z-index:10;top:25px;left: 25px;");
-    character_icon.setAttribute("draggable", "true");
-    // character_icon.setAttribute("ondragstart", "onDragStart(event);");
-    console.log("CharacterIcon");
-    console.log(character_icon);
-    console.log("url");
-    console.log(msg.character_image);
-    document.getElementById("battle_map_container").appendChild(character_icon)
+    character_icon.setAttribute("class", "charcterIcon resizable ui-resizable");
+    character_icon.setAttribute("style", "position: static; height: 2em; width: 2em; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block;");
+    character_icon.setAttribute("id", "characterIcon");
+    // console.log("CharacterIcon");
+    // console.log(character_icon);
+    // console.log("url");
+    // console.log(msg.character_image);
+    var character_icon_wrapper = document.createElement("div");
+    character_icon_wrapper.setAttribute("class", "characterIconWrapper draggable ui-draggable ui-draggable-handle");
+    character_icon_wrapper.setAttribute("style", "position:absolute; z-index:10; top:25px; left:25px; display:inline-block;");
+    document.getElementById("battle_map_container").appendChild(character_icon);
   });
   
   // "Helper" functions
@@ -256,15 +258,34 @@ $(document).ready(function() {
   }
 
   //MARK
-  $(".draggable").draggable();
-  $(".droppable").droppable({
-      drop: function(event, ui) {
-          console.log("Droppable ID");
-          console.log(this.id);
-          console.log(this);
-          // $(this).addClass("ui-state-highlight").find("p").html("Dropped!");
-      }
+  $(".draggable").draggable({
+    containment: 'parent',
+    stack: ".charcterIcon",
+    zIndex: 100
   });
+  $(".droppable").droppable({
+    accept: ".draggable",
+    drop: function(event, ui) {
+      // TODO: Log character icon postion when dropped
+    }
+  });
+  $(".resizable" ).resizable({
+    autoHide: true,
+    ghost: true,
+    // get size of battle map and then set max size for resizing to that
+    maxHeight: 300,
+    maxWidth: 300,
+    minHeight: 25,
+    minWidth: 25,
+    stop: function( event, ui ) {
+      // TODO: Log chracter icon size when done resizing.
+    }
+  });
+
+  // https://api.jqueryui.com/resizable/
+  // https://api.jqueryui.com/draggable
+  // https://api.jqueryui.com/droppable
+
 
 });
 
@@ -278,38 +299,3 @@ function compareSecondColumn(a, b) {
   }
   //https://stackoverflow.com/questions/16096872/how-to-sort-2-dimensional-array-by-column-value
 }
-
-// MARK
-// function onDragStart(event) {
-//   console.log("Drag start EVENT INFO");
-//   console.log(event.target);
-//   console.log(event.target.id);
-//   // event.currentTarget.style.backgroundColor = 'yellow';
-// }
-
-// function onDragOver(event) {
-//   event.preventDefault();
-// }
-
-// function onDrop(event) {
-//   const id = "characterIcon";
-//   console.log("Drop EVENT INFO");
-//   console.log(event);
-//   console.log(event.target);
-//   console.log(event.target.id);
-//   console.log(this.id);
-//   const draggableElement = document.getElementById(id);
-//   const dropzone = event.target;
-//   const parent_id = "battle_map_container";
-//   const map = document.getElementById(parent_id);
-//   event.dataTransfer.clearData();
-//   var rect = map.getBoundingClientRect();
-//   console.log("Bounds:")
-//   console.log(rect.top, rect.left);
-//   var x = event.clientX;
-//   var y = event.clientY;
-//   var coor = "X coords: " + x + ", Y coords: " + y;
-//   console.log(coor)
-//   draggableElement.style.top = (y - rect.top) + "px";
-//   draggableElement.style.left = (x - rect.left) + "px";
-// } 
