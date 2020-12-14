@@ -25,7 +25,7 @@ class CharacterValidation(FlaskForm):
     wisdom = IntegerField('wis', [DataRequired(message="Please input int"), NumberRange(min=1, max=30, message="Outside Possible Range")])
     charisma = IntegerField('chr', [DataRequired(message="Please input charisma"), NumberRange(min=1, max=30, message="Outside Possible Range")])
     hitpoints = IntegerField('hp', [DataRequired(message="Please input hp")])
-    char_token = StringField('token', [Optional, Regexp("^https?://(?:[a-z\-]+\.)+[a-z]{2,6}(?:/[^/#?]+)+\.(?:jpg|gif|png|jpeg|webp)$")])
+    char_token = StringField('token', [Optional(), Regexp("^https?://(?:[a-z\-]+\.)+[a-z]{2,6}(?:/[^/#?]+)+\.(?:jpg|gif|png|jpeg|webp)$")])
 
 
 class RoomValidation(FlaskForm):
