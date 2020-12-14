@@ -603,6 +603,7 @@ def end_session(message):
     delete_from_db("active_room", f"WHERE room_id = '{room_id}'")
     delete_from_db("chat", f"WHERE room_id = '{room_id}'")
     update_db("room_object", "active_room_id = 'null'", f"WHERE active_room_id = '{room_id}'")
+    close_room(room_id)
 
     app.logger.debug(f"The room {room_id} owned by {current_user.get_site_name()} has closed")
     
