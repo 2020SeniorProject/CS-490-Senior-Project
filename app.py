@@ -756,3 +756,4 @@ if __name__ != "__main__":
 # TODO: Prevent chat spam!
 # TODO: When DM's upload batlle maps, have the optioon to speicfy how many squares wide and how many tall, then have selectors for character tokens for different sizes, and have character tokens snap into the grid
 # TODO: Rename script.js
+# TODO: change current_user.get_site_name() to current_user.get_username() or something of the like. get_site_name() is confusing
