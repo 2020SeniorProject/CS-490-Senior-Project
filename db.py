@@ -51,7 +51,7 @@ def create_connection(db_file):
 
 def create_dbs():
     with create_connection("battle_sesh.db") as conn:
-        cur = conn.cursor()              
+        cur = conn.cursor()
         cur.execute(f"""CREATE TABLE IF NOT EXISTS log 
                         (row_id INT PRIMARY KEY, room_id TEXT,user_key TEXT, title TEXT, log LONGTEXT, timestamp DATETIME); """)
         
@@ -63,7 +63,7 @@ def create_dbs():
 
         # TODO: Make room_name and user_key primary keys 
         cur.execute(f"""CREATE TABLE IF NOT EXISTS room_object
-                        (row_id INTEGER PRIMARY KEY, user_key TEXT, room_name TEXT, active_room_id TEXT, map_status TEXT, map_url TEXT, dm_notes TEXT)""")
+                        (row_id INTEGER PRIMARY KEY, user_key TEXT, room_name TEXT, active_room_id TEXT, map_status TEXT, map_url TEXT, dm_notes TEXT);""")
         
         cur.execute(f"""CREATE TABLE IF NOT EXISTS users 
                         (user_id TEXT PRIMARY KEY, user_name TEXT NOT NULL, email TEXT NOT NULL, profile_pic TEXT, site_name Text);""") 

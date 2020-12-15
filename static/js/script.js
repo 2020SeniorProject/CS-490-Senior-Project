@@ -1,7 +1,4 @@
-// var initiatives = [];
-// var turn_index = null;
-// var site_name = $('#site_name').text();
-// var room_id = $('#room_id').text();
+/*jshint esversion: 6 */
 
 
 $(document).ready(function() {
@@ -75,7 +72,7 @@ $(document).ready(function() {
   });
 
   $('form#close_room').submit(function(event) {
-    if (window.confirm("This will clear all initiative and chat data for this room and kick players. Map and character token locations will be saved. Proceed?") ){
+    if (window.confirm("This will clear all initiative and chat data for this room and kick players. Map and character icon locations will be saved. Proceed?") ){
       socket.emit('end_room', {desc: "Close Room", room_id: room_id});
       return false;
     }
@@ -228,23 +225,36 @@ $(document).ready(function() {
   });
 
   socket.on('add_character_icon', function(msg){
-    console.log("ACTIVATED");
     let character_icon_wrapper = document.createElement("div");
+    character_icon_wrapper.setAttribute("id", msg.user_id);
     character_icon_wrapper.setAttribute("class", "characterIconWrapper draggable ui-draggable ui-draggable-handle");
     character_icon_wrapper.setAttribute("style", "position:absolute; z-index:10; top:25px; left:25px; display:inline-block;");
 
     let character_icon = document.createElement("img");
     character_icon.setAttribute("id", "characterIcon");
-    character_icon.setAttribute("class", "charcterIcon resizable ui-resizable");
+    character_icon.setAttribute("class", "characterIcon resizable ui-resizable");
     character_icon.setAttribute("style", "position: static; height: 2em; width: 2em; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block; draggable: true;");
     character_icon.setAttribute("src", msg.character_image);
 
     character_icon_wrapper.appendChild(character_icon);
     document.getElementById("battle_map_container").appendChild(character_icon_wrapper);
 
-    reloadDraggable();
-    reloadDroppable();
-    reloadResizable();
+    reloadDraggable(socket, msg.user_id, room_id);
+    reloadDroppable(socket, msg.user_id, room_id);
+    reloadResizable(socket, msg.user_id, room_id);
+    socket.emit('character_icon_update_database', {desc: "Initialize", user_id: msg.user_id, height: "2em", width: "2em", top: "25px", left: "25px", room_id: room_id});
+  });
+
+  socket.on('character_icon_update', function(msg) {
+    character_id = "#";
+    for (let i = 0; i < msg.user_id.length; i++) {
+      character_id += "\\3";
+      character_id += msg.user_id[i];
+    }
+    document.querySelector(character_id).querySelector('#characterIcon').width = msg.width;
+    document.querySelector(character_id).querySelector('#characterIcon').height = msg.height;
+    document.querySelector(character_id).querySelector('#characterIcon').parentElement.width = msg.width;
+    document.querySelector(character_id).querySelector('#characterIcon').parentElement.height = msg.height;
   });
   
   // "Helper" functions
@@ -273,10 +283,10 @@ function compareSecondColumn(a, b) {
   //https://stackoverflow.com/questions/16096872/how-to-sort-2-dimensional-array-by-column-value
 }
 
-function reloadDraggable(){
+function reloadDraggable(socket){
   $(".draggable").draggable({
     containment: 'parent',
-    stack: ".charcterIcon",
+    stack: ".characterIcon",
     zIndex: 100
   });
 
@@ -284,18 +294,21 @@ function reloadDraggable(){
 }
 
 
-function reloadDroppable(){
+function reloadDroppable(socket, user_id, room_id){
   $(".droppable").droppable({
     accept: ".draggable",
     drop: function(event, ui) {
       // TODO: Log character icon postion when dropped
+      new_top = ui.position.top;
+      new_left = ui.position.left;
+      socket.emit('character_icon_update_database', {desc: "ChangeLocation", user_id: user_id, new_top: new_top, new_left: new_left, room_id: room_id});
     }
   });
 
 // https://api.jqueryui.com/droppable
 }
 
-function reloadResizable(){
+function reloadResizable(socket, user_id, room_id) {
   $(".resizable" ).resizable({
     autoHide: true,
     ghost: true,
@@ -305,8 +318,10 @@ function reloadResizable(){
     minHeight: 25,
     minWidth: 25,
     stop: function( event, ui ) {
-      // TODO: Log chracter icon size when done resizing.
-      console.log("RESIZE");
+      // TODO: Log chracter icon size when done resizing in json positions file
+      new_width = ui.size.width;
+      new_height = ui.size.height;
+      socket.emit('character_icon_update_database', {desc: "Resize", user_id: user_id, new_width: new_width, new_height: new_height, room_id: room_id});
     }
   });
 

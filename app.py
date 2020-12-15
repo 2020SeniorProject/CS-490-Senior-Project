@@ -142,7 +142,7 @@ def process_character_form(form, user_id, usage):
 #TODO: Grab token locations
 def process_room_form(form, user_id):
     if form.validate():
-        values = (user_id, form.room_name.data, "null", "Token Locations", form.map_url.data, form.dm_notes.data)
+        values = (user_id, form.room_name.data, "null", '{}', form.map_url.data, form.dm_notes.data)
         app.logger.debug(f"User {current_user.get_site_name()} has created the room named {form.room_name.data}")
         add_to_db("room_object", values)
         return redirect(url_for("home"))
@@ -637,6 +637,7 @@ def on_join(message):
     emit('joined', {'desc': 'Joined room'})
 
 
+# TODO: Investigate join_actions running twice - once after log message "X has entered room" and once after "X has connected to room"
 @socketio.on('join_actions', namespace='/combat')
 def connect(message):
     # Sends upon a new connection
@@ -651,12 +652,13 @@ def connect(message):
         character_image = read_db("active_room", "char_token", f"WHERE chr_name='{message['character_name']}' and user_key='{current_user.get_user_id()}'")[0][0]
     initiatives = read_db("active_room", "chr_name, init_val, user_key", f"WHERE room_id = '{room_id}'")
     chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{room_id}'")
+    character_icon_positions = read_db("room_object", "map_status, user_key", f"WHERE active_room_id = '{room_id}'")
     app.logger.debug(f"Battle update: User {current_user.get_site_name()} has connected to room {room_id}")
 
     add_to_db("log", (room_id, user_id, "Connection", f"User with id {user_id} connected", time_rcvd))
 
     emit('log_update', {'desc': f"{site_name} Connected"}, room=room_id)
-    emit('add_character_icon', {'character_image': character_image}, room=room_id)
+    emit('add_character_icon', {'character_image': character_image, 'user_id': user_id}, room=room_id)
 
     for item in initiatives:
         site_name = read_db("users", "site_name", f"WHERE user_id = '{item[2]}'")[0][0]
@@ -667,6 +669,9 @@ def connect(message):
         emit('chat_update', {'chat': item[1], 'character_name': item[0]})
     emit('log_update', {'desc': "Chat History Received"})
 
+    # for item in character_icon_positions:
+    #     emit('character_icon_update', {'user_id':, 'height': , 'width': })
+
     if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'"):
         emit('log_update', {'desc': "Combat has already started; grabbing the latest information"})
 
@@ -674,6 +679,41 @@ def connect(message):
         turn_site_name = read_db("users", "site_name", f"WHERE user_id = '{character[0]}'")[0][0]
 
         emit('combat_connect', {'desc': 'Rejoined Combat', 'first_turn_name': character[1], 'site_name': turn_site_name})
+
+
+@socketio.on('character_icon_update_database', namespace='/combat')
+def character_icon_update_database(message):
+    user_id = current_user.get_user_id()
+    site_name = current_user.get_site_name()
+    room_id = message['room_id']
+    if message['desc'] == "Resize":
+        characters_dict = read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")
+        characters_dict = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+        json_character_to_add = { user_id: {"height": message['new_height'], "width": message['new_width'], "top": characters_dict[user_id]['top'], "left": characters_dict[user_id]['left']}}
+        characters_dict[user_id] = json_character_to_add[user_id]
+        characters_json = json.dumps(characters_dict)
+        update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
+    elif message['desc'] == "ChangeLocation":
+        characters_dict = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+        json_character_to_add = { user_id: {"height": characters_dict[user_id]['height'], "width": characters_dict[user_id]['width'], "top": message['new_top'], "left": message['new_left']}}
+        characters_dict[user_id] = json_character_to_add[user_id]
+        characters_json = json.dumps(characters_dict)
+        update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
+    elif message['desc'] == "Initialize":
+        characters_dict = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+        json_character_to_add = { user_id: {"height": message['height'], "width": message['width'], "top": message['top'], "left": message['left']}}
+        characters_dict[user_id] = json_character_to_add[user_id]
+        characters_json = json.dumps(characters_dict)
+        update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
+
+
+    # Add character icon size to database
+    
+    # log to debugger the resize
+    updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])[user_id]
+    emit('character_icon_update', {'user_id': user_id, 'height': updated_character_icon_status['height'], 'width': updated_character_icon_status['width'], 'top':updated_character_icon_status['top'], 'left':updated_character_icon_status['left']})
+
+
 
 ### ERROR HANDLING 
 
