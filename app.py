@@ -658,7 +658,7 @@ def connect(message):
     add_to_db("log", (room_id, user_id, "Connection", f"User with id {user_id} connected", time_rcvd))
 
     emit('log_update', {'desc': f"{site_name} Connected"}, room=room_id)
-    emit('add_character_icon', {'character_image': character_image, 'user_id': user_id}, room=room_id)
+    emit('add_character_icon', {'character_name': message['character_name'], 'character_image': character_image, 'user_id': user_id}, room=room_id)
 
     for item in initiatives:
         site_name = read_db("users", "site_name", f"WHERE user_id = '{item[2]}'")[0][0]
@@ -693,21 +693,22 @@ def character_icon_update_database(message):
         characters_dict[user_id] = json_character_to_add[user_id]
         characters_json = json.dumps(characters_dict)
         update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
+        app.logger.debug(f"User {site_name} has resized their character")
     elif message['desc'] == "ChangeLocation":
         characters_dict = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
         json_character_to_add = { user_id: {"height": characters_dict[user_id]['height'], "width": characters_dict[user_id]['width'], "top": message['new_top'], "left": message['new_left']}}
         characters_dict[user_id] = json_character_to_add[user_id]
         characters_json = json.dumps(characters_dict)
         update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
+        app.logger.debug(f"User {site_name} has moved their character to X:{message['new_left']}, Y:{message['new_top']}")
+        emit('log_update', {'desc': f"{message['character_name']} moved"})
     elif message['desc'] == "Initialize":
         characters_dict = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
         json_character_to_add = { user_id: {"height": message['height'], "width": message['width'], "top": message['top'], "left": message['left']}}
         characters_dict[user_id] = json_character_to_add[user_id]
         characters_json = json.dumps(characters_dict)
         update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
-
-
-    # Add character icon size to database
+        app.logger.debug(f"User {site_name} has added their character token to the battle map")
     
     # log to debugger the resize
     updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])[user_id]
@@ -781,7 +782,7 @@ if __name__ != "__main__":
 # https://learn.jquery.com/using-jquery-core/document-ready/
 # https://www.w3schools.com/cssref/css_selectors.asp
 
-# TODO: allow characters to sleect who goes first when initiatives tied
+# TODO: allow characters to select who goes first when initiatives tied
 # TODO: Hide DM tools from the user view
 # TODO: When player joins a room, automatically add their character to the battle map
 # TODO: Button to hide or show character icon on map
@@ -790,7 +791,10 @@ if __name__ != "__main__":
 # TODO: allow characters to resize character icons
 # TODO: Integrate character movement with turn taking
 # TODO: Prevent chat spam!
-# TODO: When DM's upload batlle maps, have the optioon to speicfy how many squares wide and how many tall, then have selectors for character tokens for different sizes, and have character tokens snap into the grid
+# TODO: When DMs upload battle maps, have the option to specify how many squares wide and how many tall, then have selectors for character tokens for different sizes, and have character tokens snap into the grid
 # TODO: Rename script.js
 # TODO: change current_user.get_site_name() to current_user.get_username() or something of the like. get_site_name() is confusing
 # TODO: Check if a user is already logged in a different window when they attempt to login
+
+# TODO: have the page read from the database when it loads to find and place character tokens
+# TODO: rename variable 'site_name' to something like 'user_site_name' because site_name is confusing
