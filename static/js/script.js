@@ -239,10 +239,10 @@ $(document).ready(function() {
     character_icon_wrapper.appendChild(character_icon);
     document.getElementById("battle_map_container").appendChild(character_icon_wrapper);
 
-    reloadDraggable(socket, msg.user_id, room_id);
-    reloadDroppable(socket, msg.user_id, room_id);
-    reloadResizable(socket, msg.user_id, room_id);
-    socket.emit('character_icon_update_database', {desc: "Initialize", user_id: msg.user_id, height: "2em", width: "2em", top: "25px", left: "25px", room_id: room_id});
+    reloadDraggable(socket, msg.user_id, room_id, msg.character_name);
+    reloadDroppable(socket, msg.user_id, room_id, msg.character_name);
+    reloadResizable(socket, msg.user_id, room_id, msg.character_name);
+    socket.emit('character_icon_update_database', {desc: "Initialize", user_id: msg.user_id, character_name: msg.character_name, height: "2em", width: "2em", top: "25px", left: "25px", room_id: room_id});
   });
 
   socket.on('character_icon_update', function(msg) {
@@ -294,21 +294,21 @@ function reloadDraggable(socket){
 }
 
 
-function reloadDroppable(socket, user_id, room_id){
+function reloadDroppable(socket, user_id, room_id, character_name){
   $(".droppable").droppable({
     accept: ".draggable",
     drop: function(event, ui) {
       // TODO: Log character icon postion when dropped
       new_top = ui.position.top;
       new_left = ui.position.left;
-      socket.emit('character_icon_update_database', {desc: "ChangeLocation", user_id: user_id, new_top: new_top, new_left: new_left, room_id: room_id});
+      socket.emit('character_icon_update_database', {desc: "ChangeLocation", user_id: user_id, character_name: character_name, new_top: new_top, new_left: new_left, room_id: room_id});
     }
   });
 
 // https://api.jqueryui.com/droppable
 }
 
-function reloadResizable(socket, user_id, room_id) {
+function reloadResizable(socket, user_id, room_id, character_name) {
   $(".resizable" ).resizable({
     autoHide: true,
     ghost: true,
@@ -321,7 +321,7 @@ function reloadResizable(socket, user_id, room_id) {
       // TODO: Log chracter icon size when done resizing in json positions file
       new_width = ui.size.width;
       new_height = ui.size.height;
-      socket.emit('character_icon_update_database', {desc: "Resize", user_id: user_id, new_width: new_width, new_height: new_height, room_id: room_id});
+      socket.emit('character_icon_update_database', {desc: "Resize", user_id: user_id, character_name: character_name, new_width: new_width, new_height: new_height, room_id: room_id});
     }
   });
 
