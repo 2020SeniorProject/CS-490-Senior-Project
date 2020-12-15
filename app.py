@@ -8,7 +8,7 @@ import string
 
 # Third-party libraries
 from flask import Flask, render_template, session, request, redirect, url_for, jsonify
-from flask_socketio import SocketIO, emit, join_room
+from flask_socketio import SocketIO, emit, join_room, close_room
 from flask_login import LoginManager, current_user, login_required, login_user, logout_user
 from oauthlib.oauth2 import WebApplicationClient
 from requests import get, post
@@ -603,11 +603,11 @@ def end_session(message):
     delete_from_db("active_room", f"WHERE room_id = '{room_id}'")
     delete_from_db("chat", f"WHERE room_id = '{room_id}'")
     update_db("room_object", "active_room_id = 'null'", f"WHERE active_room_id = '{room_id}'")
-    close_room(room_id)
 
     app.logger.debug(f"The room {room_id} owned by {current_user.get_site_name()} has closed")
     
     emit("room_ended", {'desc': message['desc']}, room=room_id)
+    close_room(room_id)
 
 
 # TODO: Integrate character movement with turn taking
@@ -706,7 +706,6 @@ def process_error():
 
 
 ### APP RUNNING
-
 if __name__ == "__main__":
     app.run(ssl_context="adhoc", port=33507, debug=True)
 
