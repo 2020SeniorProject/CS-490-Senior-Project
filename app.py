@@ -673,8 +673,9 @@ def connect(message):
     # TODO: replace this with user-given character image rather than user image from google
     character_image = current_user.get_profile_pic()
     # Nobody change this 135 character duplicated masterpiece
-    if read_db("active_room", "char_token", f"WHERE chr_name='{message['character_name']}' and user_key='{current_user.get_user_id()}'")[0][0]:
-        character_image = read_db("active_room", "char_token", f"WHERE chr_name='{message['character_name']}' and user_key='{current_user.get_user_id()}'")[0][0]
+    if message['character_name']:
+        if read_db("active_room", "char_token", f"WHERE chr_name='{message['character_name']}' and user_key='{current_user.get_user_id()}'")[0][0]:
+            character_image = read_db("active_room", "char_token", f"WHERE chr_name='{message['character_name']}' and user_key='{current_user.get_user_id()}'")[0][0]
     initiatives = read_db("active_room", "chr_name, init_val, user_key", f"WHERE room_id = '{room_id}'")
     chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{room_id}'")
     character_icon_positions = read_db("room_object", "map_status, user_key", f"WHERE active_room_id = '{room_id}'")
