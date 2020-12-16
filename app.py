@@ -90,7 +90,7 @@ def readify_form_errors(form):
 
     return errs_lis
 
-def process_character_form(form, user_id, usage):
+def process_character_form(form, user_id, usage, route="/characters/create"):
     if form.validate():
         values = (user_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data, form.char_token.data)
     
@@ -125,7 +125,7 @@ def process_character_form(form, user_id, usage):
         elif usage == "play":
             add_to_db("chars", values)
             app.logger.debug(f"User {current_user.get_site_name()} successfully created their first character with name {form.name.data}. Redirecting them to the Choose Characters Page")
-            return redirect(url_for("choose_character"))
+            return redirect(route)
 
     err_lis = readify_form_errors(form)
 
@@ -178,6 +178,7 @@ def process_room_form(form, user_id):
 @login_required
 def view_characters():
     user_id = current_user.get_user_id()
+    print(url_for("enter_room", room_id="ABCDEFGH"))
 
     if request.method == "POST":
         app.logger.debug(f"Attempting to delete character owned by {current_user.get_site_name()} named {request.form['character_name']}.")
@@ -195,13 +196,19 @@ def view_characters():
 def character_creation():
     form = CharacterValidation()
     user_id = current_user.get_user_id()
-    #TODO: Hvae play path forward to the choose screen
+    route = request.args.get('route')
     if request.method == "POST":
         app.logger.debug(f"User {current_user.get_site_name()} is attempting to register a character with name {form.name.data}.")
+        if route:
+            return process_character_form(form, user_id, "play", route)
+            
         return process_character_form(form, user_id, "create")
 
     app.logger.debug(f"User {current_user.get_site_name()} has gone to add a character.")
-    return render_template("add_character.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), action="/characters/create")
+    action = "/characters/create"
+    if route:
+        action += f"?route={route}"
+    return render_template("add_character.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), action=action)
 
 
 @app.route("/characters/edit/<name>", methods=["GET", "POST"])
@@ -386,7 +393,6 @@ def enter_room(room_id):
         if request.method == "POST":
             app.logger.debug(f"User {current_user.get_site_name()} is attempting to create their first character.")
             return process_character_form(form, user_id, "play")
-        # TODO: Instead of rendering this template at the route "/play/choose", redirect to characters
         return redirect(url_for("character_creation", route=f"/play/{room_id}/choose"))
 
 @app.route("/play/<room_id>", methods=["GET", "POST"])
