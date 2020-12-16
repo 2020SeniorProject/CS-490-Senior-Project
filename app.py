@@ -195,6 +195,7 @@ def view_characters():
 def character_creation():
     form = CharacterValidation()
     user_id = current_user.get_user_id()
+    #TODO: Hvae play path forward to the choose screen
     if request.method == "POST":
         app.logger.debug(f"User {current_user.get_site_name()} is attempting to register a character with name {form.name.data}.")
         return process_character_form(form, user_id, "create")
@@ -386,7 +387,7 @@ def enter_room(room_id):
             app.logger.debug(f"User {current_user.get_site_name()} is attempting to create their first character.")
             return process_character_form(form, user_id, "play")
         # TODO: Instead of rendering this template at the route "/play/choose", redirect to characters
-        return render_template("add_character.html", message_text="You need a character to enter a game!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), action=f"/play/{room_id}/choose")
+        return redirect(url_for("character_creation", route=f"/play/{room_id}/choose"))
 
 @app.route("/play/<room_id>", methods=["GET", "POST"])
 @login_required
