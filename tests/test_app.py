@@ -54,6 +54,7 @@ def test_empty_db(client_1):
     rv = client_1.get('/')
     assert b'Welcome to' in rv.data
 
+# TODO: Figure out how tests can log in through google API
 def login(client_1)
 
     rv = client_1.get('/login',  ,follow_redirects=True)

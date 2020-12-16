@@ -14,6 +14,7 @@ from oauthlib.oauth2 import WebApplicationClient
 from requests import get, post
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from werkzeug.exceptions import HTTPException, BadRequest
+from apscheduler.schedulers.background import BackgroundScheduler
 
 # Internal imports
 from classes import User, CharacterValidation, RoomValidation, SitenameValidation
@@ -57,8 +58,9 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 # CSRF authenticator to prevent CSRF attacks
 csrf = CSRFProtect(app)
 
-# below is a link to a walkthrough on how to handle unit testing with socketio and login with flask
-# https://blog.miguelgrinberg.com/post/unit-testing-applications-that-use-flask-login-and-flask-socketio
+# Schedules daily cleaning of DBs (commented out until production)
+# scheduler = BackgroundScheduler()
+# scheduler.start()
 
 ### FUNCTIONS
 
@@ -152,7 +154,22 @@ def process_room_form(form, user_id):
     app.logger.debug(f"The room {current_user.get_site_name()} was attempting to create had some errors. Sending back to creation page to fix errors.")
 
     return render_template("add_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name() )
-    
+
+# COMMENTED UNTIL PRODUCTION 
+# #Clears Chat, Log, Active rooms 
+# def clean_dbs():
+#     current_time = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
+#     benchmarktime = current_time - datetime.timedelta(hours=24)
+#     open_rooms_past_due = read_db("log", "DISTINCT room_id", f"WHERE timestamp > {benchmarktime} ORDER BY timestamp")
+#     for room_id in open_rooms_timestamps:
+#         delete_from_db("active_room", f"WHERE room_id = '{room_id[0]}'")
+#         delete_from_db("chat", f"WHERE room_id = '{room_id[0]}'")
+#         delete_from_db("log", f"WHERE room_id = '{room_id[0]}'")
+#         update_db("room_object", "active_room_id = 'null'", f"WHERE active_room_id = '{room_id[0]}'")
+
+# scheduler.add_job(func=clean_dbs, trigger="cron", hour=3, minute=59)
+
+
 
 ### ROUTING DIRECTIVES 
 
@@ -602,6 +619,7 @@ def end_session(message):
     room_id = message['room_id']
     delete_from_db("active_room", f"WHERE room_id = '{room_id}'")
     delete_from_db("chat", f"WHERE room_id = '{room_id}'")
+    delete_from_db("log", f"WHERE room_id = '{room_id}'")
     update_db("room_object", "active_room_id = 'null'", f"WHERE active_room_id = '{room_id}'")
 
     app.logger.debug(f"The room {room_id} owned by {current_user.get_site_name()} has closed")
