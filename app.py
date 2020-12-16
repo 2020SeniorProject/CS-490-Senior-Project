@@ -90,7 +90,7 @@ def readify_form_errors(form):
 
 def process_character_form(form, user_id, usage):
     if form.validate():
-        values = (user_id, "null", form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data, form.char_token.data)
+        values = (user_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data, form.char_token.data)
     
         if usage == "create":
             if read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{values[2]}'") != []:
@@ -712,7 +712,7 @@ def character_icon_update_database(message):
     
     # log to debugger the resize
     updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])[user_id]
-    emit('character_icon_update', {'user_id': user_id, 'height': updated_character_icon_status['height'], 'width': updated_character_icon_status['width'], 'top':updated_character_icon_status['top'], 'left':updated_character_icon_status['left']})
+    emit('character_icon_update', {'user_id': user_id, 'height': updated_character_icon_status['height'], 'width': updated_character_icon_status['width'], 'top':updated_character_icon_status['top'], 'left':updated_character_icon_status['left']}, room=room_id)
 
 
 

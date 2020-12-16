@@ -84,8 +84,8 @@ def add_to_db(db_name, values):
         elif db_name == "room_object":
             cur.execute("INSERT INTO room_object(user_key, room_name, active_room_id, map_status, map_url, dm_notes) VALUES(?,?,?,?,?,?)", values)
         elif db_name == "chars":
-            cur.execute("""INSERT INTO characters(user_key, room_id, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints, char_token) 
-                           VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
+            cur.execute("""INSERT INTO characters(user_key, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints, char_token) 
+                           VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
         elif db_name == "users":
             cur.execute("INSERT INTO users(user_id, user_name, email, profile_pic, site_name) VALUES (?, ?, ?, ?, ?)", values)
         conn.commit()
