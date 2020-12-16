@@ -32,7 +32,7 @@ def create_connection(db_file):
 # secret room ID # - incremental in the table
 # User_key - ‘owner’ of the room, needed to lock out others from editing the room
 # Name of room - what the owner of the room calls it (for visual purposes)
-# Active room id - null if room not open, changes when room is ‘opened’
+# Active room id - null if room not open, changes when room is ‘opened’ !!! THIS IS EQUIVALENT TO 'ROOM_ID IN chat, active_room, log, and characters !!!
 # Map_status - stringified JSON representation of NPCs and locations on map
 # Map URL - URL to the map (for the “background”)
 
@@ -69,7 +69,7 @@ def create_dbs():
                         (user_id TEXT PRIMARY KEY, user_name TEXT NOT NULL, email TEXT NOT NULL, profile_pic TEXT, site_name Text);""") 
 
         cur.execute(f""" CREATE TABLE IF NOT EXISTS characters
-                            (user_key TEXT, room_id TEXT, chr_name TEXT, class TEXT, subclass TEXT, race TEXT, subrace TEXT, speed INT, level INT, strength INT, dexterity INT, constitution INT, intelligence INT, wisdom INT, charisma INT, hitpoints INT, char_token TEXT, PRIMARY KEY(user_key, chr_name));""")
+                            (user_key TEXT, chr_name TEXT, class TEXT, subclass TEXT, race TEXT, subrace TEXT, speed INT, level INT, strength INT, dexterity INT, constitution INT, intelligence INT, wisdom INT, charisma INT, hitpoints INT, char_token TEXT, PRIMARY KEY(user_key, chr_name));""")
         
 
 def add_to_db(db_name, values):
