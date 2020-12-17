@@ -225,8 +225,8 @@ def edit_character(name):
 
     if character:
         character = character[0]
-        app.logger.debug(f"User {current_user.get_site_name()} has gone to edit a character with name {character[2]}.")
-        return render_template("edit_character.html", name=character[2], hp=character[15], old_race=character[5], old_subrace=character[6], old_class=character[3], old_subclass=character[4], speed=character[7], lvl=character[8], str=character[9], dex=character[10], con=character[11], int=character[12], wis=character[13], cha=character[14], old_name=character[2], char_token=character[16], profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+        app.logger.debug(f"User {current_user.get_site_name()} has gone to edit a character with name {character[1]}.")
+        return render_template("edit_character.html", name=character[1], hp=character[14], old_race=character[4], old_subrace=character[5], old_class=character[2], old_subclass=character[3], speed=character[6], lvl=character[7], str=character[8], dex=character[9], con=character[10], int=character[11], wis=character[12], cha=character[13], old_name=character[1], char_token=character[15], profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
     app.logger.warning(f"User attempted to edit a character with name {name}. They do not have a character with that name. Throwing a Bad Request error.")
     raise BadRequest(description=f"You don't have a character named {name}!")
