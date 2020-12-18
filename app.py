@@ -64,7 +64,6 @@ csrf = CSRFProtect(app)
 
 ### FUNCTIONS
 
-# TODO: move functions to their own .py file to avoid bloating and promote encapsulation
 # Retrieves Google's provider configuration
 def get_google_provider_cfg():
     return get(GOOGLE_DISCOVERY_URL).json()
@@ -178,7 +177,6 @@ def process_room_form(form, user_id):
 @login_required
 def view_characters():
     user_id = current_user.get_user_id()
-    print(url_for("enter_room", room_id="ABCDEFGH"))
 
     if request.method == "POST":
         app.logger.debug(f"Attempting to delete character owned by {current_user.get_site_name()} named {request.form['character_name']}.")
@@ -376,42 +374,26 @@ def generate_room_id():
 
     update_db("room_object", f"active_room_id = '{random_key}'", f"WHERE user_key = '{user_id}' AND room_name = '{room_name}'")
 
-    return redirect(url_for('enter_room', room_id=random_key))
-
-@app.route("/play/<room_id>/choose", methods=["GET", "POST"])
-@login_required
-def enter_room(room_id):
-    app.logger.debug(f"User {current_user.get_site_name()} has gone to join the room with id {room_id}.")
-    characters = read_db("characters", "*", f"WHERE user_key = '{current_user.get_user_id()}'")
-    if characters:
-        app.logger.debug(f"User {current_user.get_site_name()} has characters. Loading the Choose Character page.")
-        return render_template("choose_character.html", characters=characters, route=f"/play/{room_id}", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
-    else:
-        user_id = current_user.get_user_id()
-        form = CharacterValidation()
-        app.logger.warning(f"User {current_user.get_site_name()} does not have characters. Redirecting them to the Add Character page.")
-        if request.method == "POST":
-            app.logger.debug(f"User {current_user.get_site_name()} is attempting to create their first character.")
-            return process_character_form(form, user_id, "play")
-        return redirect(url_for("character_creation", route=f"/play/{room_id}/choose"))
+    return redirect(url_for('playy', room_id=random_key))
 
 @app.route("/play/<room_id>", methods=["GET", "POST"])
 @login_required
 def playy(room_id):
-    char_name = request.form['character']
+    # char_name = request.form['character']
     user_id = current_user.get_user_id()
-    char_token = read_db("characters", "char_token", f"WHERE user_key='{user_id}' and chr_name='{char_name}'")[0][0]
+    # char_token = read_db("characters", "char_token", f"WHERE user_key='{user_id}' and chr_name='{char_name}'")[0][0]
     image_url = read_db("room_object", "map_url", f"WHERE active_room_id = '{room_id}'")[0][0]
     if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'") and not read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
-        # TODO: Do we want a /spectate or a /watch route?
         app.logger.debug(f"User {current_user.get_site_name()} is watching the room {room_id}")
         return render_template("watch.html", async_mode=socketio.async_mode, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
-    if not read_db("active_room", extra_clause=f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
-        add_to_db("active_room", (room_id, user_id, char_name, 0, 0, char_token))
+    # if not read_db("active_room", extra_clause=f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
+    #     add_to_db("active_room", (room_id, user_id, char_name, 0, 0, char_token))
 
-    app.logger.debug(f"User {current_user.get_site_name()} has entered the room {room_id} with character {char_name}")
-    return render_template("play.html", async_mode=socketio.async_mode, char_name=char_name, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+    characters = read_db("characters", "chr_name", f"WHERE user_key='{user_id}'")
+
+    # app.logger.debug(f"User {current_user.get_site_name()} has entered the room {room_id} with character {char_name}")
+    return render_template("play.html", async_mode=socketio.async_mode, characters=characters, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 
 # Gameplay Page
@@ -421,9 +403,9 @@ def play():
     if request.method == "POST":
         room_id = request.form['room_id']
 
-        if read_db("active_room", "*", f"WHERE room_id = '{room_id}'"):
+        if read_db("room_object", "*", f"WHERE active_room_id = '{room_id}'"):
             app.logger.debug(f"User {current_user.get_site_name()} is entering room {room_id}")
-            return redirect(url_for('enter_room', room_id=room_id))
+            return redirect(url_for('playy', room_id=room_id))
         
         app.logger.warning(f"User {current_user.get_site_name()} attempted to enter an nonexistant room. Reloading to form with a message")
         return render_template("choose_room.html", message="There is not an open room with that key!", room_id=room_id, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
@@ -670,7 +652,6 @@ def connect(message):
     user_id = current_user.get_user_id()
     site_name = current_user.get_site_name()
     room_id = message['room_id']
-    # TODO: replace this with user-given character image rather than user image from google
     character_image = current_user.get_profile_pic()
     # Nobody change this 135 character duplicated masterpiece
     if message['character_name']:
@@ -684,7 +665,12 @@ def connect(message):
     add_to_db("log", (room_id, user_id, "Connection", f"User with id {user_id} connected", time_rcvd))
 
     emit('log_update', {'desc': f"{site_name} Connected"}, room=room_id)
-    emit('add_character_icon', {'character_name': message['character_name'], 'character_image': character_image, 'user_id': user_id}, room=room_id)
+    if message['character_name']:
+        emit('add_character_icon', {'character_name': message['character_name'], 'character_image': character_image, 'user_id': user_id}, room=room_id)
+
+    your_chars = read_db("active_room", "chr_name", f"WHERE user_key='{user_id}'")
+    for char in your_chars:
+        emit('added_character', {'char_name': char[0]})
 
     for item in initiatives:
         site_name = read_db("users", "site_name", f"WHERE user_id = '{item[2]}'")[0][0]
@@ -740,35 +726,49 @@ def character_icon_update_database(message):
     updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])[user_id]
     emit('character_icon_update', {'user_id': user_id, 'height': updated_character_icon_status['height'], 'width': updated_character_icon_status['width'], 'top':updated_character_icon_status['top'], 'left':updated_character_icon_status['left']}, room=room_id)
 
+@socketio.on('add_character', namespace='/combat')
+def add_character(message):
+    char_name = message['char_name']
+    room_id = message['room_id']
+    user_id = current_user.get_user_id()
+    char_token = read_db('characters', 'char_token', f"WHERE user_key='{user_id}' AND chr_name='{char_name}'")[0][0]
+    site_name = message['site_name']
+
+    delete_from_db("active_room", f"WHERE room_id='{room_id}' AND chr_name='{char_name}'")
+    add_to_db("active_room", (room_id, user_id, char_name, 0, 0, char_token))
+
+    emit('added_character', {'char_name': char_name})
+    emit('initiative_update', {'character_name': char_name, 'init_val': 0, 'site_name': site_name}, room=room_id)
+
 
 
 ### ERROR HANDLING 
 
-@app.errorhandler(CSRFError)
-def handle_csrf_error(e):
-    app.logger.warning(f"A CSRFError has occurred. How did this happen?")
-    return render_template("error.html", error_name="Error Code 400" ,error_desc = "The room you were in has closed!", site_name=current_user.get_site_name()), 400
+# @app.errorhandler(CSRFError)
+# def handle_csrf_error(e):
+#     app.logger.warning(f"A CSRFError has occurred. How did this happen?")
+#     return render_template("error.html", error_name="Error Code 400" ,error_desc = "The room you were in has closed!", site_name=current_user.get_site_name()), 400
 
-@app.errorhandler(HTTPException)
-def generic_error(e):
-    # Generic HTTP Exception handler
-        app.logger.warning(f"A HTTP error with code {e.code} has occurred. Handling the error.")
-        return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description, site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic()), e.code
+# @app.errorhandler(HTTPException)
+# def generic_error(e):
+#     # Generic HTTP Exception handler
+#         app.logger.warning(f"A HTTP error with code {e.code} has occurred. Handling the error.")
+#         return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description, site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic()), e.code
 
-@app.errorhandler(Exception)
-def five_hundred_error(e):
-    app.logger.warning(f"A server error occurred. Handling it, but you probably should fix the bug...")
-    app.logger.error(f"Here it is: {e}")
-    desc = "Internal Server Error. Congrats! You found an unexpected feature! Care to tell us about it?"
-    return render_template("error.html", error_name="Error Code 500", error_desc=desc, site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic()), 500
+# @app.errorhandler(Exception)
+# def five_hundred_error(e):
+#     app.logger.warning(f"A server error occurred. Handling it, but you probably should fix the bug...")
+#     app.logger.error(f"Here it is: {e}")
+#     desc = "Internal Server Error. Congrats! You found an unexpected feature! Care to tell us about it?"
+#     return render_template("error.html", error_name="Error Code 500", error_desc=desc, site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic()), 500
 
-@app.route("/process_error", methods=["POST"])
-@login_required
-def process_error():
-    if 'error_desc' in request.form:
-        add_to_error_db(request.form['error_desc'])
+# @app.route("/process_error", methods=["POST"])
+# @login_required
+# def process_error():
+#     if 'error_desc' in request.form:
+#         add_to_error_db(request.form['error_desc'])
     
-    return redirect(url_for("home"))
+#     return redirect(url_for("home"))
 
 
 
@@ -808,19 +808,10 @@ if __name__ != "__main__":
 # https://learn.jquery.com/using-jquery-core/document-ready/
 # https://www.w3schools.com/cssref/css_selectors.asp
 
-# TODO: allow characters to select who goes first when initiatives tied
-# TODO: Hide DM tools from the user view
-# TODO: When player joins a room, automatically add their character to the battle map
-# TODO: Button to hide or show character icon on map
-# TODO: Be able to save positions of characters when room closes
-# TODO: preset sizes for character icons on map
-# TODO: allow characters to resize character icons
-# TODO: Integrate character movement with turn taking
 # TODO: Prevent chat spam!
 # TODO: When DMs upload battle maps, have the option to specify how many squares wide and how many tall, then have selectors for character tokens for different sizes, and have character tokens snap into the grid
 # TODO: Rename script.js
 # TODO: change current_user.get_site_name() to current_user.get_username() or something of the like. get_site_name() is confusing
 # TODO: Check if a user is already logged in a different window when they attempt to login
 
-# TODO: have the page read from the database when it loads to find and place character tokens
 # TODO: rename variable 'site_name' to something like 'user_site_name' because site_name is confusing

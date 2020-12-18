@@ -49,7 +49,6 @@ $(document).ready(function() {
   // Socketio events
   // TODO: Add room_id to all of the functions
   $('form#set_initiative').submit(function(event) {
-    console.log("Update initiative");
     socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), site_name: site_name, room_id: room_id});
     $('#initiative_roll').val(''); 
     return false;
@@ -91,14 +90,19 @@ $(document).ready(function() {
     return false;
   });
 
+  $('form#add_character').submit(function(event) {
+    socket.emit('add_character', {char_name: $('#character_name').val(), site_name: site_name, room_id: room_id});
+    return false;
+  });
+
   socket.on('connect', function() {
     socket.emit('on_join', {room_id: room_id});
-    // socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), site_name: site_name, room_id: room_id});
   });
 
   socket.on('joined', function(msg) {
-    socket.emit('join_actions', {room_id: room_id, character_name: $('#player_name').val() || ""});
-    socket.emit('set_initiative', {character_name: $('#player_name').val() || "", init_val: $('#initiative_roll').val() || "", site_name: site_name, room_id: room_id});
+    // socket.emit('join_actions', {room_id: room_id, character_name: $('#player_name').val() || ""});
+    socket.emit('join_actions', {room_id: room_id, character_name: ""});
+    // socket.emit('set_initiative', {character_name: $('#player_name').val() || "", init_val: $('#initiative_roll').val() || "", site_name: site_name, room_id: room_id});
   });
 
   socket.on('log_update', function(msg) {
@@ -134,8 +138,6 @@ $(document).ready(function() {
   });
 
   socket.on('combat_started', function(msg) {
-    // TODO: Decide if "End combat button" should replace start combat
-    // button when combat started and vice versa
     var first_turn_name = msg.first_turn_name.split(" ").join("_");
     turn_index = 0;
 
@@ -170,7 +172,6 @@ $(document).ready(function() {
   });
 
   socket.on('room_ended', function(msg) {
-    // TODO: replace this link when going into development or deploying
     window.location.replace("/home");
   });
 
@@ -221,7 +222,20 @@ $(document).ready(function() {
       $('#checklist_div').html(checklist);
     }
     setTimeout(() => $(`#${first_turn_name}-${msg.site_name}-row`).addClass("bg-warning"), 100);
+  });
 
+  socket.on('added_character', function(msg) {
+    var char_name = msg.char_name;
+    var id_char_name = char_name.split(" ").join("_") + "-init-update";
+    var old_char_name = char_name.split(" ").join("_") + "-add-row";
+    $('#init_placeholder').remove();
+    $('#player_name').append(`<option id=${id_char_name}>${char_name}</option>`);
+    $(`#${old_char_name}`).remove();
+    $('#set_initiative_button').prop('disabled', false);
+    if ($('#character_name option').length == 0) {
+      $('#character_name').append("<option>All Characters are in the Battle!</option>")
+      $('#add_character_button').prop('disabled', true);
+    }
   });
 
   socket.on('add_character_icon', function(msg){
