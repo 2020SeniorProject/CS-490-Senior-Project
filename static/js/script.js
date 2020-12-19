@@ -149,6 +149,7 @@ $(document).ready(function() {
     $('#set_initiative_button').prop('disabled', true);
     $('#start_battle_button').prop('disabled', true);
     $('#end_battle_button').prop('disabled', false);
+    $('#add_character_button').prop('disabled', true);
 
     if (site_name == msg.site_name) {
       $('#end_turn_button').prop('disabled', false);
@@ -169,6 +170,10 @@ $(document).ready(function() {
     $('#set_initiative_button').prop('disabled', false);
     $('#start_battle_button').prop('disabled', false);
     $('#end_battle_button').prop('disabled', true);
+
+    if ($('#character_name option').length != 0) {
+      $('#add_character_button').prop('disabled', false);
+    }
   });
 
   socket.on('room_ended', function(msg) {
@@ -216,6 +221,7 @@ $(document).ready(function() {
     $('#set_initiative_button').prop('disabled', true);
     $('#start_battle_button').prop('disabled', true);
     $('#end_battle_button').prop('disabled', false);
+    $('#add_character_button').prop('disabled', true);
 
     if (site_name == msg.site_name) {
       $('#end_turn_button').prop('disabled', false);
@@ -232,8 +238,9 @@ $(document).ready(function() {
     $('#player_name').append(`<option id=${id_char_name}>${char_name}</option>`);
     $(`#${old_char_name}`).remove();
     $('#set_initiative_button').prop('disabled', false);
+
     if ($('#character_name option').length == 0) {
-      $('#character_name').append("<option>All Characters are in the Battle!</option>")
+      $('#character_name').append("<option>All Characters are in the Battle!</option>");
       $('#add_character_button').prop('disabled', true);
     }
   });

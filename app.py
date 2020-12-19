@@ -379,20 +379,15 @@ def generate_room_id():
 @app.route("/play/<room_id>", methods=["GET", "POST"])
 @login_required
 def playy(room_id):
-    # char_name = request.form['character']
     user_id = current_user.get_user_id()
-    # char_token = read_db("characters", "char_token", f"WHERE user_key='{user_id}' and chr_name='{char_name}'")[0][0]
     image_url = read_db("room_object", "map_url", f"WHERE active_room_id = '{room_id}'")[0][0]
-    if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'") and not read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
-        app.logger.debug(f"User {current_user.get_site_name()} is watching the room {room_id}")
-        return render_template("watch.html", async_mode=socketio.async_mode, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
-
-    # if not read_db("active_room", extra_clause=f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
-    #     add_to_db("active_room", (room_id, user_id, char_name, 0, 0, char_token))
+    # if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'") and not read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
+        # app.logger.debug(f"User {current_user.get_site_name()} is watching the room {room_id}")
+        # return render_template("watch.html", async_mode=socketio.async_mode, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
     characters = read_db("characters", "chr_name", f"WHERE user_key='{user_id}'")
 
-    # app.logger.debug(f"User {current_user.get_site_name()} has entered the room {room_id} with character {char_name}")
+    app.logger.debug(f"User {current_user.get_site_name()} has entered the room {room_id}")
     return render_template("play.html", async_mode=socketio.async_mode, characters=characters, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 
@@ -652,11 +647,6 @@ def connect(message):
     user_id = current_user.get_user_id()
     site_name = current_user.get_site_name()
     room_id = message['room_id']
-    character_image = current_user.get_profile_pic()
-    # Nobody change this 135 character duplicated masterpiece
-    if message['character_name']:
-        if read_db("active_room", "char_token", f"WHERE chr_name='{message['character_name']}' and user_key='{current_user.get_user_id()}'")[0][0]:
-            character_image = read_db("active_room", "char_token", f"WHERE chr_name='{message['character_name']}' and user_key='{current_user.get_user_id()}'")[0][0]
     initiatives = read_db("active_room", "chr_name, init_val, user_key", f"WHERE room_id = '{room_id}'")
     chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{room_id}'")
     character_icon_positions = read_db("room_object", "map_status, user_key", f"WHERE active_room_id = '{room_id}'")
@@ -665,8 +655,6 @@ def connect(message):
     add_to_db("log", (room_id, user_id, "Connection", f"User with id {user_id} connected", time_rcvd))
 
     emit('log_update', {'desc': f"{site_name} Connected"}, room=room_id)
-    if message['character_name']:
-        emit('add_character_icon', {'character_name': message['character_name'], 'character_image': character_image, 'user_id': user_id}, room=room_id)
 
     your_chars = read_db("active_room", "chr_name", f"WHERE user_key='{user_id}'")
     for char in your_chars:
@@ -731,14 +719,23 @@ def add_character(message):
     char_name = message['char_name']
     room_id = message['room_id']
     user_id = current_user.get_user_id()
-    char_token = read_db('characters', 'char_token', f"WHERE user_key='{user_id}' AND chr_name='{char_name}'")[0][0]
     site_name = message['site_name']
+    character_image = current_user.get_profile_pic()
+    temp_db_read = read_db("active_room", "char_token", f"WHERE chr_name='{message['char_name']}' and user_key='{user_id}'")
+    init_val = 0
 
-    delete_from_db("active_room", f"WHERE room_id='{room_id}' AND chr_name='{char_name}'")
-    add_to_db("active_room", (room_id, user_id, char_name, 0, 0, char_token))
+    if temp_db_read:
+        character_image = temp_db_read[0][0]
+
+    temp_db_read = read_db("active_room", "init_val", f"WHERE room_id='{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'")
+    if temp_db_read:
+        init_val = temp_db_read[0][0]
+    else:
+        add_to_db("active_room", (room_id, user_id, char_name, 0, 0, character_image))
 
     emit('added_character', {'char_name': char_name})
-    emit('initiative_update', {'character_name': char_name, 'init_val': 0, 'site_name': site_name}, room=room_id)
+    emit('initiative_update', {'character_name': char_name, 'init_val': init_val, 'site_name': site_name}, room=room_id)
+    emit('add_character_icon', {'character_name': message['char_name'], 'character_image': character_image, 'user_id': user_id}, room=room_id)
 
 
 
