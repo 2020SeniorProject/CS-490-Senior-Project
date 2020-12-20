@@ -680,7 +680,7 @@ def connect(message):
 
         emit('combat_connect', {'desc': 'Rejoined Combat', 'first_turn_name': character[1], 'site_name': turn_site_name})
 
-
+# TODO: Fix bug where character tokens disappear after navigating away from page
 @socketio.on('character_icon_update_database', namespace='/combat')
 def character_icon_update_database(message):
     user_id = current_user.get_user_id()
