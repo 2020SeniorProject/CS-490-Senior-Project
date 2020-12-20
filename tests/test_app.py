@@ -55,9 +55,9 @@ def test_invalid_user(client_1):
     assert b'Welcome to' in rv.data
 
 
-# def test_valid_user(client_1):
+# def _valid_user(client_1):
 
-#     rv = client.
+#     rv = client.get('/login')
 
 
 

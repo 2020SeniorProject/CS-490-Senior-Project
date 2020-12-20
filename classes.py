@@ -2,7 +2,7 @@ from flask_login import UserMixin
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SubmitField, validators, Form, FileField
 from wtforms.validators import Length, NumberRange, DataRequired, ValidationError, Regexp, URL, Optional
-from wtforms_validators import AlphaNumeric
+from wtforms_validators import AlphaNumeric, AlphaSpace
 
 
 ##
@@ -11,7 +11,7 @@ from wtforms_validators import AlphaNumeric
 
 
 class CharacterValidation(FlaskForm):
-    name = StringField('Name', [DataRequired(message="Please Input Name"), Length(min=1, max=15, message ="Bad Name Size"), AlphaNumeric(message="Names must only be alphanumeric!")])
+    name = StringField('Name', [DataRequired(message="Please Input Name"), Length(min=1, max=15, message ="Bad Name Size"), AlphaSpace(message="Names must only be alphanumeric!")])
     race = StringField('Race', [DataRequired(message="Please choose a race")])
     subrace = StringField('Subrace', [DataRequired(message="Please choose a subrace")])
     speed = IntegerField('speed', [DataRequired(message="Please input Speed"), NumberRange(min=1, max=100, message="Outside Possible Range")])
