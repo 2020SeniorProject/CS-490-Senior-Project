@@ -13,8 +13,8 @@ from db import create_dbs
 # 
 #  TO AVOID DEPRECATION WARNING FROM OUR 3rd PARTY LIBRARIES 
 #  I RECOMMEND USING THE COMMAND 
-#  pytest path-to-test-folder -W ignore::DeprecationWarning
-#  As
+# python3 -m pytest tests/test_app.py -W ignore::DeprecationWarning
+#  
 # 
 
 
@@ -48,17 +48,16 @@ def client_2():
 
 
 
-def test_empty_db(client_1):
-    """Start with a blank database."""
+# TODO: Figure out how tests can log in through google API
+def test_invalid_user(client_1):
 
-    rv = client_1.get('/')
+    rv = client_1.get('/home', follow_redirects=True)
     assert b'Welcome to' in rv.data
 
-# TODO: Figure out how tests can log in through google API
-def login(client_1)
 
-    rv = client_1.get('/login',  ,follow_redirects=True)
+# def test_valid_user(client_1):
 
+#     rv = client.
 
 
 
