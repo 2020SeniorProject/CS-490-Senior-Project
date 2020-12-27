@@ -3,51 +3,48 @@
         <link rel="stylesheet" href="/static/css/bootstrap.min.css">
         <link rel="stylesheet" href="/static/css/style.css">
         <link rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/themes/cupertino/jquery-ui.css" />
-        <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
-        <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
     </head>
-    <bodyz>
-      <div style="width:99%;">
-        <div class="row" style="height:10%;">
-          <div class="col-2">
-              {% if in_room %}
-              <!-- <div class="d-flex h-100"> -->
-                <div class="row justify-content-center align-self-center">
-                  <p class="text-center">Currently in room: <b id="room_id">{{ in_room }}</b></p>
-                </div>
-              <!-- </div> -->
-              {% endif %}
+    <body>
+      <div class="row" style="height:10%;">
+        {% if in_room %}
+        <div class="col-2">
+          <div class="row justify-content-center align-self-center">
+            <p class="text-center">Currently in room: <b id="room_id">{{ in_room }}</b></p>
             </div>
-            <div class="col-8">
-                <nav class="navbar navbar-expand-lg navbar-light bg-light mb-2">
-                    <!-- <a class="navbar-brand" href="/">Navbar</a> -->
-                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                      <span class="navbar-toggler-icon"></span>
-                    </button>
-                  
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                      <ul class="navbar-nav mr-auto">
-                        <li class="nav-item active">
-                          <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
-                        </li>
-                        <li class="nav-item">
-                          <a class="nav-link" href="/play">Play</a>
-                        </li>
-                        <li class="nav-item">
-                          <a class="nav-link" href="/characters">Character</a>
-                        </li>
-                        <li class="nav-item">
-                          <a class="nav-link" href="/user/settings">Settings</a>
-                        </li>
-                      </ul>
-                      <a href="/logout" class="btn btn-info btn-lg">
-                        <span class="glyphicon glyphicon-log-out"></span> Logout
-                      </a>
-                      <a href="/delete" class=" ml-3 btn btn-danger btn-lg">
-                        <span class="glyphicon glyphicon-trash"></span> Delete Account
-                      </a>
-                    </div>
-                  </nav>
+          </div>
+          <div class="col-8">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light mb-2">
+              <a class="navbar-brand" href="/home">Home</a>
+              <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                  <ul class="navbar-nav mr-auto">
+                    <!-- <li class="nav-item active">
+                      <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
+                    </li> -->
+                    <li class="nav-item">
+                      <a class="nav-link" href="/play">Play</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" href="/characters">Character</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" href="/user/settings">Settings</a>
+                    </li>
+                  </ul>
+                  <a href="/logout" class="btn btn-info btn-lg">
+                    <span class="glyphicon glyphicon-log-out"></span> Logout
+                  </a>
+                  <a href="/delete" class=" ml-3 btn btn-danger btn-lg">
+                    <span class="glyphicon glyphicon-trash"></span> Delete Account
+                  </a>
+                </div>
+              </nav>
             </div>
             <div class="col-2">
               <div class="d-flex h-100">
@@ -61,9 +58,42 @@
                 </div>
               </div>
             </div>
+        <!-- </div> -->
+        {% else %}
+        <!-- <div class=row> -->
+        <div class=col-12>
+          <nav class="navbar navbar-expand-lg navbar-light bg-light mb-2">
+          <a class="navbar-brand" href="/home">Home</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+              <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                  <a class="nav-link" href="/play">Play</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="/characters">Character</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="/user/settings">Settings</a>
+                </li>
+              </ul>
+              <a href="/logout" class="btn btn-info btn-lg">
+                <span class="glyphicon glyphicon-log-out"></span> Logout
+              </a>
+              <a href="/delete" class=" ml-3 btn btn-danger btn-lg">
+                <span class="glyphicon glyphicon-trash"></span> Delete Account
+              </a>
+            </div>
+          </nav>
         </div>
-          {% block content %}
-          {% endblock %}
+        {% endif %}
       </div>
-    </body>
+      <div style="width:99%;">
+        {% block content %}
+        {% endblock %}
+      </div>
+      </body>
 </html>
