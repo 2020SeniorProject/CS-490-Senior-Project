@@ -142,10 +142,10 @@ def build_api_db(files):
                 reader = csv.reader(decomment(f))
                 if file == "race":
                     for row in reader:
-                        cur.execute(f"""INSERT INTO race(race, subrace, speed) VALUES('{row[0]}', '{row[1]}', '{row[2]}');""")
+                        cur.execute(f"""INSERT INTO race(race, subrace, speed) VALUES(?,?,?);""", row)
                 elif file == "class":
                     for row in reader:
-                        cur.execute(f"""INSERT INTO class(class, subclass) VALUES('{row[0]}', '{row[1]}');""")
+                        cur.execute(f"""INSERT INTO class(class, subclass) VALUES(?,?);""", row)
         conn.commit()
 
 

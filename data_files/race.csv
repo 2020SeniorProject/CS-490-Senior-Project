@@ -30,7 +30,7 @@ Kobold,Kobold,30
 Lizardfolk,Lizardfolk,30
 Orc,Orc (VGM),30
 Tabaxi,Tabaxi,30
-Triton,Triton,30
+Triton,Triton (VGM),30
 Yuan-ti Pureblood,Yuan-ti Pureblood,30
 #
 # Eberron
@@ -96,7 +96,7 @@ Centaur,Centaur (MOT),40
 Leonin,Leonin,35
 Minotaur,Minotaur (MOT),30
 Satyr,Satyr,30
-Triton,Triton,30
+Triton,Triton (MOT),30
 #
 # Sword Coast Adventurer's Guide
 Tiefling,Infernal Legacy,30
@@ -106,7 +106,7 @@ Tiefling,Winged,30
 Half-Elf,Aquatic Elf Descent,30
 Half-Elf,Drow Descent,30
 Half-Elf,Moon/Sun Elf Descent,30
-Half-Elf,Wood-Elf Descent
+Half-Elf,Wood-Elf Descent,30
 Halfling,Ghostwise,25
 #
 # Acquisitions Incorporated

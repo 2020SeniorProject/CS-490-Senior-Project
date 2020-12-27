@@ -16,3 +16,18 @@
   width: 100%;
   height: 100%;
 }
+
+.max-length-text-1 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.max-length-text-2 {
+  display: -webkit-box;   
+  -webkit-line-clamp: 2;   
+  -webkit-box-orient: vertical;   
+  overflow: hidden; 
+}
+
+/* https://codepen.io/elad2412/pen/xxxNVRW */
