@@ -9,6 +9,8 @@ $(document).ready(function() {
         case "user":
             $(`#path_${first_item}`).addClass('active underline_text');
             break;
+        case "room":
+            $("#path_home").addClass('active underline_text');
         default:
             break;
     }
