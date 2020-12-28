@@ -6,46 +6,17 @@
         <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+        <script src="https://use.fontawesome.com/releases/v5.15.1/js/all.js" data-auto-replace-svg="nest"></script>
+        <script src="/static/js/navbar.js"></script>
     </head>
     <body>
-      <div class="row" style="height:10%;">
-        {% if in_room %}
+      <!-- TODO: Add in room_id and site_name things -->
+        <!-- {% if in_room %}
         <div class="col-2">
           <div class="row justify-content-center align-self-center">
             <p class="text-center">Currently in room: <b id="room_id">{{ in_room }}</b></p>
             </div>
           </div>
-          <div class="col-8">
-            <nav class="navbar navbar-expand-lg navbar-light bg-light mb-2">
-              <a class="navbar-brand" href="/home">Home</a>
-              <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-                </button>
-                
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                  <ul class="navbar-nav mr-auto">
-                    <!-- <li class="nav-item active">
-                      <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
-                    </li> -->
-                    <li class="nav-item">
-                      <a class="nav-link" href="/play">Play</a>
-                    </li>
-                    <li class="nav-item">
-                      <a class="nav-link" href="/characters">Character</a>
-                    </li>
-                    <li class="nav-item">
-                      <a class="nav-link" href="/user/settings">Settings</a>
-                    </li>
-                  </ul>
-                  <a href="/logout" class="btn btn-info btn-lg">
-                    <span class="glyphicon glyphicon-log-out"></span> Logout
-                  </a>
-                  <a href="/delete" class=" ml-3 btn btn-danger btn-lg">
-                    <span class="glyphicon glyphicon-trash"></span> Delete Account
-                  </a>
-                </div>
-              </nav>
-            </div>
             <div class="col-2">
               <div class="d-flex h-100">
                 <div class="row justify-content-center align-self-center">
@@ -57,27 +28,26 @@
                   </div>
                 </div>
               </div>
-            </div>
-        <!-- </div> -->
-        {% else %}
-        <!-- <div class=row> -->
-        <div class=col-12>
-          <nav class="navbar navbar-expand-lg navbar-light bg-light mb-2">
-          <a class="navbar-brand" href="/home">Home</a>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
+            </div> -->
+          <!-- {% endif %} -->
+          <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light mb-2" style="font-size:20px;">
+            <a class="navbar-brand" href="/home"><i class="fas fa-map ml-3 mr-3"></i></a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
             </button>
-            
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
               <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
-                  <a class="nav-link" href="/play">Play</a>
+                  <a class="nav-link" id=path_home href="/home">Home</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="/characters">Character</a>
+                  <a class="nav-link" id=path_play href="/play">Play</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="/user/settings">Settings</a>
+                  <a class="nav-link" id=path_characters href="/characters">Character</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" id=path_user href="/user/settings">Settings</a>
                 </li>
               </ul>
               <a href="/logout" class="btn btn-info btn-lg">
@@ -88,10 +58,9 @@
               </a>
             </div>
           </nav>
-        </div>
-        {% endif %}
-      </div>
-      <div style="width:99%;">
+          
+
+      <div style="width:99%; margin-top:4.5rem;">
         {% block content %}
         {% endblock %}
       </div>
