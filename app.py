@@ -655,13 +655,10 @@ def connect(message):
     add_to_db("log", (room_id, user_id, "Connection", f"User with id {user_id} connected", time_rcvd))
 
     emit('log_update', {'desc': f"{site_name} Connected"}, room=room_id)
-<<<<<<< Updated upstream
 
     your_chars = read_db("active_room", "chr_name", f"WHERE user_key='{user_id}'")
     for char in your_chars:
         emit('added_character', {'char_name': char[0]})
-=======
->>>>>>> Stashed changes
 
     for item in initiatives:
         site_name = read_db("users", "site_name", f"WHERE user_id = '{item[2]}'")[0][0]
