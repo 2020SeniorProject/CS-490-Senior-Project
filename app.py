@@ -91,7 +91,7 @@ def readify_form_errors(form):
 
 def process_character_form(form, user_id, usage, route="/characters/create"):
     if form.validate():
-        values = (user_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data, form.char_token.data)
+        values = (user_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data, form.char_token.data or current_user.get_profile_pic())
     
         if usage == "create":
             if read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{values[1]}'") != []:

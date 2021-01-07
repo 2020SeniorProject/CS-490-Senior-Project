@@ -10,7 +10,7 @@
         <script src="/static/js/navbar.js"></script>
       </head>
       <body>
-        <nav class="navbar fixed-top navbar-expand-lg navbar-light bg-light mb-2" style="font-size:20px;">
+        <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark mb-2" style="font-size:20px;">
           <a class="navbar-brand" href="/home"><i class="fas fa-map ml-3 mr-3"></i></a>
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -49,7 +49,7 @@
         
         {% if in_room %}
         <div class="fixed-top text-center" style="font-size:20px; width:20%; left:40%">
-          <p class=mt-4><b id=room_id>{{ in_room }}</b></p>
+          <p class="mt-4 text-white"><b id=room_id>{{ in_room }}</b></p>
         </div>
         {% endif %}
         

@@ -33,4 +33,16 @@
 .underline_text {
   text-decoration: underline;
 }
+
+.sticky-cell-left {
+  position:sticky;
+  left:0px;
+  background-color: #ebebeb;
+}
+
+.sticky-cell-right {
+  position:sticky;
+  right:0px;
+  background-color: #ebebeb;
+}
 /* https://codepen.io/elad2412/pen/xxxNVRW */

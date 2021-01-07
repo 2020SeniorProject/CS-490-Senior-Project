@@ -1,59 +1,62 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
-    <table class="table table-bordered">
-        <thead>
-            <th>Character Name</th>
-            <th>Race</th>
-            <th>Subrace</th>
-            <th>Class</th>
-            <th>Subclass</th>
-            <th>Speed</th>
-            <th>Level</th>
-            <th>Str</th>
-            <th>Dex</th>
-            <th>Con</th>
-            <th>Int</th>
-            <th>Wis</th>
-            <th>Chr</th>
-            <th>Hitpoints</th>
-            <th>Character Token</th>
-            <th colspan=2 class="text-center"><a href="/characters/create" class="btn btn-success">Create a Character!</a></th>
-        </thead>
-        <tbody>
-            {% for s in items %}
-            <tr>
-                <td>{{ s[1] }}</td>
-                <td>{{ s[4] }}</td>
-                <td>{{ s[5] }}</td>
-                <td>{{ s[2] }}</td>
-                <td>{{ s[3] }}</td>
-                <td>{{ s[6] }}</td>
-                <td>{{ s[7] }}</td>
-                <td>{{ s[8] }}</td>
-                <td>{{ s[9] }}</td>
-                <td>{{ s[10] }}</td>
-                <td>{{ s[11] }}</td>
-                <td>{{ s[12] }}</td>
-                <td>{{ s[13] }}</td>
-                <td>{{ s[14] }}</td>
-                <td><img src="{{ s[15] }}" width=64 length=64 alt="{{ s[1]}}'s token"></td>
-                <td class=text-center>
-                    <form action="/characters/edit/{{ s[1] }}" method="GET" class="form">
-                        <input type="submit" class="btn btn-warning btm-sm" value="Edit">
-                    </form>
-                </td>
-                <td class=text-center>
-                    <form action="/characters" method="POST" class="form">
-                        <input type="submit" class="btn btn-danger btm-sm" value="Delete">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <input type="hidden" name="character_name" value="{{ s[1] }}">
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="table-reponsive">
+    <!-- <div class=col-1></div>
+    <div class=col-10> -->
+        <table class="table table-fill table-hover border border-light text-center">
+            <thead class="thead-light">
+                <th class=sticky-cell-left>Character Name</th>
+                <th>Race</th>
+                <th>Subrace</th>
+                <th>Class</th>
+                <th>Subclass</th>
+                <th>Speed</th>
+                <th>Level</th>
+                <th>Strength</th>
+                <th>Dexterity</th>
+                <th>Constitution</th>
+                <th>Intelligence</th>
+                <th>Wisdom</th>
+                <th>Charisma</th>
+                <th>Hitpoints</th>
+                <th>Character Token</th>
+                <th colspan=2 class="text-center sticky-cell-right"><a href="/characters/create" class="btn btn-success">Create a Character!</a></th>
+            </thead>
+            <tbody>
+                {% for s in items %}
+                <tr>
+                    <td class="sticky-cell-left align-middle">{{ s[1] }}</td>
+                    <td class="align-middle">{{ s[4] }}</td>
+                    <td class="align-middle">{{ s[5] }}</td>
+                    <td class="align-middle">{{ s[2] }}</td>
+                    <td class="align-middle">{{ s[3] }}</td>
+                    <td class="align-middle">{{ s[6] }}</td>
+                    <td class="align-middle">{{ s[7] }}</td>
+                    <td class="align-middle">{{ s[8] }}</td>
+                    <td class="align-middle">{{ s[9] }}</td>
+                    <td class="align-middle">{{ s[10] }}</td>
+                    <td class="align-middle">{{ s[11] }}</td>
+                    <td class="align-middle">{{ s[12] }}</td>
+                    <td class="align-middle">{{ s[13] }}</td>
+                    <td class="align-middle">{{ s[14] }}</td>
+                    <td class="align-middle"><img src="{{ s[15] }}" width=64 length=64 alt="{{ s[1]}}'s token"></td>
+                    <td colspan=2 class="sticky-cell-right align-middle">
+                        <div class="d-flex justify-content-center">
+                            <form action="/characters/edit/{{ s[1] }}" method="GET" class="form mr-2">
+                                <button type="submit" class="btn btn-warning"><i class="fas fa-pencil-alt"></i></button>
+                            </form>
+                            <form action="/characters" method="POST" class="form">
+                                <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i></button>
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <input type="hidden" name="character_name" value="{{ s[1] }}">
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    <!-- </div> -->
 </div>
 {% endblock %}
