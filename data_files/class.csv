@@ -72,7 +72,7 @@ Rogue,Swashbuckler
 Sorcerer,Divine Soul
 Sorcerer,Shadow
 Sorcerer,Storm
-Warlock,Celestial,
+Warlock,Celestial
 Warlock,Hexblade
 Wizard,War
 #
@@ -116,3 +116,11 @@ Warlock,Fathomless
 Warlock,Genie
 Wizard,Bladesinging
 Wizard,Scribes
+#
+# Sword Coast's Adventurer's Guide
+Barbarian,Battlerager
+Cleric,Arcana
+Fighter,Purple Dragon Knight
+Monk,Long Death
+Paladin,Crown
+Warlock,Undying
