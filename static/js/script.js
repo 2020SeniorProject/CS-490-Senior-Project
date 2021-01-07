@@ -9,6 +9,7 @@ $(document).ready(function() {
   // can set the namespace to an empty string.
 
   var initiatives = [];
+  var character_icons = {};
   var turn_index = null;
   var site_name = $('#site_name').text();
   var room_id = $('#room_id').text();
@@ -103,6 +104,9 @@ $(document).ready(function() {
     // socket.emit('join_actions', {room_id: room_id, character_name: $('#player_name').val() || ""});
     socket.emit('join_actions', {room_id: room_id, character_name: ""});
     // socket.emit('set_initiative', {character_name: $('#player_name').val() || "", init_val: $('#initiative_roll').val() || "", site_name: site_name, room_id: room_id});
+    socket.emit('join_actions', {room_id: room_id, character_name: $('#player_name').val() || ""});
+    socket.emit('set_initiative', {character_name: $('#player_name').val() || "", init_val: $('#initiative_roll').val() || "", site_name: site_name, room_id: room_id});
+    socket.emit('character_icon_add_database', {desc: "Initialize", character_name: $('#player_name').val() || "", height: '2em', width: '2em', top: '25px', left: '25px', room_id: room_id});
   });
 
   socket.on('log_update', function(msg) {
@@ -245,38 +249,50 @@ $(document).ready(function() {
     }
   });
 
-  socket.on('add_character_icon', function(msg){
-    let character_icon_wrapper = document.createElement("div");
-    character_icon_wrapper.setAttribute("id", msg.user_id);
-    character_icon_wrapper.setAttribute("class", "characterIconWrapper draggable ui-draggable ui-draggable-handle");
-    character_icon_wrapper.setAttribute("style", "position:absolute; z-index:10; top:25px; left:25px; display:inline-block;");
-
-    let character_icon = document.createElement("img");
-    character_icon.setAttribute("id", "characterIcon");
-    character_icon.setAttribute("class", "characterIcon resizable ui-resizable");
-    character_icon.setAttribute("style", "position: static; height: 2em; width: 2em; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block; draggable: true;");
-    character_icon.setAttribute("src", msg.character_image);
-
-    character_icon_wrapper.appendChild(character_icon);
-    document.getElementById("battle_map_container").appendChild(character_icon_wrapper);
-
-    reloadDraggable(socket, msg.user_id, room_id, msg.character_name);
-    reloadDroppable(socket, msg.user_id, room_id, msg.character_name);
-    reloadResizable(socket, msg.user_id, room_id, msg.character_name);
-    socket.emit('character_icon_update_database', {desc: "Initialize", user_id: msg.user_id, character_name: msg.character_name, height: "2em", width: "2em", top: "25px", left: "25px", room_id: room_id});
-  });
+  // socket.on('add_character_icon', function(msg){
+  //   initial_height = "2em";
+  //   initial_width = "2em";
+  //   initial_top = "25px";
+  //   initial_left = "25px";
+  //   let character_icon_wrapper = build_html_for_character_icon(msg.character_name, msg.site_name, msg.character_image, initial_height, initial_width, initial_top, initial_left);
+  //   document.getElementById("battle_map_container").appendChild(character_icon_wrapper);
+  //   character_icons[msg.character_name + '_' + msg.site_name] = {'character_name': msg.character_name, 'site_name': msg.site_name, 'character_image': msg.character_image, 'height': initial_height, 'width': initial_width, 'top': initial_top, 'left': initial_left}
+  //   socket.emit('character_icon_update_database', {desc: "Initialize", character_image: msg.character_image, site_name: msg.site_name, character_name: msg.character_name, height: initial_height, width: initial_width, top: initial_top, left: initial_left, room_id: room_id});
+  // });
 
   socket.on('character_icon_update', function(msg) {
-    character_id = "#";
-    for (let i = 0; i < msg.user_id.length; i++) {
-      character_id += "\\3";
-      character_id += msg.user_id[i];
+    let character_id = msg.character_name + '_' + msg.site_name;
+
+    let html_character_icons = [];
+    character_icons[character_id] = {'character_name': msg.character_name, 'site_name': msg.site_name, 'character_image': msg.character_image, 'height': msg.height, 'width': msg.width, 'top': msg.top, 'left': msg.left};
+    let i = 0;
+    for (let id in character_icons) {
+      reloadDraggable(socket);
+      reloadDroppable(socket, character_icons[id], room_id);
+      reloadResizable(socket, character_icons[id], room_id);
+
+      html_character_icons.push(build_html_for_character_icon(id, character_icons[id]['character_image'], character_icons[id]['height'], character_icons[id]['width'], character_icons[id]['top'], character_icons[id]['left']));
+      
+      $("#" + id).remove();
+      $('#battle_map_container').append(html_character_icons[i].outerHTML);
+
+      reloadDraggable(socket);
+      reloadDroppable(socket, character_icons[id], room_id);
+      reloadResizable(socket, character_icons[id], room_id);
+
+      i++;
+
     }
-    document.querySelector(character_id).querySelector('#characterIcon').width = msg.width;
-    document.querySelector(character_id).querySelector('#characterIcon').height = msg.height;
-    document.querySelector(character_id).querySelector('#characterIcon').parentElement.width = msg.width;
-    document.querySelector(character_id).querySelector('#characterIcon').parentElement.height = msg.height;
-  });
+
+    // This if statement is activated if there is no element with the id "#{character_id}"
+    if (!$("#" + character_id).length) {
+      $("#" + character_id).remove();
+      $('#battle_map_container').append(build_html_for_character_icon(character_id, msg.character_image, msg.height, msg.width, msg.top, msg.left).outerHTML);
+      socket.emit('character_icon_update_database', {desc: "Initialize", character_image: msg.character_image, site_name: msg.site_name, character_name: msg.character_name, height: msg.height, width: msg.width, top: msg.top, left: msg.left, room_id: room_id});
+      
+    }
+
+ });
   
   // "Helper" functions
   function update_init_table() {
@@ -290,6 +306,22 @@ $(document).ready(function() {
     code += "</tbody>";
   
     return code;
+  }
+
+  function build_html_for_character_icon(character_id, character_image, height, width, top, left) {
+    let character_icon_wrapper = document.createElement("div");
+    character_icon_wrapper.setAttribute("id", character_id);
+    character_icon_wrapper.setAttribute("class", "characterIconWrapper draggable ui-draggable ui-draggable-handle");
+    character_icon_wrapper.setAttribute("style", "position:absolute; z-index:10; top:" + top + "; left:" + left + "; display:inline-block;");
+
+    let character_icon = document.createElement("img");
+    character_icon.setAttribute("id", "characterIcon");
+    character_icon.setAttribute("class", "characterIcon resizable ui-resizable");
+    character_icon.setAttribute("style", "position: static; height: " + height + "; width: " + width + "; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block; draggable: true;");
+    character_icon.setAttribute("src", character_image);
+
+    character_icon_wrapper.appendChild(character_icon);
+    return character_icon_wrapper;
   }
 });
 
@@ -315,21 +347,21 @@ function reloadDraggable(socket){
 }
 
 
-function reloadDroppable(socket, user_id, room_id, character_name){
+function reloadDroppable(socket, character_icon_data, room_id){
   $(".droppable").droppable({
     accept: ".draggable",
     drop: function(event, ui) {
       // TODO: Log character icon postion when dropped
       new_top = ui.position.top;
       new_left = ui.position.left;
-      socket.emit('character_icon_update_database', {desc: "ChangeLocation", user_id: user_id, character_name: character_name, new_top: new_top, new_left: new_left, room_id: room_id});
+      socket.emit('character_icon_update_database', {desc: "ChangeLocation", character_image: character_icon_data['character_image'], site_name: character_icon_data['site_name'], character_name: character_icon_data['character_name'], new_top: new_top, new_left: new_left, room_id: room_id});
     }
   });
 
 // https://api.jqueryui.com/droppable
 }
 
-function reloadResizable(socket, user_id, room_id, character_name) {
+function reloadResizable(socket, character_icon_data, room_id) {
   $(".resizable" ).resizable({
     autoHide: true,
     ghost: true,
@@ -342,9 +374,19 @@ function reloadResizable(socket, user_id, room_id, character_name) {
       // TODO: Log chracter icon size when done resizing in json positions file
       new_width = ui.size.width;
       new_height = ui.size.height;
-      socket.emit('character_icon_update_database', {desc: "Resize", user_id: user_id, character_name: character_name, new_width: new_width, new_height: new_height, room_id: room_id});
+      socket.emit('character_icon_update_database', {desc: "Resize", character_image: character_icon_data['character_image'], site_name: character_icon_data['site_name'], character_name: character_icon_data['character_name'], new_width: new_width, new_height: new_height, room_id: room_id});
     }
   });
 
 // https://api.jqueryui.com/resizable/
 }
+
+// function TestHTMLUpdate() {
+//   $('#battle_map_container').html('<img id="battle_map" style="height:100%;width:100%;" draggable="false" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Flag_of_Libya_%281977%E2%80%932011%29.svg/300px-Flag_of_Libya_%281977%E2%80%932011%29.svg.png">');
+//   $('#initiative-table').html('<tbody><tr id=Helga-Yee-row><td>Helga</td><td>4444</td></tr></tbody>');
+// }
+
+
+
+// TODO: combine add_character_icon and character_icon_update
+// TODO: Standardize naming conventions for functions and variables

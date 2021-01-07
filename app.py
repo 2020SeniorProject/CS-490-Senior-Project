@@ -649,7 +649,7 @@ def connect(message):
     room_id = message['room_id']
     initiatives = read_db("active_room", "chr_name, init_val, user_key", f"WHERE room_id = '{room_id}'")
     chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{room_id}'")
-    character_icon_positions = read_db("room_object", "map_status, user_key", f"WHERE active_room_id = '{room_id}'")
+    map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     app.logger.debug(f"Battle update: User {current_user.get_site_name()} has connected to room {room_id}")
 
     add_to_db("log", (room_id, user_id, "Connection", f"User with id {user_id} connected", time_rcvd))
@@ -669,8 +669,14 @@ def connect(message):
         emit('chat_update', {'chat': item[1], 'character_name': item[0]})
     emit('log_update', {'desc': "Chat History Received"})
 
-    # for item in character_icon_positions:
-    #     emit('character_icon_update', {'user_id':, 'height': , 'width': })
+    # new_character_to_add_to_map = False
+    for item in map_status:
+        print(item)
+        # if not (map_status[item]['character_name'] == message['character_name'] and item == user_id):
+        #     new_character_to_add_to_map
+        #     emit('character_icon_update', {'character_name': map_status[item]['character_name'], 'character_image': character_image, 'site_name': map_status[item]['site_name'], 'room_id': room_id, 'height': map_status[item]['height'], 'width': map_status[item]['width'], 'top': map_status[item]['top'], 'left': map_status[item]['left']})
+        emit('character_icon_update', {'character_name': map_status[item]['character_name'], 'character_image': character_image, 'site_name': map_status[item]['site_name'], 'room_id': room_id, 'height': map_status[item]['height'], 'width': map_status[item]['width'], 'top': map_status[item]['top'], 'left': map_status[item]['left']})
+
 
     if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'"):
         emit('log_update', {'desc': "Combat has already started; grabbing the latest information"})
@@ -686,33 +692,54 @@ def character_icon_update_database(message):
     user_id = current_user.get_user_id()
     site_name = current_user.get_site_name()
     room_id = message['room_id']
+    
+    # TODO: combine these to if branches into one
     if message['desc'] == "Resize":
-        characters_dict = read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")
         characters_dict = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-        json_character_to_add = { user_id: {"height": message['new_height'], "width": message['new_width'], "top": characters_dict[user_id]['top'], "left": characters_dict[user_id]['left']}}
+        json_character_to_add = { user_id: {"site_name": message['site_name'], "character_name": message['character_name'], "room_id": message['room_id'], "height": message['new_height'], "width": message['new_width'], "top": characters_dict[user_id]['top'], "left": characters_dict[user_id]['left']}}
         characters_dict[user_id] = json_character_to_add[user_id]
         characters_json = json.dumps(characters_dict)
         update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
         app.logger.debug(f"User {site_name} has resized their character")
     elif message['desc'] == "ChangeLocation":
+        whatdobeu = read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")
         characters_dict = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-        json_character_to_add = { user_id: {"height": characters_dict[user_id]['height'], "width": characters_dict[user_id]['width'], "top": message['new_top'], "left": message['new_left']}}
+        json_character_to_add = { user_id: {"site_name": message['site_name'], "character_name": message['character_name'], "room_id": message['room_id'], "height": characters_dict[user_id]['height'], "width": characters_dict[user_id]['width'], "top": message['new_top'], "left": message['new_left']}}
         characters_dict[user_id] = json_character_to_add[user_id]
         characters_json = json.dumps(characters_dict)
         update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
         app.logger.debug(f"User {site_name} has moved their character to X:{message['new_left']}, Y:{message['new_top']}")
         emit('log_update', {'desc': f"{message['character_name']} moved"})
-    elif message['desc'] == "Initialize":
-        characters_dict = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-        json_character_to_add = { user_id: {"height": message['height'], "width": message['width'], "top": message['top'], "left": message['left']}}
-        characters_dict[user_id] = json_character_to_add[user_id]
-        characters_json = json.dumps(characters_dict)
-        update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
-        app.logger.debug(f"User {site_name} has added their character token to the battle map")
-    
-    # log to debugger the resize
+    # elif message['desc'] == "Initialize":
+    #     characters_dict = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    #     json_character_to_add = { user_id: {"site_name": message['site_name'], "character_name": message['character_name'], "room_id": message['room_id'], "height": message['height'], "width": message['width'], "top": message['top'], "left": message['left']}}
+    #     characters_dict[user_id] = json_character_to_add[user_id]
+    #     characters_json = json.dumps(characters_dict)
+    #     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
+    #     app.logger.debug(f"User {site_name} has added their character token to the battle map")
+
     updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])[user_id]
-    emit('character_icon_update', {'user_id': user_id, 'height': updated_character_icon_status['height'], 'width': updated_character_icon_status['width'], 'top':updated_character_icon_status['top'], 'left':updated_character_icon_status['left']}, room=room_id)
+    emit('character_icon_update', {'site_name': site_name, 'character_name': message['character_name'], 'character_image': message['character_image'], 'room_id': room_id, 'height': updated_character_icon_status['height'], 'width': updated_character_icon_status['width'], 'top':updated_character_icon_status['top'], 'left':updated_character_icon_status['left']})
+
+
+@socketio.on('character_icon_add_database', namespace='/combat')
+def character_icon_add_database(message):
+    # TODO: replace this with user-given character image rather than user image from google
+    character_image = current_user.get_profile_pic()
+    user_id = current_user.get_user_id()
+    site_name = current_user.get_site_name()
+    room_id = message['room_id']
+
+    characters_dict = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    json_character_to_add = { user_id: {"site_name": site_name, "character_name": message['character_name'], "room_id": room_id, "height": message['height'], "width": message['width'], "top": message['top'], "left": message['left']}}
+    characters_dict[user_id] = json_character_to_add[user_id]
+    characters_json = json.dumps(characters_dict)
+    update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
+    app.logger.debug(f"User {site_name} has added their character token to the battle map")
+
+    updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])[user_id]
+    emit('character_icon_update', {'site_name': site_name, 'character_name': message['character_name'], 'character_image': character_image, 'room_id': room_id, 'height': updated_character_icon_status['height'], 'width': updated_character_icon_status['width'], 'top':updated_character_icon_status['top'], 'left':updated_character_icon_status['left']})
+<<<<<<< Updated upstream
 
 @socketio.on('add_character', namespace='/combat')
 def add_character(message):
@@ -736,6 +763,8 @@ def add_character(message):
     emit('added_character', {'char_name': char_name})
     emit('initiative_update', {'character_name': char_name, 'init_val': init_val, 'site_name': site_name}, room=room_id)
     emit('add_character_icon', {'character_name': message['char_name'], 'character_image': character_image, 'user_id': user_id}, room=room_id)
+=======
+>>>>>>> Stashed changes
 
 
 
@@ -810,5 +839,18 @@ if __name__ != "__main__":
 # TODO: Rename script.js
 # TODO: change current_user.get_site_name() to current_user.get_username() or something of the like. get_site_name() is confusing
 # TODO: Check if a user is already logged in a different window when they attempt to login
+<<<<<<< Updated upstream
 
 # TODO: rename variable 'site_name' to something like 'user_site_name' because site_name is confusing
+=======
+>>>>>>> Stashed changes
+# TODO: Investigate potential issue where chat doesnt load when hopping into a room, and only loads when you send a new chat
+# TODO: have the page read from the database when it loads to find and place character tokens
+# TODO: rename variable 'site_name' to something like 'user_site_name' because site_name is confusing
+# TODO: store character icon image in database 
+# TODO: potentially clean up character icon_add_database. I feel like there is some inefficiency there
+<<<<<<< Updated upstream
+# TODO: Get stuff from MTF and mythic oddessy of pharoes 
+=======
+# TODO: Get stuff from MTF and mythic oddessy of pharoes 
+>>>>>>> Stashed changes
