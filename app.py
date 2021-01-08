@@ -380,7 +380,7 @@ def generate_room_id():
 @login_required
 def playy(room_id):
     user_id = current_user.get_user_id()
-    image_url = read_db("room_object", "map_url", f"WHERE active_room_id = '{room_id}'")[0][0]
+    image_url, map_owner = read_db("room_object", "map_url, user_key", f"WHERE active_room_id = '{room_id}'")[0]
     # if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'") and not read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
         # app.logger.debug(f"User {current_user.get_site_name()} is watching the room {room_id}")
         # return render_template("watch.html", async_mode=socketio.async_mode, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
@@ -388,7 +388,11 @@ def playy(room_id):
     characters = read_db("characters", "chr_name", f"WHERE user_key='{user_id}'")
 
     app.logger.debug(f"User {current_user.get_site_name()} has entered the room {room_id}")
-    return render_template("play.html", async_mode=socketio.async_mode, characters=characters, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+    if user_id == map_owner:
+        return render_template("play_dm.html", async_mode=socketio.async_mode, characters=characters, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+    else:
+        return render_template("play.html", async_mode=socketio.async_mode, characters=characters, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+
 
 
 # Gameplay Page
@@ -739,7 +743,6 @@ def character_icon_add_database(message):
 
     updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])[user_id]
     emit('character_icon_update', {'site_name': site_name, 'character_name': message['character_name'], 'character_image': character_image, 'room_id': room_id, 'height': updated_character_icon_status['height'], 'width': updated_character_icon_status['width'], 'top':updated_character_icon_status['top'], 'left':updated_character_icon_status['left']})
-<<<<<<< Updated upstream
 
 @socketio.on('add_character', namespace='/combat')
 def add_character(message):
@@ -763,8 +766,6 @@ def add_character(message):
     emit('added_character', {'char_name': char_name})
     emit('initiative_update', {'character_name': char_name, 'init_val': init_val, 'site_name': site_name}, room=room_id)
     emit('add_character_icon', {'character_name': message['char_name'], 'character_image': character_image, 'user_id': user_id}, room=room_id)
-=======
->>>>>>> Stashed changes
 
 
 
@@ -839,18 +840,10 @@ if __name__ != "__main__":
 # TODO: Rename script.js
 # TODO: change current_user.get_site_name() to current_user.get_username() or something of the like. get_site_name() is confusing
 # TODO: Check if a user is already logged in a different window when they attempt to login
-<<<<<<< Updated upstream
 
 # TODO: rename variable 'site_name' to something like 'user_site_name' because site_name is confusing
-=======
->>>>>>> Stashed changes
 # TODO: Investigate potential issue where chat doesnt load when hopping into a room, and only loads when you send a new chat
 # TODO: have the page read from the database when it loads to find and place character tokens
 # TODO: rename variable 'site_name' to something like 'user_site_name' because site_name is confusing
 # TODO: store character icon image in database 
 # TODO: potentially clean up character icon_add_database. I feel like there is some inefficiency there
-<<<<<<< Updated upstream
-# TODO: Get stuff from MTF and mythic oddessy of pharoes 
-=======
-# TODO: Get stuff from MTF and mythic oddessy of pharoes 
->>>>>>> Stashed changes

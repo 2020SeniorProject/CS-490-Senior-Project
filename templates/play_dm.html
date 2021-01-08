@@ -18,8 +18,8 @@
             <img id="battle_map" style="height:100%;width:100%;" draggable="false" src="{{ image_url }}">
         </div>
     </div>
-    <div class="col-2 border border-dark h-100">
-        <h4 class="text-center">DM Tools</h4>
+    <div class="col-2 border border-dark h-100" style="overflow:scroll;">
+        <h4 class="text-center">Log</h4>
         <form class=form id=start_battle>
             <input type="submit" class="btn btn-primary form-control" value="Start Battle!" id="start_battle_button">
         </form>
@@ -30,6 +30,7 @@
             <input type="submit" class="btn btn-warning form-control" value="End Session!" id="close_room_button">
         </form>
         <div id=checklist_div></div>
+        <div id="log"></div>
     </div>
 </div>
 <!-- <div class="fixed-bottom" style="height:20%;"> -->
@@ -37,9 +38,11 @@
         <div class="col-2 my-auto text-center">
             <div id="initiative-wrapper">
                 <form class="form" id=set_initiative>
-                    <input type=text id=player_name class="form-control" value="{{ char_name }}" disabled required>
+                    <select id=player_name class=form-control required>
+                        <option id=init_placeholder>Add a Character First!</option>
+                    </select>
                     <input type=number id=initiative_roll class="form-control" min=0 max=30 placeholder="Initiative" required>
-                    <input type=submit class="btn btn-primary form-control" value="Update Initiative" id=set_initiative_button>
+                    <input type=submit class="btn btn-primary form-control" value="Update Initiative" id=set_initiative_button disabled>
                 </form>
             </div>
 
@@ -65,8 +68,15 @@
             </form>
         </div>
         <div class="col-2 border border-dark h-100" style="overflow:scroll;">
-            <p class="text-center mb-0"><b>Log</b></p>
-            <div id="log"></div>
+            <p class="text-center mb-0"><b>Add a Character</b></p>
+            <form class="form" id=add_character>
+                <select id=character_name class=form-control required>
+                    {% for character in characters %}
+                    <option id="{{ character[0] }}-add-row">{{ character[0] }}</option>
+                    {% endfor %}
+                </select>
+                <input type=submit class="btn btn-primary form-control" value="Add Character" id=add_character_button>
+            </form>
         </div>
     </div>
 <!-- </div> -->
