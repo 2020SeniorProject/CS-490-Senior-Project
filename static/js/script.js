@@ -2,6 +2,11 @@
 
 
 $(document).ready(function() {
+  jQuery.browser = {
+    msie: false,
+    version: 0
+  };
+
   // Use a "/test" namespace.
   // An application can open a connection on multiple namespaces, and
   // Socket.IO will multiplex all those connections on a single
@@ -104,9 +109,9 @@ $(document).ready(function() {
     // socket.emit('join_actions', {room_id: room_id, character_name: $('#player_name').val() || ""});
     socket.emit('join_actions', {room_id: room_id, character_name: ""});
     // socket.emit('set_initiative', {character_name: $('#player_name').val() || "", init_val: $('#initiative_roll').val() || "", site_name: site_name, room_id: room_id});
-    socket.emit('join_actions', {room_id: room_id, character_name: $('#player_name').val() || ""});
-    socket.emit('set_initiative', {character_name: $('#player_name').val() || "", init_val: $('#initiative_roll').val() || "", site_name: site_name, room_id: room_id});
-    socket.emit('character_icon_add_database', {desc: "Initialize", character_name: $('#player_name').val() || "", height: '2em', width: '2em', top: '25px', left: '25px', room_id: room_id});
+    // socket.emit('join_actions', {room_id: room_id, character_name: $('#player_name').val() || ""});
+    // socket.emit('set_initiative', {character_name: $('#player_name').val() || "", init_val: $('#initiative_roll').val() || "", site_name: site_name, room_id: room_id});
+    // socket.emit('character_icon_add_database', {desc: "Initialize", character_name: $('#player_name').val() || "", height: '2em', width: '2em', top: '25px', left: '25px', room_id: room_id});
   });
 
   socket.on('log_update', function(msg) {
@@ -249,19 +254,29 @@ $(document).ready(function() {
     }
   });
 
-  // socket.on('add_character_icon', function(msg){
-  //   initial_height = "2em";
-  //   initial_width = "2em";
-  //   initial_top = "25px";
-  //   initial_left = "25px";
-  //   let character_icon_wrapper = build_html_for_character_icon(msg.character_name, msg.site_name, msg.character_image, initial_height, initial_width, initial_top, initial_left);
-  //   document.getElementById("battle_map_container").appendChild(character_icon_wrapper);
-  //   character_icons[msg.character_name + '_' + msg.site_name] = {'character_name': msg.character_name, 'site_name': msg.site_name, 'character_image': msg.character_image, 'height': initial_height, 'width': initial_width, 'top': initial_top, 'left': initial_left}
-  //   socket.emit('character_icon_update_database', {desc: "Initialize", character_image: msg.character_image, site_name: msg.site_name, character_name: msg.character_name, height: initial_height, width: initial_width, top: initial_top, left: initial_left, room_id: room_id});
-  // });
+  socket.on('add_character_icon', function(msg){
+    initial_height = "2em";
+    initial_width = "2em";
+    initial_top = "25px";
+    initial_left = "25px";
+    let character_icon_wrapper = build_html_for_character_icon(msg.character_name, msg.site_name, msg.character_image, initial_height, initial_width, initial_top, initial_left);
+    document.getElementById("battle_map_container").appendChild(character_icon_wrapper);
+    character_icons[msg.character_name + '_' + msg.site_name] = {'character_name': msg.character_name, 'site_name': msg.site_name, 'character_image': msg.character_image, 'height': initial_height, 'width': initial_width, 'top': initial_top, 'left': initial_left}
+    socket.emit('character_icon_add_database', {desc: "Initialize", character_image: msg.character_image, site_name: msg.site_name, character_name: msg.character_name, height: initial_height, width: initial_width, top: initial_top, left: initial_left, room_id: room_id});
+  });
 
   socket.on('character_icon_update', function(msg) {
+    console.log("character_icon_update")
+
     let character_id = msg.character_name + '_' + msg.site_name;
+    // This if statement is activated if there is no element with the id "#{character_id}"
+    // if (!$("#" + character_id).length) {
+    //   $("#" + character_id).remove();
+    //   $('#battle_map_container').append(build_html_for_character_icon(character_id, msg.character_image, msg.height, msg.width, msg.top, msg.left).outerHTML);
+    //   socket.emit('character_icon_add_database', {desc: "Initialize", character_image: msg.character_image, site_name: msg.site_name, character_name: msg.character_name, height: "2em", width: "2em", top: "25px", left: "25px", room_id: room_id});
+    //   return false;
+    // }
+
 
     let html_character_icons = [];
     character_icons[character_id] = {'character_name': msg.character_name, 'site_name': msg.site_name, 'character_image': msg.character_image, 'height': msg.height, 'width': msg.width, 'top': msg.top, 'left': msg.left};
@@ -282,14 +297,6 @@ $(document).ready(function() {
 
       i++;
 
-    }
-
-    // This if statement is activated if there is no element with the id "#{character_id}"
-    if (!$("#" + character_id).length) {
-      $("#" + character_id).remove();
-      $('#battle_map_container').append(build_html_for_character_icon(character_id, msg.character_image, msg.height, msg.width, msg.top, msg.left).outerHTML);
-      socket.emit('character_icon_update_database', {desc: "Initialize", character_image: msg.character_image, site_name: msg.site_name, character_name: msg.character_name, height: msg.height, width: msg.width, top: msg.top, left: msg.left, room_id: room_id});
-      
     }
 
  });
@@ -318,7 +325,8 @@ $(document).ready(function() {
     character_icon.setAttribute("id", "characterIcon");
     character_icon.setAttribute("class", "characterIcon resizable ui-resizable");
     character_icon.setAttribute("style", "position: static; height: " + height + "; width: " + width + "; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block; draggable: true;");
-    character_icon.setAttribute("src", character_image);
+    // Updating the src attribute causes the page to reload
+    // character_icon.setAttribute("src", character_image);
 
     character_icon_wrapper.appendChild(character_icon);
     return character_icon_wrapper;

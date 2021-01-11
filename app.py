@@ -379,6 +379,7 @@ def generate_room_id():
 @app.route("/play/<room_id>", methods=["GET", "POST"])
 @login_required
 def playy(room_id):
+    print(f"Room id: {room_id}")
     user_id = current_user.get_user_id()
     image_url, map_owner = read_db("room_object", "map_url, user_key", f"WHERE active_room_id = '{room_id}'")[0]
     # if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'") and not read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
@@ -679,7 +680,13 @@ def connect(message):
         # if not (map_status[item]['character_name'] == message['character_name'] and item == user_id):
         #     new_character_to_add_to_map
         #     emit('character_icon_update', {'character_name': map_status[item]['character_name'], 'character_image': character_image, 'site_name': map_status[item]['site_name'], 'room_id': room_id, 'height': map_status[item]['height'], 'width': map_status[item]['width'], 'top': map_status[item]['top'], 'left': map_status[item]['left']})
-        emit('character_icon_update', {'character_name': map_status[item]['character_name'], 'character_image': character_image, 'site_name': map_status[item]['site_name'], 'room_id': room_id, 'height': map_status[item]['height'], 'width': map_status[item]['width'], 'top': map_status[item]['top'], 'left': map_status[item]['left']})
+        print(map_status[item])
+        map_site_name = map_status[item]['site_name']
+        map_user_id = read_db("users", "user_id", f"WHERE site_name = '{map_site_name}'")[0][0]
+        map_character_name = map_status[item]['character_name']
+        print(map_user_id, map_character_name)
+        character_image = read_db("characters", "char_token", f"WHERE user_key = '{map_user_id}' AND chr_name = '{map_character_name}'")
+        emit('add_character_icon', {'character_name': map_character_name, 'character_image': character_image, 'site_name': map_site_name, 'room_id': room_id, 'height': map_status[item]['height'], 'width': map_status[item]['width'], 'top': map_status[item]['top'], 'left': map_status[item]['left']})
 
 
     if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'"):
@@ -693,9 +700,11 @@ def connect(message):
 # TODO: Fix bug where character tokens disappear after navigating away from page
 @socketio.on('character_icon_update_database', namespace='/combat')
 def character_icon_update_database(message):
+    print("character_icon_update_database")
     user_id = current_user.get_user_id()
     site_name = current_user.get_site_name()
     room_id = message['room_id']
+    print(room_id)
     
     # TODO: combine these to if branches into one
     if message['desc'] == "Resize":
@@ -722,12 +731,16 @@ def character_icon_update_database(message):
     #     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
     #     app.logger.debug(f"User {site_name} has added their character token to the battle map")
 
+    print("test")
     updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])[user_id]
+    # updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    # print(updated_character_icon_status)
     emit('character_icon_update', {'site_name': site_name, 'character_name': message['character_name'], 'character_image': message['character_image'], 'room_id': room_id, 'height': updated_character_icon_status['height'], 'width': updated_character_icon_status['width'], 'top':updated_character_icon_status['top'], 'left':updated_character_icon_status['left']})
 
 
 @socketio.on('character_icon_add_database', namespace='/combat')
 def character_icon_add_database(message):
+    print("character_icon_add_database")
     # TODO: replace this with user-given character image rather than user image from google
     character_image = current_user.get_profile_pic()
     user_id = current_user.get_user_id()
@@ -741,6 +754,7 @@ def character_icon_add_database(message):
     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
     app.logger.debug(f"User {site_name} has added their character token to the battle map")
 
+    print(json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0]))
     updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])[user_id]
     emit('character_icon_update', {'site_name': site_name, 'character_name': message['character_name'], 'character_image': character_image, 'room_id': room_id, 'height': updated_character_icon_status['height'], 'width': updated_character_icon_status['width'], 'top':updated_character_icon_status['top'], 'left':updated_character_icon_status['left']})
 
@@ -765,7 +779,7 @@ def add_character(message):
 
     emit('added_character', {'char_name': char_name})
     emit('initiative_update', {'character_name': char_name, 'init_val': init_val, 'site_name': site_name}, room=room_id)
-    emit('add_character_icon', {'character_name': message['char_name'], 'character_image': character_image, 'user_id': user_id}, room=room_id)
+    emit('add_character_icon', {'character_name': message['char_name'], 'site_name': site_name, 'character_image': character_image}, room=room_id)
 
 
 
