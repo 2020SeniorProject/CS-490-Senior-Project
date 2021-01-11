@@ -240,17 +240,21 @@ $(document).ready(function() {
   });
 
   socket.on('added_character', function(msg) {
-    var char_name = msg.char_name;
-    var id_char_name = char_name.split(" ").join("_") + "-init-update";
-    var old_char_name = char_name.split(" ").join("_") + "-add-row";
-    $('#init_placeholder').remove();
-    $('#player_name').append(`<option id=${id_char_name}>${char_name}</option>`);
-    $(`#${old_char_name}`).remove();
-    $('#set_initiative_button').prop('disabled', false);
+    console.log(msg['site_name']);
+    console.log(site_name);
+    if (msg['site_name'] == site_name) {
+      var char_name = msg.char_name;
+      var id_char_name = char_name.split(" ").join("_") + "-init-update";
+      var old_char_name = char_name.split(" ").join("_") + "-add-row";
+      $('#init_placeholder').remove();
+      $('#player_name').append(`<option id=${id_char_name}>${char_name}</option>`);
+      $(`#${old_char_name}`).remove();
+      $('#set_initiative_button').prop('disabled', false);
 
-    if ($('#character_name option').length == 0) {
-      $('#character_name').append("<option>All Characters are in the Battle!</option>");
-      $('#add_character_button').prop('disabled', true);
+      if ($('#character_name option').length == 0) {
+        $('#character_name').append("<option>All Characters are in the Battle!</option>");
+        $('#add_character_button').prop('disabled', true);
+      }
     }
   });
 
@@ -262,7 +266,9 @@ $(document).ready(function() {
     let character_icon_wrapper = build_html_for_character_icon(msg.character_name, msg.site_name, msg.character_image, initial_height, initial_width, initial_top, initial_left);
     document.getElementById("battle_map_container").appendChild(character_icon_wrapper);
     character_icons[msg.character_name + '_' + msg.site_name] = {'character_name': msg.character_name, 'site_name': msg.site_name, 'character_image': msg.character_image, 'height': initial_height, 'width': initial_width, 'top': initial_top, 'left': initial_left}
-    socket.emit('character_icon_add_database', {desc: "Initialize", character_image: msg.character_image, site_name: msg.site_name, character_name: msg.character_name, height: initial_height, width: initial_width, top: initial_top, left: initial_left, room_id: room_id});
+    if (msg.action != "NO") {
+      socket.emit('character_icon_add_database', {desc: "Initialize", character_image: msg.character_image, site_name: msg.site_name, character_name: msg.character_name, height: initial_height, width: initial_width, top: initial_top, left: initial_left, room_id: room_id});
+    }
   });
 
   socket.on('character_icon_update', function(msg) {

@@ -661,9 +661,9 @@ def connect(message):
 
     emit('log_update', {'desc': f"{site_name} Connected"}, room=room_id)
 
-    your_chars = read_db("active_room", "chr_name", f"WHERE user_key='{user_id}'")
+    your_chars = read_db("active_room", "chr_name", f"WHERE user_key='{user_id}' AND room_id='{room_id}'")
     for char in your_chars:
-        emit('added_character', {'char_name': char[0]})
+        emit('added_character', {'char_name': char[0], 'site_name': current_user.get_site_name()})
 
     for item in initiatives:
         site_name = read_db("users", "site_name", f"WHERE user_id = '{item[2]}'")[0][0]
@@ -686,8 +686,8 @@ def connect(message):
         map_character_name = map_status[item]['character_name']
         print(map_user_id, map_character_name)
         character_image = read_db("characters", "char_token", f"WHERE user_key = '{map_user_id}' AND chr_name = '{map_character_name}'")
-        emit('add_character_icon', {'character_name': map_character_name, 'character_image': character_image, 'site_name': map_site_name, 'room_id': room_id, 'height': map_status[item]['height'], 'width': map_status[item]['width'], 'top': map_status[item]['top'], 'left': map_status[item]['left']})
-
+        emit('add_character_icon', {'action': "NO", 'character_name': map_character_name, 'character_image': character_image, 'site_name': map_site_name, 'room_id': room_id, 'height': map_status[item]['height'], 'width': map_status[item]['width'], 'top': map_status[item]['top'], 'left': map_status[item]['left']})
+        emit('character_icon_update', {'site_name': map_site_name, 'character_name': map_character_name, 'character_image': character_image, 'room_id': room_id, 'height': map_status[item]['height'], 'width': map_status[item]['width'], 'top': map_status[item]['top'], 'left': map_status[item]['left']})
 
     if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'"):
         emit('log_update', {'desc': "Combat has already started; grabbing the latest information"})
@@ -735,7 +735,7 @@ def character_icon_update_database(message):
     updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])[user_id]
     # updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     # print(updated_character_icon_status)
-    emit('character_icon_update', {'site_name': site_name, 'character_name': message['character_name'], 'character_image': message['character_image'], 'room_id': room_id, 'height': updated_character_icon_status['height'], 'width': updated_character_icon_status['width'], 'top':updated_character_icon_status['top'], 'left':updated_character_icon_status['left']})
+    emit('character_icon_update', {'site_name': site_name, 'character_name': message['character_name'], 'character_image': message['character_image'], 'room_id': room_id, 'height': updated_character_icon_status['height'], 'width': updated_character_icon_status['width'], 'top':updated_character_icon_status['top'], 'left':updated_character_icon_status['left']}, room=room_id)
 
 
 @socketio.on('character_icon_add_database', namespace='/combat')
@@ -756,7 +756,7 @@ def character_icon_add_database(message):
 
     print(json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0]))
     updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])[user_id]
-    emit('character_icon_update', {'site_name': site_name, 'character_name': message['character_name'], 'character_image': character_image, 'room_id': room_id, 'height': updated_character_icon_status['height'], 'width': updated_character_icon_status['width'], 'top':updated_character_icon_status['top'], 'left':updated_character_icon_status['left']})
+    emit('character_icon_update', {'site_name': site_name, 'character_name': message['character_name'], 'character_image': character_image, 'room_id': room_id, 'height': updated_character_icon_status['height'], 'width': updated_character_icon_status['width'], 'top':updated_character_icon_status['top'], 'left':updated_character_icon_status['left']}, room=room_id)
 
 @socketio.on('add_character', namespace='/combat')
 def add_character(message):
@@ -777,7 +777,7 @@ def add_character(message):
     else:
         add_to_db("active_room", (room_id, user_id, char_name, 0, 0, character_image))
 
-    emit('added_character', {'char_name': char_name})
+    emit('added_character', {'char_name': char_name, 'site_name': site_name}, room=room_id)
     emit('initiative_update', {'character_name': char_name, 'init_val': init_val, 'site_name': site_name}, room=room_id)
     emit('add_character_icon', {'character_name': message['char_name'], 'site_name': site_name, 'character_image': character_image}, room=room_id)
 
