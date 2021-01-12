@@ -92,6 +92,7 @@ def client_1(mocker):
         yield client_1
     
     delete_from_db("users", "WHERE user_id = 'mocksterid'")
+    delete_from_db("room_object", "WHERE user_key = 'mocksterid'")
     delete_from_db("characters", "WHERE user_key = 'mocksterid'")
 
 
@@ -115,9 +116,13 @@ def test_login(client_1):
 
     home_view = client_1.get('/home', follow_redirects=True)
     characters_view = client_1.get('/characters')
+    settings_view = client_1.get('/user/settings')
+    play_entry_view = client_1.get("/play")
 
     assert b'Create a room' in home_view.data
     assert b'Create a Character' in characters_view.data
+    assert b'Update your username:' in settings_view.data
+    assert b'Enter an 8 character room id' in play_entry_view.data
 
 
 def test_character_create(client_1):
@@ -125,11 +130,22 @@ def test_character_create(client_1):
     # signed_token = request.form['csrf_token']
     # print(char_create_view.data)
     # print(signed_token)
-    data = {"name":"Yanko", "race":"Lizardfolk", "subrace":"Lizardfolk", "speed":20, "classname":"Ranger", 
+    yanko_data = {"name":"Yanko", "race":"Lizardfolk", "subrace":"Lizardfolk", "speed":20, "classname":"Ranger", 
     "subclass":"Hunter", "level":20, "strength":12, "dexterity":18, "constitution":16, "intelligence":12, 
     "wisdom":18, "charisma":8, "hitpoints": 77, "char_token":"lizardboi.jpg", "csrf_token":client_1.csrf_token}
-    char_create = client_1.post("/characters/create", data=data, follow_redirects = True)
+    char_create = client_1.post("/characters/create", data=yanko_data, follow_redirects = True)
     
+    fuyuki_data = {"name":"fuyuki", "race":"Lizardfolk", "subrace":"Lizardfolk", "speed":20, "classname":"Ranger", 
+    "subclass":"Hunter", "level":20, "strength":12, "dexterity":18, "constitution":16, 
+    "wisdom":18, "charisma":8, "hitpoints": 77, "char_token":"lizardboi.jpg", "csrf_token":client_1.csrf_token}
+
+    failed_char_create = client_1.post("/characters/create", data=fuyuki_data, follow_redirects= True)
+
     assert b'Yanko' in char_create.data
+    assert b'intelligence: Please input int!' in failed_char_create.data
+
+
+# def test_room_create(client_1):
+
 
 
