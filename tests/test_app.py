@@ -9,6 +9,8 @@ from flask_wtf.csrf import generate_csrf
 from requests import get, post, request
 
 # python library imports
+import toml
+import pathlib
 import os, sys
 import tempfile
 from unittest import mock
@@ -18,7 +20,7 @@ from unittest import mock
 # Internal imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from app import app, socketio
-from db import create_dbs, add_to_db, delete_from_db
+from db import create_dbs, add_to_db, delete_from_db, read_db
 import wtforms.csrf 
 from classes import User
 
@@ -28,6 +30,15 @@ from classes import User
 #  I RECOMMEND USING THE COMMAND 
 #  python3 -m pytest tests/test_app.py -W ignore::DeprecationWarning
 #  
+
+
+def get_cases(category: str):
+    with open(pathlib.Path(__file__).with_suffix(".toml")) as f:
+        all_cases = toml.load(f)
+        for case in all_cases[category]:
+            yield (case.get("fields"), case.get("inputs"), case.get("expected"))
+
+
 
 class RequestShim(object):
     """
@@ -132,26 +143,28 @@ def test_login(client_1):
 # Testing character creation
 # Utilizing our fake( but authenticated !)user, we check to make sure character creation works as expected
 # ex. throws correct errors, redirects to the proper pages 
-def test_character_create(client_1):
+@pytest.mark.parametrize("fields, inputs, expected", get_cases("character_creation"))
+def test_character_create(client_1, fields, inputs, expected):
     # This line sets up the app context... Don't ask me why it is needed...
     char_create_view = client_1.get("/characters/create")
 
-    yanko_data = {"name":"Yanko", "race":"Lizardfolk", "subrace":"Lizardfolk", "speed":20, "classname":"Ranger", 
-    "subclass":"Hunter", "level":20, "strength":12, "dexterity":18, "constitution":16, "intelligence":12, 
-    "wisdom":18, "charisma":8, "hitpoints": 77, "char_token":"lizardboi.jpg", "csrf_token":client_1.csrf_token}
-    char_create = client_1.post("/characters/create", data=yanko_data, follow_redirects = True)
-    
-    fuyuki_data = {"name":"fuyuki", "race":"Lizardfolk", "subrace":"Lizardfolk", "speed":20, "classname":"Ranger", 
-    "subclass":"Hunter", "level":20, "strength":12, "dexterity":18, "constitution":16, 
-    "wisdom":18, "charisma":8, "hitpoints": 77, "char_token":"lizardboi.jpg", "csrf_token":client_1.csrf_token}
+    valid_inputs = []
+    for items in inputs:
+        try:
+            valid_inputs.append(int(items))
+        except:
+            valid_inputs.append(items)
 
-    failed_char_create = client_1.post("/characters/create", data=fuyuki_data, follow_redirects= True)
+    data = {fields[x]:valid_inputs[x] for x in range(len(fields))}
+    data["csrf_token"] = client_1.csrf_token
 
-    assert b'Yanko' in char_create.data
-    assert b'intelligence: Please input int!' in failed_char_create.data
+    character_create_attempt = client_1.post("/characters/create", data = data, follow_redirects=True)
+    print(read_db("characters", "*", "WHERE user_key = 'mocksterid' and chr_name = 'Yanko'"))
+    assert bytes(expected,'utf-8') in character_create_attempt.data
 
 
 # def test_room_create(client_1):
+
 
 
 

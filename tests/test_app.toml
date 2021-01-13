@@ -1,0 +1,34 @@
+[meta]
+author = "2020SeniorProject"
+date = 2020
+title = "Application testing cases"
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'Yanko'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname",  "subclass", "level", "strength", "intelligence", "constitution", "wisdom", "charisma", "hitpoints"]
+inputs = ["Fuyuki", "Tiefling", "Tiefling", "20", "Fighter", "Eldritch Knight", "20", "20", "20", "12", "13", "2", "12"]
+expected = 'dexterity: Please input dex!'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname",  "subclass", "level", "strength", "dexterity", "constitution", "wisdom", "charisma", "hitpoints"]
+inputs = ["Fuyuki", "Tiefling", "Tiefling", "20", "Fighter", "Eldritch Knight", "20", "20", "20", "12", "13", "2", "12"]
+expected = 'intelligence: Please input int!'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname",  "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "charisma", "hitpoints"]
+inputs = ["Fuyuki", "Tiefling", "Tiefling", "20", "Fighter", "Eldritch Knight", "20", "20", "20", "12", "13", "2", "12"]
+expected = 'wisdom: Please input wis!'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "imgonnahackyouass.com"]
+expected = 'char_token: Character token must be an image'
