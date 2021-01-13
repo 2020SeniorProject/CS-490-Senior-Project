@@ -112,6 +112,9 @@ def test_invalid_user(client_2):
 
 
 # Testing Authenticated User Login
+# Client  accesses the application with an authenticated user and thus is logged in
+# This test ensures that the pages accessed by a basic user just entering the site without any 
+# input data other than their user name 
 def test_login(client_1):
 
     home_view = client_1.get('/home', follow_redirects=True)
@@ -125,11 +128,14 @@ def test_login(client_1):
     assert b'Enter an 8 character room id' in play_entry_view.data
 
 
+
+# Testing character creation
+# Utilizing our fake( but authenticated !)user, we check to make sure character creation works as expected
+# ex. throws correct errors, redirects to the proper pages 
 def test_character_create(client_1):
+    # This line sets up the app context... Don't ask me why it is needed...
     char_create_view = client_1.get("/characters/create")
-    # signed_token = request.form['csrf_token']
-    # print(char_create_view.data)
-    # print(signed_token)
+
     yanko_data = {"name":"Yanko", "race":"Lizardfolk", "subrace":"Lizardfolk", "speed":20, "classname":"Ranger", 
     "subclass":"Hunter", "level":20, "strength":12, "dexterity":18, "constitution":16, "intelligence":12, 
     "wisdom":18, "charisma":8, "hitpoints": 77, "char_token":"lizardboi.jpg", "csrf_token":client_1.csrf_token}
