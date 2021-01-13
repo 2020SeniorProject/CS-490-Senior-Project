@@ -169,11 +169,8 @@ def test_room_create(client_1, fields, inputs, expected):
     data = {fields[x]:inputs[x] for x in range(len(fields))}
     data["csrf_token"] = client_1.csrf_token
 
-    assert bytes(expected, 'utf-8') not in client_1.get("/home").data
-    assert b"Looks like you don't have any encounters" client_1.get("/home").data
     create_room_attempt = client_1.post("/room/create", data = data, follow_redirects= True)
 
-    
     assert bytes(expected, 'utf-8') in create_room_attempt.data
 
 

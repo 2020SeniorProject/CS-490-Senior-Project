@@ -94,7 +94,7 @@ expected = 'charisma: Please input charisma'
 [[character_creation]]
 
 fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
-inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "imgonnahackyouass.com"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "imgonnahackyou.com"]
 expected = 'char_token: Character token must be an image'
 
 [[room_creation]]
@@ -102,4 +102,22 @@ expected = 'char_token: Character token must be an image'
 fields = ["room_name", "map_url", "dm_notes"]
 inputs = ["Dungeon Battle", "this_is_sweet_map.jpg", "This is going to be an intense batle"]
 expected = 'Dungeon Battle'
+
+[[room_creation]]
+
+fields = ["room_name", "map_url", "dm_notes"]
+inputs = ["Dungeon Battle", "notaphish.net", "This is going to be an intense batle"]
+expected = 'map_url: Image must be a valid URL'
+
+[[room_creation]]
+
+fields = ["room_name", "map_url", "dm_notes"]
+inputs = ["Dungeon Battle", "https://www.luther.edu", "This is going to be an intense batle"]
+expected = 'map_url: Encounter map must be an image'
+
+[[room_creation]]
+
+fields = ["map_url"]
+inputs = ["this_is_sweet_map.jpg"]
+expected = 'room_name: Please input the name of your room'
 
