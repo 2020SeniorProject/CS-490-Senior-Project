@@ -140,7 +140,7 @@ def test_login(client_1):
 
 
 
-# Testing character creation
+# Testing character and room creation
 # Utilizing our fake( but authenticated !)user, we check to make sure character creation works as expected
 # ex. throws correct errors, redirects to the proper pages 
 @pytest.mark.parametrize("fields, inputs, expected", get_cases("character_creation"))
@@ -159,11 +159,26 @@ def test_character_create(client_1, fields, inputs, expected):
     data["csrf_token"] = client_1.csrf_token
 
     character_create_attempt = client_1.post("/characters/create", data = data, follow_redirects=True)
-    print(read_db("characters", "*", "WHERE user_key = 'mocksterid' and chr_name = 'Yanko'"))
     assert bytes(expected,'utf-8') in character_create_attempt.data
 
 
-# def test_room_create(client_1):
+@pytest.mark.parametrize("fields, inputs, expected", get_cases("room_creation"))
+def test_room_create(client_1, fields, inputs, expected):
+    rooms_view = client_1.get("/room/create")
+
+    data = {fields[x]:inputs[x] for x in range(len(fields))}
+    data["csrf_token"] = client_1.csrf_token
+
+    assert bytes(expected, 'utf-8') not in client_1.get("/home").data
+    assert b"Looks like you don't have any encounters" client_1.get("/home").data
+    create_room_attempt = client_1.post("/room/create", data = data, follow_redirects= True)
+
+    
+    assert bytes(expected, 'utf-8') in create_room_attempt.data
+
+
+
+
 
 
 

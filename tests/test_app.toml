@@ -5,30 +5,101 @@ title = "Application testing cases"
 
 [[character_creation]]
 
-fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
-inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+fields = ["name", "race", "subrace", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
 expected = 'Yanko'
+
+[[character_creation]]
+
+fields = ["subrace", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "20", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'name: Please Input Name'
+
+
+
+[[character_creation]]
+
+fields = ["name", "subrace", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "20", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'race: Please choose a race'
+
+
+[[character_creation]]
+
+fields = ["name", "race", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "20", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'subrace: Please choose a subrace'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'speed: Please input Speed'
+
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'classname: Please choose class'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'subclass: Please choose subclass'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'level: Please input level'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'strength: Please input strength'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'constitution: Please input cons'
 
 [[character_creation]]
 
 fields = ["name", "race", "subrace", "speed", "classname",  "subclass", "level", "strength", "intelligence", "constitution", "wisdom", "charisma", "hitpoints"]
 inputs = ["Fuyuki", "Tiefling", "Tiefling", "20", "Fighter", "Eldritch Knight", "20", "20", "20", "12", "13", "2", "12"]
-expected = 'dexterity: Please input dex!'
+expected = 'dexterity: Please input dex'
 
 [[character_creation]]
 
 fields = ["name", "race", "subrace", "speed", "classname",  "subclass", "level", "strength", "dexterity", "constitution", "wisdom", "charisma", "hitpoints"]
 inputs = ["Fuyuki", "Tiefling", "Tiefling", "20", "Fighter", "Eldritch Knight", "20", "20", "20", "12", "13", "2", "12"]
-expected = 'intelligence: Please input int!'
+expected = 'intelligence: Please input int'
 
 [[character_creation]]
 
 fields = ["name", "race", "subrace", "speed", "classname",  "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "charisma", "hitpoints"]
 inputs = ["Fuyuki", "Tiefling", "Tiefling", "20", "Fighter", "Eldritch Knight", "20", "20", "20", "12", "13", "2", "12"]
-expected = 'wisdom: Please input wis!'
+expected = 'wisdom: Please input wis'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "77", "lizardboi.jpg"]
+expected = 'charisma: Please input charisma'
 
 [[character_creation]]
 
 fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
 inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "imgonnahackyouass.com"]
 expected = 'char_token: Character token must be an image'
+
+[[room_creation]]
+
+fields = ["room_name", "map_url", "dm_notes"]
+inputs = ["Dungeon Battle", "this_is_sweet_map.jpg", "This is going to be an intense batle"]
+expected = 'Dungeon Battle'
+
