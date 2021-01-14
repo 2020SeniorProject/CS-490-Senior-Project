@@ -107,18 +107,36 @@ def client_1(mocker):
     delete_from_db("characters", "WHERE user_key = 'mocksterid'")
 
 
+@pytest.fixture
+def client_2(mocker):
+    app.config['TESTING'] = True
+    app.test_client_class = FlaskClient
+    with app.test_client() as client_2:
+        create_dbs()
+        mocker.patch("flask_login.utils._get_user", return_value = User("paulinaMock21", "Paulina Mock", "mail", "mock.jpg", "mrsmock69"))
+        add_to_db("users", ("paulinaMock21", "Paulina Mock", "mail", "mock.jpg", "mrsmock69"))
+        add_to_db("characters", ["paulinaMock21" ,"Yanko", "Lizardfolk", "Lizardfolk", 20, "Ranger", "Hunter", 20, 12, 18, 16, 12, 18, 8, 77, "lizardboi.jpg"])
+        yield client_2
+    
+    delete_from_db("users", "WHERE user_id = 'paulinaMock21'")
+    delete_from_db("room_object", "WHERE user_key = 'paulinaMock21'")
+    delete_from_db("characters", "WHERE user_key = 'paulinaMock21'")
+
+
+
+
 # Testing client without authenticated user
 @pytest.fixture
-def client_2():
+def client_3():
     app.config['TESTING'] = True
-    with app.test_client() as client_2:
-        yield client_2
+    with app.test_client() as client_3:
+        yield client_3
 
 
 # Testing client 
-def test_invalid_user(client_2):
+def test_invalid_user(client_3):
 
-    login_view = client_2.get('/home', follow_redirects=True)
+    login_view = client_3.get('/home', follow_redirects=True)
     assert b'Welcome to' in login_view.data
 
 
@@ -182,13 +200,24 @@ def test_site_name_change(client_1, fields, inputs, expected):
     data["csrf_token"] = client_1.csrf_token
 
     update_site_name_attempt = client_1.post("/user/settings", data = data, follow_redirects= True)
-    nextpg = client_1.get("/home")
     assert bytes(expected, 'utf-8') in update_site_name_attempt.data
 
 
+def test_edit_character(client_2):
+
+    character_edit_view = client_2.get("/characters/edit/Yanko")
+    assert b'Yanko' in character_edit_view.data
+    print(character_edit_view.data)
+    data = {"name":"Yanko", "race":"Centaur", "subrace":"Centaur", "speed":20, "classname":"Ranger", "subclass":"Hunter", "level":20, "strength":12, "dexterity":12, "constitution":12, "intelligence":12, "wisdom":12, "charisma":12, "hitpoints":77,"csrf_token":client_2.csrf_token}
+    # edit_char = client_2.post("/characters/edit/Yanko", data=data, follow_redirects=True)
+    # print(edit_char.headers)
+    # assert b'Fukuyki' in edit_char.data
 
 
+def test_delete_character(client_2):
+    characters_view = client_2.get("/characters")
 
+    data = {"character_name":"Yanko", "csrf_token":client_2.csrf_token}
+    del_char = client_2.post("/characters", data=data, follow_redirects=True )
 
-
-
+    assert b'Yanko' not in del_char.data

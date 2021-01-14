@@ -5,8 +5,8 @@ title = "Application testing cases"
 
 [[character_creation]]
 
-fields = ["name", "race", "subrace", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
-inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
 expected = 'Yanko'
 
 [[character_creation]]
