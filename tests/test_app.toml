@@ -121,3 +121,21 @@ fields = ["map_url"]
 inputs = ["this_is_sweet_map.jpg"]
 expected = 'room_name: Please input the name of your room'
 
+#Problem: This test cannot be done with the current way I'm handling users
+# This form should alter user data but can't alter the user data given to the test client and therefore becomes problematic
+# [[site_name]]
+#fields = ["site_name"]
+#inputs = ["mockman69"]
+#expected = "mockman69"
+
+[[site_name]]
+fields = ["site_name"]
+inputs =["*"]
+expected = "site_name: Only alphanumeric characters are allowed"
+
+[[site_name]]
+# Operates under assumption that Charnk98 is in the DB
+fields = ["site_name"]
+inputs = ["Charnk98"]
+expected = "That username is already in use"
+

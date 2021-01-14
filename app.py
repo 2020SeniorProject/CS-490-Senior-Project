@@ -160,7 +160,7 @@ def process_room_form(form, user_id):
 #     current_time = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
 #     benchmarktime = current_time - datetime.timedelta(hours=24)
 #     open_rooms_past_due = read_db("log", "DISTINCT room_id", f"WHERE timestamp > {benchmarktime} ORDER BY timestamp")
-#     for room_id in open_rooms_timestamps:
+#     for room_id in open_rooms_past_due:
 #         delete_from_db("active_room", f"WHERE room_id = '{room_id[0]}'")
 #         delete_from_db("chat", f"WHERE room_id = '{room_id[0]}'")
 #         delete_from_db("log", f"WHERE room_id = '{room_id[0]}'")

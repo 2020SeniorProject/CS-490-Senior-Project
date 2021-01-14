@@ -174,6 +174,18 @@ def test_room_create(client_1, fields, inputs, expected):
     assert bytes(expected, 'utf-8') in create_room_attempt.data
 
 
+@pytest.mark.parametrize("fields, inputs, expected", get_cases("site_name"))
+def test_site_name_change(client_1, fields, inputs, expected):
+    settings_view = client_1.get("/user/settings")
+
+    data = {fields[0]:inputs[0]}
+    data["csrf_token"] = client_1.csrf_token
+
+    update_site_name_attempt = client_1.post("/user/settings", data = data, follow_redirects= True)
+    nextpg = client_1.get("/home")
+    assert bytes(expected, 'utf-8') in update_site_name_attempt.data
+
+
 
 
 
