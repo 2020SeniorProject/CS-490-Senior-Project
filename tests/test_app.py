@@ -96,12 +96,14 @@ class FlaskClient(BaseFlaskClient):
 def client_1(mocker):
     app.config['TESTING'] = True
     app.test_client_class = FlaskClient
+    add_to_db("users", ("6969testingCharnky", "Charles", "treach01@luther.edu", "mock.jpg", "Charnk98"))
     with app.test_client() as client_1:
         create_dbs()
         mocker.patch("flask_login.utils._get_user", return_value = User("mocksterid", "john Mock", "mail", "mock.jpg", "mrMock420"))
         add_to_db("users", ("mocksterid", "john Mock", "mail", "mock.jpg", "mrMock420"))
         yield client_1
     
+    delete_from_db("users", "WHERE site_name = 'Charnk98'")
     delete_from_db("users", "WHERE user_id = 'mocksterid'")
     delete_from_db("room_object", "WHERE user_key = 'mocksterid'")
     delete_from_db("characters", "WHERE user_key = 'mocksterid'")
@@ -202,16 +204,22 @@ def test_site_name_change(client_1, fields, inputs, expected):
     update_site_name_attempt = client_1.post("/user/settings", data = data, follow_redirects= True)
     assert bytes(expected, 'utf-8') in update_site_name_attempt.data
 
+@pytest.mark.parametrize("fields, inputs, expected", get_cases("edit_char"))
+def test_edit_character(client_2, inputs, fields, expected):
 
-def test_edit_character(client_2):
+    character_edit_view = client_2.get(f"/characters/edit/{inputs[14]}")
+    
+    valid_inputs = []
+    for items in inputs:
+        try:
+            valid_inputs.append(int(items))
+        except:
+            valid_inputs.append(items)
+    data = {fields[x]:inputs[x] for x in range(len(fields))}
+    data["csrf_token"] = client_2.csrf_token
+    edit_char = client_2.post(f"/characters/edit/{inputs[14]}", data=data, follow_redirects=True)
 
-    character_edit_view = client_2.get("/characters/edit/Yanko")
-    assert b'Yanko' in character_edit_view.data
-    print(character_edit_view.data)
-    data = {"name":"Yanko", "race":"Centaur", "subrace":"Centaur", "speed":20, "classname":"Ranger", "subclass":"Hunter", "level":20, "strength":12, "dexterity":12, "constitution":12, "intelligence":12, "wisdom":12, "charisma":12, "hitpoints":77,"csrf_token":client_2.csrf_token}
-    # edit_char = client_2.post("/characters/edit/Yanko", data=data, follow_redirects=True)
-    # print(edit_char.headers)
-    # assert b'Fukuyki' in edit_char.data
+    assert bytes(expected, 'utf-8') in edit_char.data
 
 
 def test_delete_character(client_2):

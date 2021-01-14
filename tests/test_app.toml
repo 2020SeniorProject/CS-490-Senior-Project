@@ -139,3 +139,21 @@ fields = ["site_name"]
 inputs = ["Charnk98"]
 expected = "That username is already in use"
 
+[[edit_char]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints", "old_name", "old_race", "old_subrace", "old_class", "old_subclass"]
+inputs = ["Ibrov", "Centaur", "Centaur", "20", "Ranger", "Hunter", "20", "12", "12", "12", "12", "12", "12", "77", "Yanko", "Lizardfolk", "Lizardfolk", "Ranger", "Hunter"]
+expected = "Ibrov"
+
+[[edit_char]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints", "old_name", "old_race", "old_subrace", "old_class", "old_subclass"]
+inputs = ["Yanko", "Elf", "High Elf", "20", "Ranger", "Hunter", "20", "12", "12", "12", "12", "12", "12", "77", "Yanko", "Lizardfolk", "Lizardfolk", "Ranger", "Hunter"]
+expected = "Elf"
+
+[[edit_char]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints", "old_name", "old_race", "old_subrace", "old_class", "old_subclass"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "30", "Ranger", "Hunter", "20", "12", "12", "12", "12", "12", "12", "77", "Yanko", "Lizardfolk", "Lizardfolk", "Ranger", "Hunter"]
+expected = "30"
+
