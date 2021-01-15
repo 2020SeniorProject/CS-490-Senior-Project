@@ -25,6 +25,12 @@ from db import create_dbs, add_to_db, read_db, delete_from_db, update_db, build_
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
+global spam_timeout # in seconds
+spam_timeout = 10 
+global spam_penalty # in seconds
+spam_penalty = 30
+global spam_max_messages
+spam_max_messages = 5
 
 # Google OAuth configurations
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
@@ -75,6 +81,7 @@ def load_user(user_id):
         return None
     return User(id_=db_response[0][0], name=db_response[0][1], email=db_response[0][2], profile_pic=db_response[0][3], site_name=db_response[0][4])
 
+
 @login_manager.unauthorized_handler
 def sent_to_login():
     return redirect(url_for("login_index"))
@@ -87,6 +94,7 @@ def readify_form_errors(form):
         errs_lis += [err_mes]
 
     return errs_lis
+
 
 def process_character_form(form, user_id, usage, route="/characters/create"):
     if form.validate():
@@ -138,6 +146,7 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
         app.logger.warning(f"Character user {current_user.get_site_name()} attempted to add had errors. Reloading Add Character page to allow them to fix the errors.")
         return render_template("add_character.html", errors=err_lis, action="/play/choose", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data,  char_token=form.char_token.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
+
 def process_room_form(form, user_id):
     if form.validate():
         values = (user_id, form.room_name.data, "null", '{}', form.map_url.data, form.dm_notes.data)
@@ -150,6 +159,50 @@ def process_room_form(form, user_id):
     app.logger.debug(f"The room {current_user.get_site_name()} was attempting to create had some errors. Sending back to creation page to fix errors.")
 
     return render_template("add_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name() )
+
+
+def determine_if_user_spamming(chats):
+    max_messages = spam_max_messages
+    timeframe = spam_timeout
+    now = datetime.datetime.now()
+    total_messages_user_sent= 0
+    chats.reverse()
+    for message in chats:
+        message_time = datetime.datetime.fromisoformat(message[1])
+        if ((now - message_time).total_seconds()) < timeframe:
+            total_messages_user_sent += 1
+        else:
+            break
+    if total_messages_user_sent > max_messages:
+        return True
+    return False
+
+
+def character_icon_add_database(character_name, site_name, character_image, user_id, room_id):
+    initial_height = "2em"
+    initial_width = "2em"
+    initial_top = "25px"
+    initial_left = "25px"
+
+    # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    
+    # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
+    wrong_room = []
+    for i in walla_walla:
+        if walla_walla[i]['room_id'] != room_id:
+            wrong_room.append(i)
+    for i in wrong_room:
+        del walla_walla[i]
+
+    json_character_to_add = { user_id: {"site_name": site_name, "character_name": character_name, "room_id": room_id, "character_image": character_image, "height": initial_height, "width": initial_width, "top": initial_top, "left": initial_left}}
+    walla_walla[user_id] = json_character_to_add[user_id]
+    map_status_json = json.dumps(walla_walla)
+    update_db("room_object", f"map_status = '{map_status_json}'", f"WHERE active_room_id = '{room_id}'")
+
+    updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    emit('redraw_character_tokens_on_map', updated_character_icon_status, room=room_id)
+
 
 # COMMENTED UNTIL PRODUCTION 
 # #Clears Chat, Log, Active rooms 
@@ -548,12 +601,23 @@ def send_chat(message):
     user_id = current_user.get_user_id()
     chr_name = message['character_name']
     room_id = message['room_id']
+    site_name = current_user.get_site_name()
     app.logger.debug(f"Battle update: {chr_name} has sent chat {message['chat']} in room {room_id}")
 
-    add_to_db("chat",(room_id, user_id, chr_name, message['chat'], time_rcvd))
-    add_to_db("log", (room_id, user_id, "Chat", message['character_name'], time_rcvd))
+    chats = read_db("chat", "user_key, timestamp", f"WHERE room_id = '{room_id}' and user_key = '{user_id}'")
 
-    emit('chat_update', {'chat': message['chat'], 'character_name': message['character_name']}, room=room_id)
+    if determine_if_user_spamming(chats):
+        emit("lockout_spammer", {'message': f"Sorry, you can only send {spam_max_messages} messages per {spam_timeout} seconds. Try again in {spam_penalty} seconds.", 'spam_penalty': spam_penalty})
+        emit('log_update', {'desc': f"{site_name} was spamming the chat. They have been disabled for {spam_penalty} seconds"}, room=room_id)
+        add_to_db("log", (room_id, user_id, "Spam", f"{site_name} was spamming the chat. They have been disabled for {spam_penalty} seconds", time_rcvd))
+        app.logger.debug(f"{site_name} was spamming the chat. They have been disabled for {spam_penalty} seconds")
+
+
+    else:
+        add_to_db("chat",(room_id, user_id, chr_name, message['chat'], time_rcvd))
+        add_to_db("log", (room_id, user_id, "Chat", message['character_name'], time_rcvd))
+
+        emit('chat_update', {'chat': message['chat'], 'character_name': message['character_name']}, room=room_id)
 
 
 # TODO: allow characters to select who goes first when initiatives tied
@@ -603,7 +667,6 @@ def end_session(message):
     close_room(room_id)
 
 
-# TODO: Integrate character movement with turn taking
 @socketio.on('end_turn', namespace='/combat')
 def end_turn(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
@@ -729,7 +792,7 @@ def character_icon_update_database(message):
         new_height = message['new_height']
         
 
-
+    # TODO: Add check here to make sure that the token you're trying to move is your own and not someone elses. Check the user_id from user_id = character in the loop above against current_user.get_site_name(). Add exception for if you are the DM
     json_character_to_update = { user_id: {"site_name": message['site_name'], "character_name": message['character_name'], "room_id": message['room_id'], "character_image": message['character_image'], "height": new_height, "width": new_width, "top": new_top, "left": new_left}}
     walla_walla[user_id] = json_character_to_update[user_id]
     characters_json = json.dumps(walla_walla)
@@ -742,32 +805,6 @@ def character_icon_update_database(message):
         emit('log_update', {'desc': f"{message['character_name']} moved"})
 
     emit('redraw_character_tokens_on_map', walla_walla, room=room_id)
-
-
-def character_icon_add_database(character_name, site_name, character_image, user_id, room_id):
-    initial_height = "2em"
-    initial_width = "2em"
-    initial_top = "25px"
-    initial_left = "25px"
-
-    # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    
-    # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
-    wrong_room = []
-    for i in walla_walla:
-        if walla_walla[i]['room_id'] != room_id:
-            wrong_room.append(i)
-    for i in wrong_room:
-        del walla_walla[i]
-
-    json_character_to_add = { user_id: {"site_name": site_name, "character_name": character_name, "room_id": room_id, "character_image": character_image, "height": initial_height, "width": initial_width, "top": initial_top, "left": initial_left}}
-    walla_walla[user_id] = json_character_to_add[user_id]
-    map_status_json = json.dumps(walla_walla)
-    update_db("room_object", f"map_status = '{map_status_json}'", f"WHERE active_room_id = '{room_id}'")
-
-    updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    emit('redraw_character_tokens_on_map', updated_character_icon_status, room=room_id)
 
 
 @socketio.on('add_character', namespace='/combat')

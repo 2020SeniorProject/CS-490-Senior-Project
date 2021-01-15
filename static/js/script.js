@@ -107,7 +107,6 @@ $(document).ready(function() {
 
   socket.on('joined', function(msg) {
     socket.emit('join_actions', {room_id: room_id, character_name: ""});
-    // socket.emit('join_actions', {room_id: room_id, character_name: $('#player_name').val() || ""});
   });
 
   socket.on('log_update', function(msg) {
@@ -140,6 +139,16 @@ $(document).ready(function() {
 
   socket.on('chat_update', function(msg) {
     $('#chat-list').append($('<div/>').text(`${msg.character_name}: ${msg.chat}`).html() + '<br>');
+  });
+
+  socket.on('lockout_spammer', function(msg) {
+    $('#send_chat_button').prop('disabled', true);
+    $('#chat_text').val(msg.message);
+    let timeout =  msg.spam_penalty * 1000;
+    setTimeout(function() {
+      $('#send_chat_button').prop('disabled', false);
+      $('#chat_text').val('');
+    }, timeout);
   });
 
   socket.on('combat_started', function(msg) {
@@ -237,7 +246,7 @@ $(document).ready(function() {
   });
 
   socket.on('populate_select_with_character_names', function(msg) {
-    if (msg['site_name'] == site_name) {
+    if (msg.site_name == site_name) {
       let character_name = msg.character_name;
       let id_character_name = character_name.split(" ").join("_") + "-init-update";
       let old_character_name = character_name.split(" ").join("_") + "-add-row";
@@ -321,6 +330,23 @@ function compareSecondColumn(a, b) {
   //https://stackoverflow.com/questions/16096872/how-to-sort-2-dimensional-array-by-column-value
 }
 
+
+function scrapeCharacterImage(partially_sliced_character_image) {
+  let equal_images = (partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf('"')) === partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf("\"")));
+  if (! equal_images) {
+    if (partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf('"')).length() < partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf("\"")).length()){
+      let character_image = partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf('"'));
+      return character_image;
+    }
+  }
+  else {
+    let character_image = partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf("\""));
+    return character_image;
+  }
+  return "https://upload.wikimedia.org/wikipedia/commons/6/6a/Broken-image-389560.svg";
+}
+
+
 function reloadDraggable(socket){
   $(".draggable").draggable({
     containment: 'parent',
@@ -342,14 +368,7 @@ function reloadDroppable(socket, room_id){
       let site_name = ui.draggable[0].id.split("_")[1];
       let character_name = ui.draggable[0].id.split("_")[0];
       let partially_sliced_character_image = ui.draggable[0].innerHTML.substring(ui.draggable[0].innerHTML.indexOf("src") + 5);
-      if (!(partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf('"')) === partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf("\"")))) {
-        if (partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf('"')).length() < partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf("\"")).length()){
-          var character_image = partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf('"'));
-        }
-      }
-      else {
-        var character_image = partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf("\""));
-      }
+      let character_image = scrapeCharacterImage(partially_sliced_character_image);
       socket.emit('character_icon_update_database', {desc: "ChangeLocation", character_image: character_image, site_name: site_name, character_name: character_name, new_top: new_top, new_left: new_left, new_width: "Null", new_height: "Null", room_id: room_id});
       character_image = "";
     }
@@ -357,6 +376,7 @@ function reloadDroppable(socket, room_id){
 
 // https://api.jqueryui.com/droppable
 }
+
 
 function reloadResizable(socket, room_id) {
   $(".resizable" ).resizable({
@@ -380,6 +400,7 @@ function reloadResizable(socket, room_id) {
 
 // https://api.jqueryui.com/resizable/
 }
+
 
 // function TestHTMLUpdate() {
 //   $('#battle_map_container').html('<img id="battle_map" style="height:100%;width:100%;" draggable="false" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Flag_of_Libya_%281977%E2%80%932011%29.svg/300px-Flag_of_Libya_%281977%E2%80%932011%29.svg.png">');
