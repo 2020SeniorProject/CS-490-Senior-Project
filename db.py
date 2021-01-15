@@ -1,6 +1,14 @@
 import sqlite3
 import csv
 
+# Global variable declarations
+global battle_sesh_db
+global api_db
+global error_db
+battle_sesh_db = "battle_sesh.db"
+api_db = "api.db"
+error_db = "error.db"
+
 def create_connection(db_file):
     conn = sqlite3.connect(db_file)
     return conn
@@ -52,7 +60,7 @@ def create_connection(db_file):
 # user_key and chr_name = primary keys to allow a character to be tracked across rooms and to allow repeats of character names across 
 
 def create_dbs():
-    with create_connection("battle_sesh.db") as conn:
+    with create_connection(battle_sesh_db) as conn:
         cur = conn.cursor()
         cur.execute(f"""CREATE TABLE IF NOT EXISTS log 
                         (row_id INT PRIMARY KEY, room_id TEXT,user_key TEXT, title TEXT, log LONGTEXT, timestamp DATETIME); """)
@@ -73,52 +81,66 @@ def create_dbs():
                             (user_key TEXT, chr_name TEXT, class TEXT, subclass TEXT, race TEXT, subrace TEXT, speed INT, level INT, strength INT, dexterity INT, constitution INT, intelligence INT, wisdom INT, charisma INT, hitpoints INT, char_token TEXT, PRIMARY KEY(user_key, chr_name));""")
         
 
-def add_to_db(db_name, values):
-    with create_connection("battle_sesh.db") as conn:
+def add_to_db(table_name, values):
+    with create_connection(battle_sesh_db) as conn:
         cur = conn.cursor()
-        if db_name == "log":
+        if table_name == "log":
             cur.execute("INSERT INTO log(room_id, user_key, title, log, timestamp) VALUES(?, ?, ?, ?, ?)", values)
-        elif db_name == "chat":
+        elif table_name == "chat":
             cur.execute("INSERT INTO chat(room_id, user_key, chr_name, chat, timestamp) VALUES(?, ?, ?, ?, ?)", values)
-        elif db_name == "active_room":
+        elif table_name == "active_room":
             cur.execute("INSERT INTO active_room(room_id, user_key, chr_name, init_val, is_turn, char_token) VALUES(?, ?, ?, ?, ?, ?)", values)
-        elif db_name == "room_object":
+        elif table_name == "room_object":
             cur.execute("INSERT INTO room_object(user_key, room_name, active_room_id, map_status, map_url, dm_notes) VALUES(?,?,?,?,?,?)", values)
-        elif db_name == "chars":
+        elif table_name == "chars":
             cur.execute("""INSERT INTO characters(user_key, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints, char_token) 
                            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
-        elif db_name == "users":
+        elif table_name == "users":
             cur.execute("INSERT INTO users(user_id, user_name, email, profile_pic, site_name) VALUES (?, ?, ?, ?, ?)", values)
         conn.commit()
 
 
-def read_db(db_name, rows="*", extra_clause = ""):
-    with create_connection("battle_sesh.db") as conn:
+def read_db(table_name, rows="*", extra_clause = ""):
+    with create_connection(battle_sesh_db) as conn:
         cur = conn.cursor()
         ret_lst = []
-        for row in cur.execute(f"SELECT {rows} FROM {db_name} {extra_clause};"):
+        for row in cur.execute(f"SELECT {rows} FROM {table_name} {extra_clause};"):
             ret_lst.append(row)
         return ret_lst
 
 
-def delete_from_db(db_name, extra_clause = ""):
-    with create_connection("battle_sesh.db") as conn:
+def read_api_db(table_name, rows="*", extra_clause = ""):
+    with sqlite3.connect(api_db) as conn:
         cur = conn.cursor()
-        cur.execute(f"DELETE FROM {db_name} {extra_clause};")
+        ret_lst = []
+        for row in cur.execute(f"SELECT {rows} FROM {table_name} {extra_clause};"):
+            ret_lst.append(row)
+        return ret_lst
+
+
+# def create_connection(db_file):
+#     conn = sqlite3.connect(db_file)
+#     return conn
+
+
+def delete_from_db(table_name, extra_clause = ""):
+    with create_connection(battle_sesh_db) as conn:
+        cur = conn.cursor()
+        cur.execute(f"DELETE FROM {table_name} {extra_clause};")
         conn.commit()
 
-def reset_db(db_name):
-    with create_connection("battle_sesh.db") as conn:
+def reset_db(table_name):
+    with create_connection(battle_sesh_db) as conn:
         cur = conn.cursor()
-        cur.execute(f"""DROP TABLE IF EXISTS {db_name};""")
+        cur.execute(f"""DROP TABLE IF EXISTS {table_name};""")
         conn.commit()
 
         create_dbs()
 
-def update_db(db_name, columns_values, extra_clause):
-    with create_connection("battle_sesh.db") as conn:
+def update_db(table_name, columns_values, extra_clause):
+    with create_connection(battle_sesh_db) as conn:
         cur = conn.cursor()
-        cur.execute(f"""UPDATE {db_name} SET {columns_values} {extra_clause};""")
+        cur.execute(f"""UPDATE {table_name} SET {columns_values} {extra_clause};""")
         conn.commit()
 
 
@@ -129,7 +151,7 @@ def build_api_db(files):
             raw = row.split('#')[0].strip()
             if raw: yield raw
 
-    with sqlite3.connect("api.db") as conn:
+    with sqlite3.connect(api_db) as conn:
         cur = conn.cursor()
 
         for file in files:
@@ -151,16 +173,6 @@ def build_api_db(files):
         conn.commit()
 
 
-# TODO: Combine read_api_db and read_db, create global variables for battle_shes.db and apt.db
-def read_api_db(db_name, rows="*", extra_clause = ""):
-    with sqlite3.connect("api.db") as conn:
-        cur = conn.cursor()
-        ret_lst = []
-        for row in cur.execute(f"SELECT {rows} FROM {db_name} {extra_clause};"):
-            ret_lst.append(row)
-        return ret_lst
-
-
 def get_api_info(table, row):
     rows = read_api_db(table)
     main_column = read_api_db(table, row)
@@ -179,19 +191,19 @@ def get_api_info(table, row):
 
 
 def build_error_db():
-    with create_connection("error.db") as conn:
+    with create_connection(error_db) as conn:
         cur = conn.cursor()              
         cur.execute(f"""CREATE TABLE IF NOT EXISTS error 
                         (row_id INT PRIMARY KEY, error_desc TEXT); """)
 
 def add_to_error_db(values):
-    with create_connection("error.db") as conn:
+    with create_connection(error_db) as conn:
         cur = conn.cursor()
         cur.execute("INSERT INTO error(error_desc) VALUES(?)", (values,))
         conn.commit()
     
 def read_error_db():
-    with create_connection("error.db") as conn:
+    with create_connection(error_db) as conn:
         cur = conn.cursor()
         ret_lst = []
         for row in cur.execute(f"SELECT * FROM error;"):
