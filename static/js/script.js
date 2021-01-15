@@ -14,7 +14,6 @@ $(document).ready(function() {
   // can set the namespace to an empty string.
 
   var initiatives = [];
-  var character_icons = {};
   var turn_index = null;
   var site_name = $('#site_name').text();
   var room_id = $('#room_id').text();
@@ -106,12 +105,8 @@ $(document).ready(function() {
   });
 
   socket.on('joined', function(msg) {
-    // socket.emit('join_actions', {room_id: room_id, character_name: $('#player_name').val() || ""});
     socket.emit('join_actions', {room_id: room_id, character_name: ""});
-    // socket.emit('set_initiative', {character_name: $('#player_name').val() || "", init_val: $('#initiative_roll').val() || "", site_name: site_name, room_id: room_id});
     // socket.emit('join_actions', {room_id: room_id, character_name: $('#player_name').val() || ""});
-    // socket.emit('set_initiative', {character_name: $('#player_name').val() || "", init_val: $('#initiative_roll').val() || "", site_name: site_name, room_id: room_id});
-    // socket.emit('character_icon_add_database', {desc: "Initialize", character_name: $('#player_name').val() || "", height: '2em', width: '2em', top: '25px', left: '25px', room_id: room_id});
   });
 
   socket.on('log_update', function(msg) {
@@ -223,6 +218,7 @@ $(document).ready(function() {
     turn_index = initiatives.findIndex(x => x[0]===first_turn_name && x[2]===msg.site_name);
 
     // $('#initiative-wrapper').html(checklist);
+    // TODO: highlight current character's icon here
 
     $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
     $(`#${first_turn_name}-${msg.site_name}-row`).addClass("bg-warning");
@@ -239,16 +235,15 @@ $(document).ready(function() {
     setTimeout(() => $(`#${first_turn_name}-${msg.site_name}-row`).addClass("bg-warning"), 100);
   });
 
-  socket.on('added_character', function(msg) {
-    console.log(msg['site_name']);
-    console.log(site_name);
+  // TODO: add text to place in the field when the user has no characters to select from
+  socket.on('populate_select_with_character_names', function(msg) {
     if (msg['site_name'] == site_name) {
-      var char_name = msg.char_name;
-      var id_char_name = char_name.split(" ").join("_") + "-init-update";
-      var old_char_name = char_name.split(" ").join("_") + "-add-row";
+      let character_name = msg.character_name;
+      let id_character_name = character_name.split(" ").join("_") + "-init-update";
+      let old_character_name = character_name.split(" ").join("_") + "-add-row";
       $('#init_placeholder').remove();
-      $('#player_name').append(`<option id=${id_char_name}>${char_name}</option>`);
-      $(`#${old_char_name}`).remove();
+      $('#player_name').append(`<option id=${id_character_name}>${character_name}</option>`);
+      $(`#${old_character_name}`).remove();
       $('#set_initiative_button').prop('disabled', false);
 
       if ($('#character_name option').length == 0) {
@@ -258,54 +253,33 @@ $(document).ready(function() {
     }
   });
 
-  socket.on('add_character_icon', function(msg){
-    initial_height = "2em";
-    initial_width = "2em";
-    initial_top = "25px";
-    initial_left = "25px";
-    let character_icon_wrapper = build_html_for_character_icon(msg.character_name, msg.site_name, msg.character_image, initial_height, initial_width, initial_top, initial_left);
-    document.getElementById("battle_map_container").appendChild(character_icon_wrapper);
-    character_icons[msg.character_name + '_' + msg.site_name] = {'character_name': msg.character_name, 'site_name': msg.site_name, 'character_image': msg.character_image, 'height': initial_height, 'width': initial_width, 'top': initial_top, 'left': initial_left}
-    if (msg.action != "NO") {
-      socket.emit('character_icon_add_database', {desc: "Initialize", character_image: msg.character_image, site_name: msg.site_name, character_name: msg.character_name, height: initial_height, width: initial_width, top: initial_top, left: initial_left, room_id: room_id});
-    }
-  });
 
-  socket.on('character_icon_update', function(msg) {
-    console.log("character_icon_update")
+ socket.on('redraw_character_tokens_on_map', function(msg) {
 
-    let character_id = msg.character_name + '_' + msg.site_name;
-    // This if statement is activated if there is no element with the id "#{character_id}"
-    // if (!$("#" + character_id).length) {
-    //   $("#" + character_id).remove();
-    //   $('#battle_map_container').append(build_html_for_character_icon(character_id, msg.character_image, msg.height, msg.width, msg.top, msg.left).outerHTML);
-    //   socket.emit('character_icon_add_database', {desc: "Initialize", character_image: msg.character_image, site_name: msg.site_name, character_name: msg.character_name, height: "2em", width: "2em", top: "25px", left: "25px", room_id: room_id});
-    //   return false;
-    // }
+  for (let character in msg) {
+    let character_user_id = character;
+    let character_site_name = msg[character].site_name;
+    let character_name = msg[character].character_name;
+    let character_image = msg[character].character_image;
+    let room_id = msg[character].room_id;
+    let height = msg[character].height;
+    let width = msg[character].width;
+    let top = msg[character].top;
+    let left = msg[character].left;
 
+    let character_html_id = character_name + "_" + character_site_name;
 
-    let html_character_icons = [];
-    character_icons[character_id] = {'character_name': msg.character_name, 'site_name': msg.site_name, 'character_image': msg.character_image, 'height': msg.height, 'width': msg.width, 'top': msg.top, 'left': msg.left};
-    let i = 0;
-    for (let id in character_icons) {
-      reloadDraggable(socket);
-      reloadDroppable(socket, character_icons[id], room_id);
-      reloadResizable(socket, character_icons[id], room_id);
+    let character_token_html = build_html_for_character_icon(character_html_id, character_image, height, width, top, left);
 
-      html_character_icons.push(build_html_for_character_icon(id, character_icons[id]['character_image'], character_icons[id]['height'], character_icons[id]['width'], character_icons[id]['top'], character_icons[id]['left']));
-      
-      $("#" + id).remove();
-      $('#battle_map_container').append(html_character_icons[i].outerHTML);
+    $("#" + character_html_id).remove();
+    $('#battle_map_container').append(character_token_html.outerHTML);
 
-      reloadDraggable(socket);
-      reloadDroppable(socket, character_icons[id], room_id);
-      reloadResizable(socket, character_icons[id], room_id);
+    reloadDraggable(socket);
+    reloadDroppable(socket, character_user_id, msg[character], room_id);
+    reloadResizable(socket, character_user_id, msg[character], room_id);
+  }
+});
 
-      i++;
-
-    }
-
- });
   
   // "Helper" functions
   function update_init_table() {
@@ -332,7 +306,7 @@ $(document).ready(function() {
     character_icon.setAttribute("class", "characterIcon resizable ui-resizable");
     character_icon.setAttribute("style", "position: static; height: " + height + "; width: " + width + "; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block; draggable: true;");
     // Updating the src attribute causes the page to reload
-    // character_icon.setAttribute("src", character_image);
+    character_icon.setAttribute("src", character_image);
 
     character_icon_wrapper.appendChild(character_icon);
     return character_icon_wrapper;
@@ -361,21 +335,21 @@ function reloadDraggable(socket){
 }
 
 
-function reloadDroppable(socket, character_icon_data, room_id){
+function reloadDroppable(socket, character_user_id, character_icon_data, room_id){
   $(".droppable").droppable({
     accept: ".draggable",
     drop: function(event, ui) {
       // TODO: Log character icon postion when dropped
-      new_top = ui.position.top;
-      new_left = ui.position.left;
-      socket.emit('character_icon_update_database', {desc: "ChangeLocation", character_image: character_icon_data['character_image'], site_name: character_icon_data['site_name'], character_name: character_icon_data['character_name'], new_top: new_top, new_left: new_left, room_id: room_id});
+      let new_top = ui.position.top.toString() + "px";
+      let new_left = ui.position.left.toString() + "px";
+      socket.emit('character_icon_update_database', {desc: "ChangeLocation", character_user_id: character_user_id, character_image: character_icon_data['character_image'], site_name: character_icon_data['site_name'], character_name: character_icon_data['character_name'], new_top: new_top, new_left: new_left, new_width: character_icon_data['width'], new_height: character_icon_data['height'], room_id: room_id});
     }
   });
 
 // https://api.jqueryui.com/droppable
 }
 
-function reloadResizable(socket, character_icon_data, room_id) {
+function reloadResizable(socket, character_user_id, character_icon_data, room_id) {
   $(".resizable" ).resizable({
     autoHide: true,
     ghost: true,
@@ -386,9 +360,9 @@ function reloadResizable(socket, character_icon_data, room_id) {
     minWidth: 25,
     stop: function( event, ui ) {
       // TODO: Log chracter icon size when done resizing in json positions file
-      new_width = ui.size.width;
-      new_height = ui.size.height;
-      socket.emit('character_icon_update_database', {desc: "Resize", character_image: character_icon_data['character_image'], site_name: character_icon_data['site_name'], character_name: character_icon_data['character_name'], new_width: new_width, new_height: new_height, room_id: room_id});
+      let new_width = ui.size.width.toString() + "px";
+      let new_height = ui.size.height.toString() + "px";
+      socket.emit('character_icon_update_database', {desc: "Resize", character_user_id: character_user_id, character_image: character_icon_data['character_image'], site_name: character_icon_data['site_name'], character_name: character_icon_data['character_name'], new_top: character_icon_data['top'], new_left: character_icon_data['left'], new_width: new_width, new_height: new_height, room_id: room_id});
     }
   });
 
@@ -401,6 +375,6 @@ function reloadResizable(socket, character_icon_data, room_id) {
 // }
 
 
-
-// TODO: combine add_character_icon and character_icon_update
 // TODO: Standardize naming conventions for functions and variables
+// TODO: how to handle character tokens on different resolutions of screens?
+// TODO: Add functionality for only moving your own character tokens. Prohibit the movement of characters that are not yours

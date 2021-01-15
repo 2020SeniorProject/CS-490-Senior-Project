@@ -140,7 +140,6 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
         app.logger.warning(f"Character user {current_user.get_site_name()} attempted to add had errors. Reloading Add Character page to allow them to fix the errors.")
         return render_template("add_character.html", errors=err_lis, action="/play/choose", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data,  char_token=form.char_token.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
-#TODO: Grab token locations
 def process_room_form(form, user_id):
     if form.validate():
         values = (user_id, form.room_name.data, "null", '{}', form.map_url.data, form.dm_notes.data)
@@ -267,6 +266,7 @@ def home():
             return redirect(url_for('home'))
 
     if not current_user.get_site_name():
+        # site_name is what we call the username in the backend
         app.logger.warning("User does not have site name. Loading the Set User Name page.")
         return render_template("set_site_name.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
@@ -286,7 +286,7 @@ def home():
     print("active_room")
     for row in read_db("active_room"):
         print(row)
-    print("error")
+    print("errors")
     for row in read_error_db():
         print(row)
 
@@ -339,7 +339,6 @@ def room_creation():
         app.logger.debug(f"User {current_user.get_site_name()} is attempting to create a new room")
         return process_room_form(form, user_id)
 
-
     return render_template("add_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg")
 
 
@@ -374,26 +373,32 @@ def generate_room_id():
 
     update_db("room_object", f"active_room_id = '{random_key}'", f"WHERE user_key = '{user_id}' AND room_name = '{room_name}'")
 
-    return redirect(url_for('playy', room_id=random_key))
+    return redirect(url_for('enterRoom', room_id=random_key))
 
 @app.route("/play/<room_id>", methods=["GET", "POST"])
 @login_required
-def playy(room_id):
+def enterRoom(room_id):
     print(f"Room id: {room_id}")
     user_id = current_user.get_user_id()
-    image_url, map_owner = read_db("room_object", "map_url, user_key", f"WHERE active_room_id = '{room_id}'")[0]
+    try:
+        image_url, map_owner = read_db("room_object", "map_url, user_key", f"WHERE active_room_id = '{room_id}'")[0]
+        characters = read_db("characters", "chr_name", f"WHERE user_key='{user_id}'")
+
+        app.logger.debug(f"User {current_user.get_site_name()} has entered the room {room_id}")
+        if user_id == map_owner:
+            return render_template("play_dm.html", async_mode=socketio.async_mode, characters=characters, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+        else:
+            return render_template("play.html", async_mode=socketio.async_mode, characters=characters, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+
+    except:
+        # TODO: Add a pop up on the page to notify user
+        app.logger.debug(f"No such room exists")
+
     # if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'") and not read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
         # app.logger.debug(f"User {current_user.get_site_name()} is watching the room {room_id}")
         # return render_template("watch.html", async_mode=socketio.async_mode, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
-    characters = read_db("characters", "chr_name", f"WHERE user_key='{user_id}'")
-
-    app.logger.debug(f"User {current_user.get_site_name()} has entered the room {room_id}")
-    if user_id == map_owner:
-        return render_template("play_dm.html", async_mode=socketio.async_mode, characters=characters, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
-    else:
-        return render_template("play.html", async_mode=socketio.async_mode, characters=characters, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
-
+    
 
 
 # Gameplay Page
@@ -405,7 +410,7 @@ def play():
 
         if read_db("room_object", "*", f"WHERE active_room_id = '{room_id}'"):
             app.logger.debug(f"User {current_user.get_site_name()} is entering room {room_id}")
-            return redirect(url_for('playy', room_id=room_id))
+            return redirect(url_for('enterRoom', room_id=room_id))
         
         app.logger.warning(f"User {current_user.get_site_name()} attempted to enter an nonexistant room. Reloading to form with a message")
         return render_template("choose_room.html", message="There is not an open room with that key!", room_id=room_id, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
@@ -545,6 +550,7 @@ def set_initiative(message):
     app.logger.debug(f"Battle update: {desc}.")
 
     if not init_val:
+        a = read_db("active_room", "init_val", f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{character_name}'")
         init_val = read_db("active_room", "init_val", f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{character_name}'")[0][0]
 
     update_db("active_room", f"init_val = '{init_val}'", f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{character_name}'")
@@ -644,7 +650,6 @@ def on_join(message):
     emit('joined', {'desc': 'Joined room'})
 
 
-# TODO: Investigate join_actions running twice - once after log message "X has entered room" and once after "X has connected to room"
 @socketio.on('join_actions', namespace='/combat')
 def connect(message):
     # Sends upon a new connection
@@ -654,16 +659,32 @@ def connect(message):
     room_id = message['room_id']
     initiatives = read_db("active_room", "chr_name, init_val, user_key", f"WHERE room_id = '{room_id}'")
     chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{room_id}'")
-    map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    app.logger.debug(f"Battle update: User {current_user.get_site_name()} has connected to room {room_id}")
+    # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    
+    # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
+    wrong_room = []
+    for i in walla_walla:
+        if walla_walla[i]['room_id'] != room_id:
+            wrong_room.append(i)
+    for i in wrong_room:
+        del walla_walla[i]
+
 
     add_to_db("log", (room_id, user_id, "Connection", f"User with id {user_id} connected", time_rcvd))
+    app.logger.debug(f"Battle update: User {current_user.get_site_name()} has connected to room {room_id}")
 
     emit('log_update', {'desc': f"{site_name} Connected"}, room=room_id)
 
-    your_chars = read_db("active_room", "chr_name", f"WHERE user_key='{user_id}' AND room_id='{room_id}'")
+    your_chars = []
+    character_names_read_from_db = read_db("active_room", "chr_name", f"WHERE user_key='{user_id}' AND room_id='{room_id}'")
+    for name in character_names_read_from_db:
+        your_chars.append(name[0])
+    for player_id in walla_walla:
+        if player_id == user_id and walla_walla[player_id]['character_name'] not in your_chars:
+            your_chars.append(walla_walla[player_id]['character_name'])
     for char in your_chars:
-        emit('added_character', {'char_name': char[0], 'site_name': current_user.get_site_name()})
+        emit('populate_select_with_character_names', {'character_name': char, 'site_name': current_user.get_site_name()})
 
     for item in initiatives:
         site_name = read_db("users", "site_name", f"WHERE user_id = '{item[2]}'")[0][0]
@@ -674,20 +695,10 @@ def connect(message):
         emit('chat_update', {'chat': item[1], 'character_name': item[0]})
     emit('log_update', {'desc': "Chat History Received"})
 
-    # new_character_to_add_to_map = False
-    for item in map_status:
-        print(item)
-        # if not (map_status[item]['character_name'] == message['character_name'] and item == user_id):
-        #     new_character_to_add_to_map
-        #     emit('character_icon_update', {'character_name': map_status[item]['character_name'], 'character_image': character_image, 'site_name': map_status[item]['site_name'], 'room_id': room_id, 'height': map_status[item]['height'], 'width': map_status[item]['width'], 'top': map_status[item]['top'], 'left': map_status[item]['left']})
-        print(map_status[item])
-        map_site_name = map_status[item]['site_name']
-        map_user_id = read_db("users", "user_id", f"WHERE site_name = '{map_site_name}'")[0][0]
-        map_character_name = map_status[item]['character_name']
-        print(map_user_id, map_character_name)
-        character_image = read_db("characters", "char_token", f"WHERE user_key = '{map_user_id}' AND chr_name = '{map_character_name}'")
-        emit('add_character_icon', {'action': "NO", 'character_name': map_character_name, 'character_image': character_image, 'site_name': map_site_name, 'room_id': room_id, 'height': map_status[item]['height'], 'width': map_status[item]['width'], 'top': map_status[item]['top'], 'left': map_status[item]['left']})
-        emit('character_icon_update', {'site_name': map_site_name, 'character_name': map_character_name, 'character_image': character_image, 'room_id': room_id, 'height': map_status[item]['height'], 'width': map_status[item]['width'], 'top': map_status[item]['top'], 'left': map_status[item]['left']})
+    # populate the map with the character tokens
+    if walla_walla:
+        emit('redraw_character_tokens_on_map', walla_walla, room=room_id)
+        emit('log_update', {'desc': "Character Tokens Received"})
 
     if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'"):
         emit('log_update', {'desc': "Combat has already started; grabbing the latest information"})
@@ -697,89 +708,93 @@ def connect(message):
 
         emit('combat_connect', {'desc': 'Rejoined Combat', 'first_turn_name': character[1], 'site_name': turn_site_name})
 
-# TODO: Fix bug where character tokens disappear after navigating away from page
+
 @socketio.on('character_icon_update_database', namespace='/combat')
 def character_icon_update_database(message):
-    print("character_icon_update_database")
-    user_id = current_user.get_user_id()
-    site_name = current_user.get_site_name()
+
+    # TODO: Something going on with getting the correct user_id of the character token.
+
+    user_id = message['character_user_id']
+    # user_id = current_user.get_user_id()
+    site_name = message['site_name']
     room_id = message['room_id']
-    print(room_id)
     
-    # TODO: combine these to if branches into one
+    # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    
+    # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
+    wrong_room = []
+    for i in walla_walla:
+        if walla_walla[i]['room_id'] != room_id:
+            wrong_room.append(i)
+    for i in wrong_room:
+        del walla_walla[i]
+
+    json_character_to_add = { user_id: {"site_name": message['site_name'], "character_name": message['character_name'], "room_id": message['room_id'], "character_image": message['character_image'], "height": message['new_height'], "width": message['new_width'], "top": message['new_top'], "left": message['new_left']}}
+    walla_walla[user_id] = json_character_to_add[user_id]
+    characters_json = json.dumps(walla_walla)
+    update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
+
     if message['desc'] == "Resize":
-        characters_dict = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-        json_character_to_add = { user_id: {"site_name": message['site_name'], "character_name": message['character_name'], "room_id": message['room_id'], "height": message['new_height'], "width": message['new_width'], "top": characters_dict[user_id]['top'], "left": characters_dict[user_id]['left']}}
-        characters_dict[user_id] = json_character_to_add[user_id]
-        characters_json = json.dumps(characters_dict)
-        update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
         app.logger.debug(f"User {site_name} has resized their character")
     elif message['desc'] == "ChangeLocation":
-        whatdobeu = read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")
-        characters_dict = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-        json_character_to_add = { user_id: {"site_name": message['site_name'], "character_name": message['character_name'], "room_id": message['room_id'], "height": characters_dict[user_id]['height'], "width": characters_dict[user_id]['width'], "top": message['new_top'], "left": message['new_left']}}
-        characters_dict[user_id] = json_character_to_add[user_id]
-        characters_json = json.dumps(characters_dict)
-        update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
         app.logger.debug(f"User {site_name} has moved their character to X:{message['new_left']}, Y:{message['new_top']}")
         emit('log_update', {'desc': f"{message['character_name']} moved"})
-    # elif message['desc'] == "Initialize":
-    #     characters_dict = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    #     json_character_to_add = { user_id: {"site_name": message['site_name'], "character_name": message['character_name'], "room_id": message['room_id'], "height": message['height'], "width": message['width'], "top": message['top'], "left": message['left']}}
-    #     characters_dict[user_id] = json_character_to_add[user_id]
-    #     characters_json = json.dumps(characters_dict)
-    #     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
-    #     app.logger.debug(f"User {site_name} has added their character token to the battle map")
 
-    print("test")
-    updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])[user_id]
-    # updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    # print(updated_character_icon_status)
-    emit('character_icon_update', {'site_name': site_name, 'character_name': message['character_name'], 'character_image': message['character_image'], 'room_id': room_id, 'height': updated_character_icon_status['height'], 'width': updated_character_icon_status['width'], 'top':updated_character_icon_status['top'], 'left':updated_character_icon_status['left']}, room=room_id)
+    emit('redraw_character_tokens_on_map', walla_walla, room=room_id)
 
 
-@socketio.on('character_icon_add_database', namespace='/combat')
-def character_icon_add_database(message):
-    print("character_icon_add_database")
-    # TODO: replace this with user-given character image rather than user image from google
-    character_image = current_user.get_profile_pic()
-    user_id = current_user.get_user_id()
-    site_name = current_user.get_site_name()
-    room_id = message['room_id']
+def character_icon_add_database(character_name, site_name, character_image, user_id, room_id):
+    initial_height = "2em"
+    initial_width = "2em"
+    initial_top = "25px"
+    initial_left = "25px"
 
-    characters_dict = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    json_character_to_add = { user_id: {"site_name": site_name, "character_name": message['character_name'], "room_id": room_id, "height": message['height'], "width": message['width'], "top": message['top'], "left": message['left']}}
-    characters_dict[user_id] = json_character_to_add[user_id]
-    characters_json = json.dumps(characters_dict)
-    update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
-    app.logger.debug(f"User {site_name} has added their character token to the battle map")
+    # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    
+    # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
+    wrong_room = []
+    for i in walla_walla:
+        if walla_walla[i]['room_id'] != room_id:
+            wrong_room.append(i)
+    for i in wrong_room:
+        del walla_walla[i]
 
-    print(json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0]))
-    updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])[user_id]
-    emit('character_icon_update', {'site_name': site_name, 'character_name': message['character_name'], 'character_image': character_image, 'room_id': room_id, 'height': updated_character_icon_status['height'], 'width': updated_character_icon_status['width'], 'top':updated_character_icon_status['top'], 'left':updated_character_icon_status['left']}, room=room_id)
+    json_character_to_add = { user_id: {"site_name": site_name, "character_name": character_name, "room_id": room_id, "character_image": character_image, "height": initial_height, "width": initial_width, "top": initial_top, "left": initial_left}}
+    walla_walla[user_id] = json_character_to_add[user_id]
+    map_status_json = json.dumps(walla_walla)
+    update_db("room_object", f"map_status = '{map_status_json}'", f"WHERE active_room_id = '{room_id}'")
+
+    updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    emit('redraw_character_tokens_on_map', updated_character_icon_status, room=room_id)
+
 
 @socketio.on('add_character', namespace='/combat')
 def add_character(message):
-    char_name = message['char_name']
+    character_name = message['char_name']
     room_id = message['room_id']
     user_id = current_user.get_user_id()
     site_name = message['site_name']
-    character_image = current_user.get_profile_pic()
-    temp_db_read = read_db("active_room", "char_token", f"WHERE chr_name='{message['char_name']}' and user_key='{user_id}'")
+    temp_db_read_character_token = read_db("characters", "char_token", f"WHERE user_key = '{user_id}' AND chr_name = '{character_name}'")
     init_val = 0
 
-    if temp_db_read:
-        character_image = temp_db_read[0][0]
-
-    temp_db_read = read_db("active_room", "init_val", f"WHERE room_id='{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'")
-    if temp_db_read:
-        init_val = temp_db_read[0][0]
+    if temp_db_read_character_token:
+        character_image = temp_db_read_character_token[0][0]
     else:
-        add_to_db("active_room", (room_id, user_id, char_name, 0, 0, character_image))
+        # TODO: This is just a place holder for if a user does not have an image for their character - but that should never happen anyways
+        character_image = "http://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Auto_Racing_Black_Box.svg/800px-Auto_Racing_Black_Box.svg.png"
 
-    emit('added_character', {'char_name': char_name, 'site_name': site_name}, room=room_id)
-    emit('initiative_update', {'character_name': char_name, 'init_val': init_val, 'site_name': site_name}, room=room_id)
-    emit('add_character_icon', {'character_name': message['char_name'], 'site_name': site_name, 'character_image': character_image}, room=room_id)
+    temp_db_read_init_value = read_db("active_room", "init_val", f"WHERE room_id='{room_id}' AND user_key = '{user_id}' AND chr_name = '{character_name}'")
+    if temp_db_read_init_value:
+        init_val = temp_db_read_init_value[0][0]
+    else:
+        add_to_db("active_room", (room_id, user_id, character_name, 0, 0, character_image))
+
+    emit('populate_select_with_character_names', {'character_name': character_name, 'site_name': site_name}, room=room_id)
+    emit('initiative_update', {'character_name': character_name, 'init_val': init_val, 'site_name': site_name}, room=room_id)
+    character_icon_add_database(character_name, site_name, character_image, user_id, room_id)
+    app.logger.debug(f"User {site_name} has added character {character_name} to the battle")
 
 
 
@@ -857,7 +872,23 @@ if __name__ != "__main__":
 
 # TODO: rename variable 'site_name' to something like 'user_site_name' because site_name is confusing
 # TODO: Investigate potential issue where chat doesnt load when hopping into a room, and only loads when you send a new chat
-# TODO: have the page read from the database when it loads to find and place character tokens
-# TODO: rename variable 'site_name' to something like 'user_site_name' because site_name is confusing
 # TODO: store character icon image in database 
 # TODO: potentially clean up character icon_add_database. I feel like there is some inefficiency there
+# TODO: Get stuff from MTF and mythic oddessy of pharoes
+# TODO: The check to ensure that a user has a character before joining a room is not working
+# TODO: add check to ensure that a user submits an image along with their character at time of creation. Cannot be nothing
+# TODO: rename variable "character_image" to "character_token_image"
+# TODO: disable start battle button if no characters in initiative
+# TODO: Fix sending chats when you have no character in the room displaying as coming from "Add a character first"
+# TODO: add a check to make sure that a user submits a character image with their character
+# TODO: add a UI option in /play to allow a user to remove their character from the init order
+# TODO: Include list of users already in the room in initial log message when joining room
+
+# Issue discovery. What do to about active_room table and room_object table. What information should be stored in each, respectively? 
+# when a user hops into join_actions, they are supposed to have their map and their initiative order updated. Init order gets updated just fine
+# because the program reads from active_room table, so if no characters have been added to the battle map yet, nothing is in the active_room
+# table for initiatives. However, map_status reads from room_object table and that means that if a hops into join_actions and no characters
+# have been added yet, they will still see their character tokens appear on the map. I think that we should sync initiative order with
+# map_status, probably by moving both to room_object. What's the harm in preserving initiative order in that table?
+
+# I have a work around for the problem above, I will double check that the room id for each character token in map_status matches the current room_id token, but this is just a temporary fix. If this design problem is not solved, map_status could easily balloon into a very large bit of data

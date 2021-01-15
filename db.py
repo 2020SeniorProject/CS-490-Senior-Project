@@ -27,13 +27,14 @@ def create_connection(db_file):
 # chr_name = Entered by DM/map owner, player character name associated with the given intiative
 # init_val = intiative # associated with a player
 # is_turn = boolean stating whos turn it is - for any given room, only one entry will be 1 (true)
+# char_token = String url of image to use for the character's token
 
 # room_object 
 # secret room ID # - incremental in the table
 # User_key - ‘owner’ of the room, needed to lock out others from editing the room
 # Name of room - what the owner of the room calls it (for visual purposes)
 # Active room id - null if room not open, changes when room is ‘opened’ !!! THIS IS EQUIVALENT TO 'ROOM_ID IN chat, active_room, log, and characters !!!
-# Map_status - stringified JSON representation of NPCs and locations on map
+# Map_status - stringified JSON representation of character tokens and locations on map. ex: { user_id: { site_name, character_name, character_image, room_id, height, width, top, left } }
 # Map URL - URL to the map (for the “background”)
 
 # users table ****** THIS IS THE ONLY TABLE THAT UTILIZES USER_ID INSTEAD OF USER_KEY BUT THEY ARE SYNONYMOUS ******

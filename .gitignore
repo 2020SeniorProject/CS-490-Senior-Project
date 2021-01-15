@@ -154,3 +154,6 @@ log/
 gunicorn.config.py
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+
+# Personal editing environments
+edit.py
