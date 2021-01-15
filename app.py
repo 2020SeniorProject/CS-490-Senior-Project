@@ -147,18 +147,34 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
         return render_template("add_character.html", errors=err_lis, action="/play/choose", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data,  char_token=form.char_token.data, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 
-def process_room_form(form, user_id):
+def process_room_form(form, user_id, usage, room_id):
     if form.validate():
-        values = (user_id, form.room_name.data, "null", '{}', form.map_url.data, form.dm_notes.data)
-        app.logger.debug(f"User {current_user.get_site_name()} has created the room named {form.room_name.data}")
-        add_to_db("room_object", values)
-        return redirect(url_for("home"))
+        if usage == "create":
+
+            values = (user_id, form.room_name.data, "null", '{}', form.map_url.data, form.dm_notes.data)
+            app.logger.debug(f"User {current_user.get_site_name()} has created the room named {form.room_name.data}")
+
+            add_to_db("room_object", values)
+            return redirect(url_for("home"))
+
+        if usage == "edit":
+
+            values = (user_id, form.room_name.data, "null", '{}', form.map_url.data, form.dm_notes.data)
+            app.logger.debug(f"User {current_user.get_site_name()} has saved changes to the room named {form.room_name.data}")
+            
+            delete_from_db("room_object", f"WHERE row_id ='{room_id}'")
+            add_to_db("room_object", values)
+            return redirect(url_for("home"))
 
     err_lis = readify_form_errors(form)
+    if usage == "create":
+        app.logger.debug(f"The room {current_user.get_site_name()} was attempting to create had some errors. Sending back to creation page to fix errors.")
+        return render_template("add_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name() )
 
-    app.logger.debug(f"The room {current_user.get_site_name()} was attempting to create had some errors. Sending back to creation page to fix errors.")
-
-    return render_template("add_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name() )
+    if usage == "edit":
+        app.logger.debug(f"The room {current_user.get_site_name()} was attempting to edit had some errors. Sending back to edit page to fix errors.")
+        return render_template("add_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name() )
+        
 
 
 def determine_if_user_spamming(chats):
@@ -377,7 +393,7 @@ def room_creation():
 
     if request.method == "POST":
         app.logger.debug(f"User {current_user.get_site_name()} is attempting to create a new room")
-        return process_room_form(form, user_id)
+        return process_room_form(form, user_id, "create", "")
 
     return render_template("add_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg")
 
@@ -389,13 +405,14 @@ def room_edit(room_id):
     form = RoomValidation()
 
     if request.method == "POST":
-        app.logger.warning(f"User {current_user.get_site_name()} is attempting to publish their room!")
+        app.logger.warning(f"User {current_user.get_site_name()} is attempting to edit their room")
+        return process_room_form(form, user_id, "edit", room_id)
 
     room = read_db("room_object", "*", f"WHERE rowid = {room_id} and user_key= '{current_user.get_user_id()}'")
     if room:
         room = room[0]
         app.logger.debug(f"User {current_user.get_site_name()} is prepping their room for their encounter!")
-        return render_template("edit_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url= room[5], room_name=room[2], dm_notes = room[6])
+        return render_template("edit_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url= room[5], room_name=room[2], dm_notes = room[6], room_id=room_id )
 
     app.logger.warning(f"User attempted to prep a room with name {room_id}. They do not have a room with that id. Throwing a Bad Request error.")
     raise BadRequest(description=f"You don't have a room with id: {room_id}!")
