@@ -18,7 +18,6 @@ $(document).ready(function() {
   var site_name = $('#site_name').text();
   var room_id = $('#room_id').text();
 
-
   // TODO: Replacing the form does not work
   // var initiative_form = $('#initiative-wrapper').html();
   var checklist = `<ul id=checklist class="list-group list-group-flush">
@@ -47,11 +46,11 @@ $(document).ready(function() {
   // Connect to the Socket.IO server.
   // The connection URL has the following format, relative to the current page:
   //     http[s]://<domain>:<port>[/<namespace>]
+
   var socket = io(namespace);
 
 
-
-  // Socketio events
+  // javascript events
   // TODO: Add room_id to all of the functions
   $('form#set_initiative').submit(function(event) {
     socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), site_name: site_name, room_id: room_id});
@@ -100,6 +99,8 @@ $(document).ready(function() {
     return false;
   });
 
+
+  // socket.io events
   socket.on('connect', function() {
     socket.emit('on_join', {room_id: room_id});
   });
@@ -235,7 +236,6 @@ $(document).ready(function() {
     setTimeout(() => $(`#${first_turn_name}-${msg.site_name}-row`).addClass("bg-warning"), 100);
   });
 
-  // TODO: add text to place in the field when the user has no characters to select from
   socket.on('populate_select_with_character_names', function(msg) {
     if (msg['site_name'] == site_name) {
       let character_name = msg.character_name;
@@ -253,9 +253,7 @@ $(document).ready(function() {
     }
   });
 
-
  socket.on('redraw_character_tokens_on_map', function(msg) {
-
   for (let character in msg) {
     let character_user_id = character;
     let character_site_name = msg[character].site_name;
@@ -280,7 +278,7 @@ $(document).ready(function() {
   }
 });
 
-  
+
   // "Helper" functions
   function update_init_table() {
     code = "<tbody>";

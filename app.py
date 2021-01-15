@@ -22,7 +22,6 @@ from db import create_dbs, add_to_db, read_db, delete_from_db, update_db, build_
 
 
 ### SET VARIABLES AND INITIALIZE PRIMARY PROCESSES
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
@@ -102,7 +101,6 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
             add_to_db("chars", values)
 
             return redirect(url_for("view_characters"))
-
 
         elif usage == "edit":
             if request.form['old_name'] != request.form['name'] and read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['name']}'") != []:
@@ -279,17 +277,6 @@ def home():
     else:
         default = False
 
-    app.logger.debug("DB's status:")
-    print("room_object")
-    for row in read_db("room_object"):
-        print(row)
-    print("active_room")
-    for row in read_db("active_room"):
-        print(row)
-    print("errors")
-    for row in read_error_db():
-        print(row)
-
     return render_template("home.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms, defaulted = default)
 
 
@@ -342,7 +329,6 @@ def room_creation():
     return render_template("add_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg")
 
 
-#TODO:Add editability to rooms
 @app.route("/room/<room_id>", methods=["GET", "POST"])
 @login_required
 def room_edit(room_id):
@@ -361,6 +347,7 @@ def room_edit(room_id):
     app.logger.warning(f"User attempted to prep a room with name {room_id}. They do not have a room with that id. Throwing a Bad Request error.")
     raise BadRequest(description=f"You don't have a room with id: {room_id}!")
 
+
 @app.route("/generate_room", methods=["POST"])
 @login_required
 def generate_room_id():
@@ -375,10 +362,10 @@ def generate_room_id():
 
     return redirect(url_for('enterRoom', room_id=random_key))
 
+
 @app.route("/play/<room_id>", methods=["GET", "POST"])
 @login_required
 def enterRoom(room_id):
-    print(f"Room id: {room_id}")
     user_id = current_user.get_user_id()
     try:
         image_url, map_owner = read_db("room_object", "map_url, user_key", f"WHERE active_room_id = '{room_id}'")[0]
@@ -397,8 +384,6 @@ def enterRoom(room_id):
     # if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'") and not read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
         # app.logger.debug(f"User {current_user.get_site_name()} is watching the room {room_id}")
         # return render_template("watch.html", async_mode=socketio.async_mode, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
-
-    
 
 
 # Gameplay Page
@@ -429,6 +414,7 @@ def login_index():
         app.logger.debug("User not logged in. Loading the login page")
         return render_template("login.html")
 
+
 # Login Process
 @app.route("/login")
 def login():
@@ -441,6 +427,7 @@ def login():
         scope=["openid", "email", "profile"],
     )
     return redirect(request_uri)
+
 
 # Login Callback
 @app.route("/login/callback")
@@ -483,6 +470,7 @@ def callback():
     login_user(user)
     return redirect(url_for("login_index"))
 
+
 # Logout
 @app.route("/logout")
 @login_required
@@ -491,21 +479,19 @@ def logout():
     logout_user()
     return redirect(url_for("login_index"))
 
+
 # Delete Account
 @app.route("/delete")
 @login_required
 def delete_account():
     user_id = current_user.get_user_id()
-
     app.logger.debug(f"User {current_user.get_site_name()} is deleting their account. Deleting all associated information")
-
     delete_from_db("log", f"WHERE user_key = '{user_id}'")
     delete_from_db("chat", f"WHERE user_key = '{user_id}'")
     delete_from_db("active_room", f"WHERE user_key = '{user_id}'")
     delete_from_db("room_object", f"WHERE user_key = '{user_id}'")
     delete_from_db("users", f"WHERE user_id = '{user_id}'")
     delete_from_db("characters", f"WHERE user_key = '{user_id}'")
-
     return redirect(url_for("login_index"))
 
 
@@ -516,14 +502,12 @@ def delete_account():
 @login_required
 def get_races():
     races, subraces = get_api_info("race", "race")
-
     return jsonify(races=list(races), subraces=subraces)
 
 @app.route("/api/classes")
 @login_required
 def get_classes():
     classes, subclasses = get_api_info("class", "class")
-
     return jsonify(classes=list(classes), subclasses=subclasses)
 
 
@@ -531,8 +515,6 @@ def get_classes():
 
 
 ### SOCKETIO EVENT HANDLERS
-
-# TODO: Hide DM tools from the user view
 
 @socketio.on('set_initiative', namespace='/combat')
 def set_initiative(message):
@@ -576,7 +558,6 @@ def send_chat(message):
 
 # TODO: allow characters to select who goes first when initiatives tied
 # TODO: Button to hide or show character icon on map
-# TODO: preset sizes for character icons on map
 @socketio.on('start_combat', namespace='/combat')
 def start_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
@@ -593,7 +574,6 @@ def start_combat(message):
     emit('combat_started', {'desc': 'Started Combat', 'first_turn_name': first_character[1], 'site_name': site_name}, room=room_id)
 
 
-# TODO: Be able to save positions of characters when room closes
 @socketio.on('end_combat', namespace='/combat')
 def end_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
@@ -711,11 +691,7 @@ def connect(message):
 
 @socketio.on('character_icon_update_database', namespace='/combat')
 def character_icon_update_database(message):
-
-    # TODO: Something going on with getting the correct user_id of the character token.
-
     user_id = message['character_user_id']
-    # user_id = current_user.get_user_id()
     site_name = message['site_name']
     room_id = message['room_id']
     
@@ -869,11 +845,7 @@ if __name__ != "__main__":
 # TODO: Rename script.js
 # TODO: change current_user.get_site_name() to current_user.get_username() or something of the like. get_site_name() is confusing
 # TODO: Check if a user is already logged in a different window when they attempt to login
-
 # TODO: rename variable 'site_name' to something like 'user_site_name' because site_name is confusing
-# TODO: Investigate potential issue where chat doesnt load when hopping into a room, and only loads when you send a new chat
-# TODO: store character icon image in database 
-# TODO: potentially clean up character icon_add_database. I feel like there is some inefficiency there
 # TODO: Get stuff from MTF and mythic oddessy of pharoes
 # TODO: The check to ensure that a user has a character before joining a room is not working
 # TODO: add check to ensure that a user submits an image along with their character at time of creation. Cannot be nothing
@@ -883,6 +855,8 @@ if __name__ != "__main__":
 # TODO: add a check to make sure that a user submits a character image with their character
 # TODO: add a UI option in /play to allow a user to remove their character from the init order
 # TODO: Include list of users already in the room in initial log message when joining room
+
+
 
 # Issue discovery. What do to about active_room table and room_object table. What information should be stored in each, respectively? 
 # when a user hops into join_actions, they are supposed to have their map and their initiative order updated. Init order gets updated just fine

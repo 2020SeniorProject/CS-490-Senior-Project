@@ -1,11 +1,12 @@
 import sqlite3
-
 import csv
 
 def create_connection(db_file):
     conn = sqlite3.connect(db_file)
     return conn
 
+
+# TODO: Update these table descriptions
 
 # log table
 # room_id = Global identifier for battle map created by user
