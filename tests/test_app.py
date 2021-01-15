@@ -92,6 +92,7 @@ class FlaskClient(BaseFlaskClient):
 
 
 # Testing client with authenticated user 
+# but nothing else in the db except another User named Charnk(for site name test)
 @pytest.fixture
 def client_1(mocker):
     app.config['TESTING'] = True
@@ -108,7 +109,8 @@ def client_1(mocker):
     delete_from_db("room_object", "WHERE user_key = 'mocksterid'")
     delete_from_db("characters", "WHERE user_key = 'mocksterid'")
 
-
+#User with a character in the DB and 
+# a room in it for socketio testing
 @pytest.fixture
 def client_2(mocker):
     app.config['TESTING'] = True
@@ -116,6 +118,7 @@ def client_2(mocker):
     with app.test_client() as client_2:
         create_dbs()
         mocker.patch("flask_login.utils._get_user", return_value = User("paulinaMock21", "Paulina Mock", "mail", "mock.jpg", "mrsmock69"))
+        add_to_db("room_object", ("paulinaMock21", "Dungeon Battle", "", "", "img.jpg", "We got a battle"))
         add_to_db("users", ("paulinaMock21", "Paulina Mock", "mail", "mock.jpg", "mrsmock69"))
         add_to_db("characters", ["paulinaMock21" ,"Yanko", "Lizardfolk", "Lizardfolk", 20, "Ranger", "Hunter", 20, 12, 18, 16, 12, 18, 8, 77, "lizardboi.jpg"])
         yield client_2
@@ -181,7 +184,8 @@ def test_character_create(client_1, fields, inputs, expected):
     character_create_attempt = client_1.post("/characters/create", data = data, follow_redirects=True)
     assert bytes(expected,'utf-8') in character_create_attempt.data
 
-
+# Testing creation of rooms 
+# Utilize client 1(User w/o data)
 @pytest.mark.parametrize("fields, inputs, expected", get_cases("room_creation"))
 def test_room_create(client_1, fields, inputs, expected):
     rooms_view = client_1.get("/room/create")
@@ -193,7 +197,10 @@ def test_room_create(client_1, fields, inputs, expected):
 
     assert bytes(expected, 'utf-8') in create_room_attempt.data
 
-
+# Test changing a user's sitename
+# Only checks that illegal characters fail 
+# Utilize Client 1 (User w/o data)
+# Note: Checking for user name change success will fail due to means with which we authenticate fake users
 @pytest.mark.parametrize("fields, inputs, expected", get_cases("site_name"))
 def test_site_name_change(client_1, fields, inputs, expected):
     settings_view = client_1.get("/user/settings")
@@ -204,6 +211,8 @@ def test_site_name_change(client_1, fields, inputs, expected):
     update_site_name_attempt = client_1.post("/user/settings", data = data, follow_redirects= True)
     assert bytes(expected, 'utf-8') in update_site_name_attempt.data
 
+# Testing editing a character
+# utilize Client_2 - > User with data 
 @pytest.mark.parametrize("fields, inputs, expected", get_cases("edit_char"))
 def test_edit_character(client_2, inputs, fields, expected):
 
@@ -221,7 +230,8 @@ def test_edit_character(client_2, inputs, fields, expected):
 
     assert bytes(expected, 'utf-8') in edit_char.data
 
-
+# Testing deletion of characters
+# utilize Client_2 - > User with data 
 def test_delete_character(client_2):
     characters_view = client_2.get("/characters")
 
@@ -229,3 +239,5 @@ def test_delete_character(client_2):
     del_char = client_2.post("/characters", data=data, follow_redirects=True )
 
     assert b'Yanko' not in del_char.data
+
+# SocketIO Event Tests
