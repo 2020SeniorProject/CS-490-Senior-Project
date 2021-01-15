@@ -22,16 +22,16 @@ class CharacterValidation(FlaskForm):
     dexterity = IntegerField('Dex', [DataRequired(message="Please input dex"), NumberRange(min=1, max=30, message="Outside Possible Range")])
     constitution = IntegerField('cons', [DataRequired(message="Please input cons"), NumberRange(min=1, max=30, message="Outside Possible Range")])
     intelligence = IntegerField('int', [DataRequired(message="Please input int"), NumberRange(min=1, max=30, message="Outside Possible Range")])
-    wisdom = IntegerField('wis', [DataRequired(message="Please input int"), NumberRange(min=1, max=30, message="Outside Possible Range")])
+    wisdom = IntegerField('wis', [DataRequired(message="Please input wis"), NumberRange(min=1, max=30, message="Outside Possible Range")])
     charisma = IntegerField('chr', [DataRequired(message="Please input charisma"), NumberRange(min=1, max=30, message="Outside Possible Range")])
     hitpoints = IntegerField('hp', [DataRequired(message="Please input hp")])
-    char_token = StringField('token', [Optional(), Regexp("^https?://(?:[a-z\-]+\.)+[a-z]{2,6}(?:/[^/#?]+)+\.(?:jpg|gif|png|jpeg|webp)$")])
+    char_token = StringField('token', [Optional(), Regexp("^https?://(?:[a-z\-]+\.)+[a-z]{2,6}(?:/[^/#?]+)+\.(?:jpg|gif|png|jpeg|webp)$", message="Character token must be an image!")])
 
 
 class RoomValidation(FlaskForm):
     room_name = StringField("Room", [DataRequired(message="Please input the name of your room"), Length(min=1, max=42, message="Name must be between 1 and 42 characters")])
     # TODO: Check for valid image link? and add tokens
-    map_url =  StringField('Image Link', [URL(message="Image must be a valid URL")])
+    map_url =  StringField('Image Link', [URL(message="Image must be a valid URL"), Regexp("^https?://(?:[a-z\-]+\.)+[a-z]{2,6}(?:/[^/#?]+)+\.(?:jpg|gif|png|jpeg|webp)$", message="Encounter map must be an image!")])
     dm_notes = StringField("DM_notes", [Optional()])
 
 
