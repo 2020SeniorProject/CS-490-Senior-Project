@@ -18,7 +18,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 # Internal imports
 from classes import User, CharacterValidation, RoomValidation, SitenameValidation
-from db import create_dbs, add_to_db, read_db, delete_from_db, update_db, build_api_db, read_api_db, get_api_info, build_error_db, add_to_error_db, read_error_db
+from db import create_dbs, add_to_db, read_db, delete_from_db, update_db, build_api_db, get_api_info, build_error_db, add_to_error_db, read_error_db
 
 
 ### SET VARIABLES AND INITIALIZE PRIMARY PROCESSES

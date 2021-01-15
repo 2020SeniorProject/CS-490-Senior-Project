@@ -100,27 +100,17 @@ def add_to_db(table_name, values):
         conn.commit()
 
 
-def read_db(table_name, rows="*", extra_clause = ""):
-    with create_connection(battle_sesh_db) as conn:
+def read_db(table_name, rows="*", extra_clause = "", read_api_db=False):
+    if read_api_db:
+        db_to_read_from = api_db
+    else:
+        db_to_read_from = battle_sesh_db
+    with create_connection(db_to_read_from) as conn:
         cur = conn.cursor()
         ret_lst = []
         for row in cur.execute(f"SELECT {rows} FROM {table_name} {extra_clause};"):
             ret_lst.append(row)
         return ret_lst
-
-
-def read_api_db(table_name, rows="*", extra_clause = ""):
-    with sqlite3.connect(api_db) as conn:
-        cur = conn.cursor()
-        ret_lst = []
-        for row in cur.execute(f"SELECT {rows} FROM {table_name} {extra_clause};"):
-            ret_lst.append(row)
-        return ret_lst
-
-
-# def create_connection(db_file):
-#     conn = sqlite3.connect(db_file)
-#     return conn
 
 
 def delete_from_db(table_name, extra_clause = ""):
@@ -174,8 +164,8 @@ def build_api_db(files):
 
 
 def get_api_info(table, row):
-    rows = read_api_db(table)
-    main_column = read_api_db(table, row)
+    rows = read_db(table, read_api_db=True)
+    main_column = read_db(table, row, read_api_db=True)
 
     main_column_set = set()
     for row in main_column:
