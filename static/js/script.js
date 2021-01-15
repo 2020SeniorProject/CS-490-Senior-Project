@@ -255,7 +255,6 @@ $(document).ready(function() {
 
  socket.on('redraw_character_tokens_on_map', function(msg) {
   for (let character in msg) {
-    let character_user_id = character;
     let character_site_name = msg[character].site_name;
     let character_name = msg[character].character_name;
     let character_image = msg[character].character_image;
@@ -273,8 +272,8 @@ $(document).ready(function() {
     $('#battle_map_container').append(character_token_html.outerHTML);
 
     reloadDraggable(socket);
-    reloadDroppable(socket, character_user_id, msg[character], room_id);
-    reloadResizable(socket, character_user_id, msg[character], room_id);
+    reloadDroppable(socket, room_id);
+    reloadResizable(socket, room_id);
   }
 });
 
@@ -333,21 +332,33 @@ function reloadDraggable(socket){
 }
 
 
-function reloadDroppable(socket, character_user_id, character_icon_data, room_id){
+function reloadDroppable(socket, room_id){
   $(".droppable").droppable({
     accept: ".draggable",
     drop: function(event, ui) {
       // TODO: Log character icon postion when dropped
       let new_top = ui.position.top.toString() + "px";
       let new_left = ui.position.left.toString() + "px";
-      socket.emit('character_icon_update_database', {desc: "ChangeLocation", character_user_id: character_user_id, character_image: character_icon_data['character_image'], site_name: character_icon_data['site_name'], character_name: character_icon_data['character_name'], new_top: new_top, new_left: new_left, new_width: character_icon_data['width'], new_height: character_icon_data['height'], room_id: room_id});
+      let site_name = ui.draggable[0].id.split("_")[1];
+      let character_name = ui.draggable[0].id.split("_")[0];
+      let partially_sliced_character_image = ui.draggable[0].innerHTML.substring(ui.draggable[0].innerHTML.indexOf("src") + 5);
+      if (!(partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf('"')) === partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf("\"")))) {
+        if (partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf('"')).length() < partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf("\"")).length()){
+          var character_image = partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf('"'));
+        }
+      }
+      else {
+        var character_image = partially_sliced_character_image.substring(0, partially_sliced_character_image.indexOf("\""));
+      }
+      socket.emit('character_icon_update_database', {desc: "ChangeLocation", character_image: character_image, site_name: site_name, character_name: character_name, new_top: new_top, new_left: new_left, new_width: "Null", new_height: "Null", room_id: room_id});
+      character_image = "";
     }
   });
 
 // https://api.jqueryui.com/droppable
 }
 
-function reloadResizable(socket, character_user_id, character_icon_data, room_id) {
+function reloadResizable(socket, room_id) {
   $(".resizable" ).resizable({
     autoHide: true,
     ghost: true,
@@ -360,7 +371,10 @@ function reloadResizable(socket, character_user_id, character_icon_data, room_id
       // TODO: Log chracter icon size when done resizing in json positions file
       let new_width = ui.size.width.toString() + "px";
       let new_height = ui.size.height.toString() + "px";
-      socket.emit('character_icon_update_database', {desc: "Resize", character_user_id: character_user_id, character_image: character_icon_data['character_image'], site_name: character_icon_data['site_name'], character_name: character_icon_data['character_name'], new_top: character_icon_data['top'], new_left: character_icon_data['left'], new_width: new_width, new_height: new_height, room_id: room_id});
+      let site_name = ui.originalElement[0].offsetParent.id.split("_")[1];
+      let character_name = ui.originalElement[0].offsetParent.id.split("_")[0];
+      let character_image = ui.originalElement[0].src;
+      socket.emit('character_icon_update_database', {desc: "Resize", character_image: character_image, site_name: site_name, character_name: character_name, new_top: "Null", new_left: "Null", new_width: new_width, new_height: new_height, room_id: room_id});
     }
   });
 

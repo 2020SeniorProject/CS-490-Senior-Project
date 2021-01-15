@@ -691,9 +691,13 @@ def connect(message):
 
 @socketio.on('character_icon_update_database', namespace='/combat')
 def character_icon_update_database(message):
-    user_id = message['character_user_id']
     site_name = message['site_name']
     room_id = message['room_id']
+    temp_read_for_user_id = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    for character in temp_read_for_user_id:
+        if temp_read_for_user_id[character]['site_name'] == message['site_name'] and temp_read_for_user_id[character]['character_name'] == message['character_name']:
+            print(character)
+            user_id = character
     
     # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
@@ -706,8 +710,28 @@ def character_icon_update_database(message):
     for i in wrong_room:
         del walla_walla[i]
 
-    json_character_to_add = { user_id: {"site_name": message['site_name'], "character_name": message['character_name'], "room_id": message['room_id'], "character_image": message['character_image'], "height": message['new_height'], "width": message['new_width'], "top": message['new_top'], "left": message['new_left']}}
-    walla_walla[user_id] = json_character_to_add[user_id]
+    # Ensure that there is a valid value for the token position and size
+    if message['new_top'] == "Null":
+        new_top = walla_walla[user_id]['top']
+    else:
+        new_top = message['new_top']
+    if message['new_left'] == "Null":
+        new_left = walla_walla[user_id]['left']
+    else:
+        new_left = message['new_left']
+    if message['new_width'] == "Null":
+        new_width = walla_walla[user_id]['width']
+    else:
+        new_width = message['new_width']
+    if message['new_height'] == "Null":
+        new_height = walla_walla[user_id]['height']
+    else:
+        new_height = message['new_height']
+        
+
+
+    json_character_to_update = { user_id: {"site_name": message['site_name'], "character_name": message['character_name'], "room_id": message['room_id'], "character_image": message['character_image'], "height": new_height, "width": new_width, "top": new_top, "left": new_left}}
+    walla_walla[user_id] = json_character_to_update[user_id]
     characters_json = json.dumps(walla_walla)
     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
