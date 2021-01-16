@@ -337,6 +337,13 @@ def home():
         app.logger.warning("User does not have site name. Loading the Set User Name page.")
         return render_template("set_site_name.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
+    print("room_object")
+    for i in read_db("room_object"):
+        print(i)
+    print("active_room")
+    for i in read_db("active_room"):
+        print(i)
+
     app.logger.debug(f"User {current_user.get_site_name()} has gone to the home page.")
 
     created_rooms = read_db("room_object", "row_id,room_name,map_url,dm_notes", f"WHERE user_key = '{current_user.get_user_id()}'")   
@@ -479,6 +486,7 @@ def play():
 def login_index():
     if current_user.is_authenticated:
         app.logger.debug(f"User logged in. Redirecting to the home page")
+
         return redirect(url_for('home'))
     else:
         app.logger.debug("User not logged in. Loading the login page")

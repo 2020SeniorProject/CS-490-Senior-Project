@@ -1,27 +1,30 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="">
-    <table id=character_table class="table table-responsive table-fill table-hover border border-light text-center" style="margin:auto; width:100% !important">
+
+<div class="table-responsive">
+    <table id=character_table class="table table-hover border border-light text-center" style="margin:auto;">
         <thead class="thead-light">
-            <th class=sticky-cell-left>Name</th>
-            <th>Race</th>
-            <th>Subrace</th>
-            <th>Class</th>
-            <th>Subclass</th>
-            <th>Speed</th>
-            <th>Level</th>
-            <th>Strength</th>
-            <th>Dexterity</th>
-            <th>Constitution</th>
-            <th>Intelligence</th>
-            <th>Wisdom</th>
-            <th>Charisma</th>
-            <th>Hitpoints</th>
-            <th>Character Token</th>
-            <th class="text-center sticky-cell-right"><a href="/characters/create" class="btn btn-success">Create a Character!</a></th>
+            <tr>
+                <th class=sticky-cell-left>Name</th>
+                <th>Race</th>
+                <th>Subrace</th>
+                <th>Class</th>
+                <th>Subclass</th>
+                <th>Speed</th>
+                <th>Level</th>
+                <th>Strength</th>
+                <th>Dexterity</th>
+                <th>Constitution</th>
+                <th>Intelligence</th>
+                <th>Wisdom</th>
+                <th>Charisma</th>
+                <th>Hitpoints</th>
+                <th>Character Token</th>
+                <th class="sticky-cell-right"><a href="/characters/create" class="btn btn-success">Create a Character!</a></th>
+            </tr>
         </thead>
-        <tbody>
+        <tbody class="tableBody">
             {% for s in items %}
             <tr>
                 <td class="sticky-cell-left align-middle">{{ s[1] }}</td>
