@@ -17,7 +17,7 @@ from werkzeug.exceptions import HTTPException, BadRequest
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # Internal imports
-from classes import User, CharacterValidation, RoomValidation, SitenameValidation
+from classes import User, AnonymousUser, CharacterValidation, RoomValidation, SitenameValidation
 from db import create_dbs, add_to_db, read_db, delete_from_db, update_db, build_api_db, get_api_info, build_error_db, add_to_error_db, read_error_db
 
 
@@ -479,6 +479,44 @@ def play():
 
     app.logger.debug(f"User {current_user.get_site_name()} is attempting to enter a room")
     return render_template("choose_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+
+
+
+# @app.route("/spectate", methods=["GET", "POST"])
+# def spectate():
+#     print(current_user)
+#     if request.method == "POST":
+#         room_id = request.form['room_id']
+
+#         if read_db("room_object", "*", f"WHERE active_room_id = '{room_id}'"):
+
+#             app.logger.debug(f"{current_user.get_site_name()} is entering the room {room_id}")
+#             return redirect(url_for('spectateRoom', room_id=room_id))
+        
+#         app.logger.warning(f"User {current_user.get_site_name} attempted to enter an nonexistant room. Reloading to form with a message")
+#         return render_template("choose_spectate.html", message= "There is not an open room with that key!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+    
+#     app.logger.debug(f"User {current_user.get_site_name()} is attempting to spectate a room")
+#     return render_template("choose_spectate.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+
+
+
+
+# @app.route("/spectate/<room_id>", methods=["GET", "POST"])
+# def spectateRoom(room_id):
+#     try:
+#         image_url, map_owner = read_db("room_object", "map_url, user_key", f"WHERE active_room_id = '{room_id}'")[0]
+        
+#         app.logger.debug(f"User {current_user.get_site_name()} is spectating the room {room_id}")
+
+#         return render_template("watch.html", async_mode=socketio.async_mode, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+
+#     except:
+#         app.logger.debug(f"No such room exists to spectate")
+
+
+
+
 
 
 # Landing Login Page
