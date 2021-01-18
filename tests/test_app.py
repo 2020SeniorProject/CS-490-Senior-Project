@@ -138,6 +138,14 @@ def client_3():
         yield client_3
 
 
+@pytest.fixture
+def socket_client(client_2):
+    socket_client = socketio.test_client(app, namespace="/combat",flask_test_client=client_2)
+    yield socket_client
+
+
+
+
 # Testing client 
 def test_invalid_user(client_3):
 
@@ -257,3 +265,24 @@ def test_delete_character(client_2):
     assert b'Yanko' not in del_char.data
 
 # SocketIO Event Tests
+
+def test_open_room(client_2):
+    app_context = client_2.get("/home")
+    open_room_test = client_2.post("/generate_room", data={"room_name":"Dungeon Battle", "csrf_token":client_2.csrf_token}, follow_redirects=True)
+    assert b'Initiative' in open_room_test.data
+
+
+
+def testing_add_characters(socket_client, client_2):
+    room_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle'")[0]
+
+    app_context = socket_client.get("/home")
+    open_room_test = socket_client.post("/generate_room", data={"room_name":"Dungeon Battle", "csrf_token":client_2.csrf_token}, follow_redirects=True)
+
+    socket_join_events = socket_client.get_received()
+    assert socket_join_events["site_name"] == mrsmock69
+
+    add_char_event = socket_client.emit("add_character", {"character_name":"Yanko", "site_name":"mrsmock69", "room_id":room_id})
+
+
+
