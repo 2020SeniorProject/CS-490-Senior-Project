@@ -56,6 +56,9 @@ build_error_db()
 # User session management setup
 login_manager = LoginManager()
 login_manager.init_app(app)
+login_manager.anonymous_user = AnonymousUser
+
+
 
 # OAuth 2 client setup
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
@@ -483,7 +486,6 @@ def play():
 
 #TODO: Allow anonymous users to join
 @app.route("/spectate", methods=["GET", "POST"])
-@login_required
 def spectate():
     if request.method == "POST":
         room_id = request.form['room_id']
@@ -501,7 +503,6 @@ def spectate():
 
 
 @app.route("/spectate/<room_id>", methods=["GET", "POST"])
-@login_required
 def spectateRoom(room_id):
     try:
         image_url, map_owner = read_db("room_object", "map_url, user_key", f"WHERE active_room_id = '{room_id}'")[0]

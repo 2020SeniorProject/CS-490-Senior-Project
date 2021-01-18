@@ -85,6 +85,8 @@ class AnonymousUser(AnonymousUserMixin):
         self.profile_pic = "https://i.stack.imgur.com/34AD2.jpg"
         self.site_name = "guest" + self.id
     
+    def 
+
     def get_user_id(self):
         return self.id
 
