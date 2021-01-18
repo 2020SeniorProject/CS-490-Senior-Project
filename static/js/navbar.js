@@ -6,6 +6,7 @@ $(document).ready(function() {
         case "home":
         case "play":
         case "characters":
+        case "spectate":
         case "user":
             $(`#path_${first_item}`).addClass('active underline_text');
             break;
