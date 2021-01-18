@@ -487,6 +487,10 @@ def play():
 #TODO: Allow anonymous users to join
 @app.route("/spectate", methods=["GET", "POST"])
 def spectate():
+    if current_user.is_authenticated and not current_user.get_site_name():
+        app.logger.debug(f"Authenticated User tried to spectate without a site_name. Requiring site name creation.")
+        return render_template("set_site_name.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+
     if request.method == "POST":
         room_id = request.form['room_id']
 
