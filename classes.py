@@ -84,9 +84,7 @@ class AnonymousUser(AnonymousUserMixin):
         self.id = ''.join(random.choice(string.digits) for _ in range(4))
         self.profile_pic = "https://i.stack.imgur.com/34AD2.jpg"
         self.site_name = "guest" + self.id
-    
-    def 
-
+        
     def get_user_id(self):
         return self.id
 
