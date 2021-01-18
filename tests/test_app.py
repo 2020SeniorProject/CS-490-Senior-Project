@@ -118,7 +118,7 @@ def client_2(mocker):
     with app.test_client() as client_2:
         create_dbs()
         mocker.patch("flask_login.utils._get_user", return_value = User("paulinaMock21", "Paulina Mock", "mail", "mock.jpg", "mrsmock69"))
-        add_to_db("room_object", ("paulinaMock21", "Dungeon Battle", "", "", "img.jpg", "We got a battle"))
+        add_to_db("room_object", ("paulinaMock21", "Dungeon Battle", "", "", "this_is_sweet_map.jpg", "This is going to be an intense batle"))
         add_to_db("users", ("paulinaMock21", "Paulina Mock", "mail", "mock.jpg", "mrsmock69"))
         add_to_db("characters", ["paulinaMock21" ,"Yanko", "Lizardfolk", "Lizardfolk", 20, "Ranger", "Hunter", 20, 12, 18, 16, 12, 18, 8, 77, "lizardboi.jpg"])
         yield client_2
@@ -196,6 +196,22 @@ def test_room_create(client_1, fields, inputs, expected):
     create_room_attempt = client_1.post("/room/create", data = data, follow_redirects= True)
 
     assert bytes(expected, 'utf-8') in create_room_attempt.data
+
+
+@pytest.mark.parametrize("fields, inputs, expected", get_cases("room_edit"))
+def test_room_edit(client_2, fields, inputs, expected):
+    
+    room_row_number = read_db("room_object","row_id", "WHERE user_key = 'paulinaMock21' and room_name = 'Dungeon Battle'")[0][0]
+    room_view = client_2.get(f"/room/{room_row_number}")
+
+    data = {fields[x]:inputs[x] for x in range(len(fields))}
+    data["csrf_token"] = client_2.csrf_token
+
+    room_edit_test = client_2.post(f"/room/{room_row_number}", data=data, follow_redirects=True)
+
+    assert bytes(expected, 'utf-8') in room_edit_test.data
+
+
 
 # Test changing a user's sitename
 # Only checks that illegal characters fail 

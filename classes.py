@@ -1,8 +1,10 @@
-from flask_login import UserMixin
+from flask_login import UserMixin, AnonymousUserMixin
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SubmitField, validators, Form, FileField
 from wtforms.validators import Length, NumberRange, DataRequired, ValidationError, Regexp, URL, Optional
 from wtforms_validators import AlphaNumeric, AlphaSpace
+import random
+import string
 
 
 ##
@@ -74,3 +76,22 @@ class User(UserMixin):
 
     def __repr__(self):
         return f"User({self.id}, {self.name}, {self.email}, {self.profile_pic}, {self.site_name})"
+
+
+
+class AnonymousUser(AnonymousUserMixin):
+    def __init__(self):
+        self.id = ''.join(random.choice(string.digits) for _ in range(4))
+        self.profile_pic = "https://i.stack.imgur.com/34AD2.jpg"
+        self.site_name = "guest" + self.id
+        
+    def get_user_id(self):
+        return self.id
+
+    def get_profile_pic(self):
+        return self.profile_pic
+    
+    def get_site_name(self):
+        return self.site_name
+
+

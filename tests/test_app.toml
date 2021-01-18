@@ -121,6 +121,26 @@ fields = ["map_url"]
 inputs = ["this_is_sweet_map.jpg"]
 expected = 'room_name: Please input the name of your room'
 
+[[room_edit]]
+
+fields = ["room_name", "map_url", "dm_notes"]
+inputs = ["Field Battle", "this_is_sweet_map.jpg", "This is going to be an intense batle"]
+expected = 'Field Battle'
+
+
+[[room_edit]]
+
+fields = ["room_name", "map_url", "dm_notes"]
+inputs = ["Dungeon Battle", "this_is_sweet_map.jpg", "This is not going to be an intense batle"]
+expected = 'This is not going to be an intense batle'
+
+
+[[room_edit]]
+
+fields = ["room_name", "map_url", "dm_notes"]
+inputs = ["Dungeon Battle", "this_is_dope_map.jpg", "This is not going to be an intense batle"]
+expected = 'this_is_dope_map.jpg'
+
 #Problem: This test cannot be done with the current way I'm handling users
 # This form should alter user data but can't alter the user data given to the test client and therefore becomes problematic
 # [[site_name]]
@@ -156,4 +176,6 @@ expected = "Elf"
 fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints", "old_name", "old_race", "old_subrace", "old_class", "old_subclass"]
 inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "30", "Ranger", "Hunter", "20", "12", "12", "12", "12", "12", "12", "77", "Yanko", "Lizardfolk", "Lizardfolk", "Ranger", "Hunter"]
 expected = "30"
+
+
 
