@@ -6,6 +6,7 @@ from flask import Flask, session
 from flask.testing import FlaskClient as BaseFlaskClient
 from flask_login import current_user, UserMixin
 from flask_wtf.csrf import generate_csrf
+from flask_socketio import SocketIO, emit, join_room, close_room
 from requests import get, post, request
 
 # python library imports
@@ -138,6 +139,13 @@ def client_3():
         yield client_3
 
 
+@pytest.fixture
+def socket_client(client_2):
+    yield socket_client
+
+
+
+
 # Testing client 
 def test_invalid_user(client_3):
 
@@ -257,3 +265,39 @@ def test_delete_character(client_2):
     assert b'Yanko' not in del_char.data
 
 # SocketIO Event Tests
+
+# def test_open_room(client_2):
+#     room_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle'")[0][0]
+
+#     app_context = client_2.get(f"/room/{room_id}")
+#     open_room_test = client_2.post("/generate_room", data={"room_name":"Dungeon Battle", "csrf_token":client_2.csrf_token}, follow_redirects=True)
+    
+#     socket_client = socketio.test_client(app, flask_test_client=client_2)
+#     socket_client.connect("/combat")
+    
+
+#     data_recv = socket_client.get_received()
+
+#     print(data_recv)
+
+    # assert b'Yanko' in open_room_test.data
+
+
+def testing_add_characters(socket_client, client_2):
+    room_object_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle' and user_key= 'paulinaMock21'")[0][0]
+    app_context = client_2.get(f"/room/{room_object_id}")
+    open_room_test = client_2.post("/generate_room", data={"room_name":"Dungeon Battle", "csrf_token":client_2.csrf_token}, follow_redirects=True)
+
+    room_id = read_db("room_object", "active_room_id", f"WHERE row_id= {room_object_id}")
+
+    socket_client = socketio.test_client(app, namespace="/combat", flask_test_client=client_2)
+    socket_client.join_room(room_id)
+    # socket_client.emit("join_actions", {"room_id":room_id, "character_name":""}, room_id=room_id)
+    socket_join_events = socket_client.get_received()
+    # print(socket_join_events)
+    assert socket_join_events[0]["site_name"] == mrsmock69
+
+    # add_char_event = socket_client.emit("add_character", {"character_name":"Yanko", "site_name":"mrsmock69", "room_id":room_id})
+
+
+

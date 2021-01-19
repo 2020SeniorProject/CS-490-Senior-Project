@@ -419,7 +419,7 @@ def room_edit(room_id):
         app.logger.warning(f"User {current_user.get_site_name()} is attempting to edit their room")
         return process_room_form(form, user_id, "edit", room_id)
 
-    room = read_db("room_object", "*", f"WHERE rowid = {room_id} and user_key= '{current_user.get_user_id()}'")
+    room = read_db("room_object", "*", f"WHERE row_id = {room_id} and user_key= '{current_user.get_user_id()}'")
     if room:
         room = room[0]
         app.logger.debug(f"User {current_user.get_site_name()} is prepping their room for their encounter!")
@@ -485,7 +485,8 @@ def play():
     return render_template("choose_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 
-#TODO: Allow anonymous users to join
+#TODO: Find way to cache guest users when they go onto the website
+#TODO: Create generalized function that can grab authorized users who skip the site name
 @app.route("/spectate", methods=["GET", "POST"])
 def spectate():
     if current_user.is_authenticated and not current_user.get_site_name():
