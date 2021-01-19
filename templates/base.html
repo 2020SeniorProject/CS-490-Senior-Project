@@ -12,7 +12,7 @@
         <script src="/static/js/navbar.js"></script>
       </head>
       <body>
-        <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark mb-2" style="font-size:20px; height:8%;">
+        <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark mb-2" style="font-size:20px; height:6%;">
           <a class="navbar-brand" href="/home"><i class="fas fa-map ml-3 mr-3"></i></a>
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -60,7 +60,8 @@
         <div style="width:99%; margin-top:4.5rem;">
         {% else %}
         <div class="mx-auto" style="width:99%; margin-top:4.5rem;">
-          {% endif %}
+        {% endif %}
+        
         {% block content %}
         {% endblock %}
         </div>

@@ -364,6 +364,7 @@ def home():
 def user_settings():
     user_id = current_user.get_user_id()
     characters = read_db("characters", "chr_name, char_token", f"WHERE user_key = '{user_id}'")
+    user_email = current_user.get_email()
 
     if request.method == "POST":
         if 'site_name' in request.form:
@@ -374,11 +375,11 @@ def user_settings():
             if not form.validate():
                 err_lis = readify_form_errors(form)
                 app.logger.warning(f"There are issues in the renaming form. Allowing the user to change it")
-                return render_template("user_settings.html", characters=characters, username_errors=err_lis, new_site_name=new_site_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+                return render_template("user_settings.html", characters=characters, username_errors=err_lis, new_site_name=new_site_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), user_email=user_email)
 
             if read_db("users", "*", f"WHERE site_name = '{new_site_name}'"):
                 app.logger.warning(f"Site name {new_site_name} already has been used. Reloading the user settings page with warning message.")
-                return render_template("user_settings.html", characters=characters, username_message="That username is already in use!", new_site_name=new_site_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+                return render_template("user_settings.html", characters=characters, username_message="That username is already in use!", new_site_name=new_site_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), user_email=user_email)
 
             app.logger.debug(f"{new_site_name} is available as a site name. Updating {current_user.get_site_name()} site name.")
             update_db("users", f"site_name = '{new_site_name}'", f"WHERE user_id = '{user_id}'")
@@ -391,7 +392,7 @@ def user_settings():
 
 
     app.logger.debug(f"User {current_user.get_site_name()} is accessing their user settings")
-    return render_template("user_settings.html", characters=characters, new_site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+    return render_template("user_settings.html", characters=characters, new_site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), user_email=user_email)
 
 
 @app.route("/room/create", methods=["GET", "POST"])
@@ -965,13 +966,11 @@ if __name__ != "__main__":
 # https://learn.jquery.com/using-jquery-core/document-ready/
 # https://www.w3schools.com/cssref/css_selectors.asp
 
-# TODO: Prevent chat spam!
 # TODO: When DMs upload battle maps, have the option to specify how many squares wide and how many tall, then have selectors for character tokens for different sizes, and have character tokens snap into the grid
 # TODO: Rename script.js
 # TODO: change current_user.get_site_name() to current_user.get_username() or something of the like. get_site_name() is confusing
 # TODO: Check if a user is already logged in a different window when they attempt to login
 # TODO: rename variable 'site_name' to something like 'user_site_name' because site_name is confusing
-# TODO: Get stuff from MTF and mythic oddessy of pharoes
 # TODO: The check to ensure that a user has a character before joining a room is not working
 # TODO: add check to ensure that a user submits an image along with their character at time of creation. Cannot be nothing
 # TODO: rename variable "character_image" to "character_token_image"
@@ -980,6 +979,7 @@ if __name__ != "__main__":
 # TODO: add a check to make sure that a user submits a character image with their character
 # TODO: add a UI option in /play to allow a user to remove their character from the init order
 # TODO: Include list of users already in the room in initial log message when joining room
+# TODO: Fix 2 pixel "bleed" at the top of the table when partially scrolled
 
 
 
