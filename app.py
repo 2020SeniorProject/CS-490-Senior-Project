@@ -14,7 +14,6 @@ from oauthlib.oauth2 import WebApplicationClient
 from requests import get, post
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from werkzeug.exceptions import HTTPException, BadRequest
-from werkzeug.wrappers import Request
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # Internal imports
