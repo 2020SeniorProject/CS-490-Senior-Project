@@ -4,14 +4,15 @@ $(document).ready(function() {
 
     switch(first_item) {
         case "home":
-        case "play":
         case "characters":
-        case "spectate":
         case "user":
+        case "rooms":
             $(`#path_${first_item}`).addClass('active underline_text');
             break;
-        case "room":
-            $("#path_home").addClass('active underline_text');
+        case "play":
+        case "spectate":
+            $("#path_rooms").addClass('active underline_text');
+            break;
         default:
             break;
     }

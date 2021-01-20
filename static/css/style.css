@@ -32,6 +32,7 @@
 
 .underline_text {
   text-decoration: underline;
+  text-underline-position: under;
 }
 
 .sticky-cell-left {

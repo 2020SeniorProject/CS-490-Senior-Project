@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class=row>
+    <div class=col-1></div>
+    <div class=col-10>
+        <a href="/rooms/create">
+        <button class= "btn btn-success btn-lg btn-block" >Create a room</button>
+        </a>
+    </div>
+</div>
+<br>
+<div class="row">
+    <div class=col-1></div>
+    <div class="col-10 d-flex justify-content-center">
+        <div class=row>
+        {% for rooms in room_list %}
+            <div class=card style="width: 12rem;margin:6px;">
+                <a href="/rooms/{{ rooms[0] }}">
+                    <img class="card-img-top" name=room_map_img src="{{ rooms[2] }}">
+                </a>
+                <div class=card-body>
+                    <a href="/rooms/{{ rooms[0] }}">
+                        <h5 class="card-title text-center max-length-text-1" name="room_name">{{ rooms[1] }}</h5>
+                    </a>
+                    <p class="card-text text-center max-length-text-2" name="dm_notes"><small>{{ rooms[3] }}</small></p>
+                </div>
+                {% if not defaulted %}
+                <div class="card-footer">
+                    <form onsubmit="return confirm('Deleting this room will eliminate all of its associated tokens and map images. Proceed?');" action="/rooms" method="POST" class="form my-auto" name="room_del">
+                        <input type="submit" class="btn btn-danger btm-sm form-control" value="Delete" >
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="room_id" value="{{ rooms[0] }}">
+                        <input type="hidden" name="room_name" value="{{ rooms[1] }}">
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+</div>
+{{ message }}
+
+
+{% endblock %}
