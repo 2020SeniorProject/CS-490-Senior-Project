@@ -212,8 +212,9 @@ def character_icon_add_database(character_name, site_name, character_image, user
     for i in wrong_room:
         del walla_walla[i]
 
-    json_character_to_add = { user_id: {"site_name": site_name, "character_name": character_name, "room_id": room_id, "character_image": character_image, "height": initial_height, "width": initial_width, "top": initial_top, "left": initial_left, "is_turn": 0}}
-    walla_walla[user_id] = json_character_to_add[user_id]
+    user_id_character_name = str(user_id) + '_' + str(character_name)
+    json_character_to_add = { user_id_character_name: {"site_name": site_name, "character_name": character_name, "room_id": room_id, "character_image": character_image, "height": initial_height, "width": initial_width, "top": initial_top, "left": initial_left, "is_turn": 0}}
+    walla_walla[user_id_character_name] = json_character_to_add[user_id_character_name]
     map_status_json = json.dumps(walla_walla)
     update_db("room_object", f"map_status = '{map_status_json}'", f"WHERE active_room_id = '{room_id}'")
 
@@ -692,8 +693,9 @@ def start_combat(message):
     for i in wrong_room:
         del walla_walla[i]
 
-    json_character_to_update = { character_id: {"site_name": site_name, "character_name": character_name, "room_id": room_id, "character_image": walla_walla[character_id]['character_image'], "height": walla_walla[character_id]['height'], "width": walla_walla[character_id]['width'], "top": walla_walla[character_id]['top'], "left": walla_walla[character_id]['left'], "is_turn": 1}}
-    walla_walla[character_id] = json_character_to_update[character_id]
+    user_id_character_name = str(user_id) + '_' + str(character_name)
+    json_character_to_update = { user_id_character_name: {"site_name": site_name, "character_name": character_name, "room_id": room_id, "character_image": walla_walla[user_id_character_name]['character_image'], "height": walla_walla[user_id_character_name]['height'], "width": walla_walla[user_id_character_name]['width'], "top": walla_walla[user_id_character_name]['top'], "left": walla_walla[user_id_character_name]['left'], "is_turn": 1}}
+    walla_walla[user_id_character_name] = json_character_to_update[user_id_character_name]
     characters_json = json.dumps(walla_walla)
     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
@@ -725,8 +727,9 @@ def end_combat(message):
     for i in wrong_room:
         del walla_walla[i]
 
-    json_character_to_update = { character_id: {"site_name": site_name, "character_name": character_name, "room_id": room_id, "character_image": walla_walla[character_id]['character_image'], "height": walla_walla[character_id]['height'], "width": walla_walla[character_id]['width'], "top": walla_walla[character_id]['top'], "left": walla_walla[character_id]['left'], "is_turn": 0}}
-    walla_walla[character_id] = json_character_to_update[character_id]
+    user_id_character_name = str(user_id) + '_' + str(character_name)
+    json_character_to_update = { user_id_character_name: {"site_name": site_name, "character_name": character_name, "room_id": room_id, "character_image": walla_walla[user_id_character_name]['character_image'], "height": walla_walla[user_id_character_name]['height'], "width": walla_walla[user_id_character_name]['width'], "top": walla_walla[user_id_character_name]['top'], "left": walla_walla[user_id_character_name]['left'], "is_turn": 0}}
+    walla_walla[user_id_character_name] = json_character_to_update[user_id_character_name]
     characters_json = json.dumps(walla_walla)
     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
@@ -773,10 +776,12 @@ def end_turn(message):
     for i in wrong_room:
         del walla_walla[i]
 
-    previous_json_character_to_update = { previous_character_id: {"site_name": previous_site_name, "character_name": previous_character_name, "room_id": room_id, "character_image": walla_walla[previous_character_id]['character_image'], "height": walla_walla[previous_character_id]['height'], "width": walla_walla[previous_character_id]['width'], "top": walla_walla[previous_character_id]['top'], "left": walla_walla[previous_character_id]['left'], "is_turn": 0}}
-    next_json_character_to_update = { next_character_id: {"site_name": next_site_name, "character_name": next_character_name, "room_id": room_id, "character_image": walla_walla[next_character_id]['character_image'], "height": walla_walla[next_character_id]['height'], "width": walla_walla[next_character_id]['width'], "top": walla_walla[next_character_id]['top'], "left": walla_walla[next_character_id]['left'], "is_turn": 1}}
-    walla_walla[previous_character_id] = previous_json_character_to_update[previous_character_id]
-    walla_walla[next_character_id] = next_json_character_to_update[next_character_id]
+    previous_user_id_character_name = str(previous_character_id) + '_' + str(previous_character_name)
+    next_user_id_character_name = str(next_character_id) + '_' + str(next_character_name)
+    previous_json_character_to_update = { previous_user_id_character_name: {"site_name": previous_site_name, "character_name": previous_character_name, "room_id": room_id, "character_image": walla_walla[previous_user_id_character_name]['character_image'], "height": walla_walla[previous_user_id_character_name]['height'], "width": walla_walla[previous_user_id_character_name]['width'], "top": walla_walla[previous_user_id_character_name]['top'], "left": walla_walla[previous_user_id_character_name]['left'], "is_turn": 0}}
+    next_json_character_to_update = { next_user_id_character_name: {"site_name": next_site_name, "character_name": next_character_name, "room_id": room_id, "character_image": walla_walla[next_user_id_character_name]['character_image'], "height": walla_walla[next_user_id_character_name]['height'], "width": walla_walla[next_user_id_character_name]['width'], "top": walla_walla[next_user_id_character_name]['top'], "left": walla_walla[next_user_id_character_name]['left'], "is_turn": 1}}
+    walla_walla[previous_user_id_character_name] = previous_json_character_to_update[previous_user_id_character_name]
+    walla_walla[next_user_id_character_name] = next_json_character_to_update[next_user_id_character_name]
     characters_json = json.dumps(walla_walla)
     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
@@ -813,7 +818,6 @@ def connect(message):
             wrong_room.append(i)
     for i in wrong_room:
         del walla_walla[i]
-
 
     add_to_db("log", (room_id, user_id, "Connection", f"User with id {user_id} connected", time_rcvd))
     app.logger.debug(f"Battle update: User {current_user.get_site_name()} has connected to room {room_id}")
@@ -861,7 +865,7 @@ def character_icon_update_database(message):
     for character in temp_read_for_user_id:
         if temp_read_for_user_id[character]['site_name'] == message['site_name'] and temp_read_for_user_id[character]['character_name'] == message['character_name']:
             print(character)
-            user_id = character
+            user_id_character_name = character
     
     # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
@@ -876,26 +880,26 @@ def character_icon_update_database(message):
 
     # Ensure that there is a valid value for the token position and size
     if message['new_top'] == "Null":
-        new_top = walla_walla[user_id]['top']
+        new_top = walla_walla[user_id_character_name]['top']
     else:
         new_top = message['new_top']
     if message['new_left'] == "Null":
-        new_left = walla_walla[user_id]['left']
+        new_left = walla_walla[user_id_character_name]['left']
     else:
         new_left = message['new_left']
     if message['new_width'] == "Null":
-        new_width = walla_walla[user_id]['width']
+        new_width = walla_walla[user_id_character_name]['width']
     else:
         new_width = message['new_width']
     if message['new_height'] == "Null":
-        new_height = walla_walla[user_id]['height']
+        new_height = walla_walla[user_id_character_name]['height']
     else:
         new_height = message['new_height']
         
 
-    # TODO: Add check here to make sure that the token you're trying to move is your own and not someone elses. Check the user_id from user_id = character in the loop above against current_user.get_site_name(). Add exception for if you are the DM
-    json_character_to_update = { user_id: {"site_name": message['site_name'], "character_name": message['character_name'], "room_id": message['room_id'], "character_image": message['character_image'], "height": new_height, "width": new_width, "top": new_top, "left": new_left, "is_turn": message['is_turn']}}
-    walla_walla[user_id] = json_character_to_update[user_id]
+    # TODO: Add check here to make sure that the token you're trying to move is your own and not someone elses. Check the user_id_character_name from user_id_character_name = character in the loop above against current_user.get_site_name(). Add exception for if you are the DM
+    json_character_to_update = { user_id_character_name: {"site_name": message['site_name'], "character_name": message['character_name'], "room_id": message['room_id'], "character_image": message['character_image'], "height": new_height, "width": new_width, "top": new_top, "left": new_left, "is_turn": message['is_turn']}}
+    walla_walla[user_id_character_name] = json_character_to_update[user_id_character_name]
     characters_json = json.dumps(walla_walla)
     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
