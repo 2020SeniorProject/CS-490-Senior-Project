@@ -90,7 +90,7 @@ $(document).ready(function() {
     else {
       next_index = turn_index + 1;
     }
-    socket.emit('end_turn', {desc: `${initiatives[turn_index][0]}'s Turn Ended`, old_name: initiatives[turn_index][0], next_name: initiatives[next_index][0], old_site_name: initiatives[turn_index][2], next_site_name: initiatives[next_index][2], room_id: room_id});
+    socket.emit('end_turn', {desc: `${initiatives[turn_index][0]}'s Turn Ended`, previous_character_name: initiatives[turn_index][0], next_character_name: initiatives[next_index][0], previous_site_name: initiatives[turn_index][2], next_site_name: initiatives[next_index][2], room_id: room_id});
     return false;
   });
 
@@ -113,6 +113,7 @@ $(document).ready(function() {
     $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
   });
 
+  // TODO: allow characters to select who goes first when initiatives tied
   socket.on('initiative_update', function(msg) {
     var updated = false;
 
@@ -160,6 +161,9 @@ $(document).ready(function() {
     $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
     $(`#${first_turn_name}-${msg.site_name}-row`).addClass("bg-warning");
 
+    let token_id_to_highlight = first_turn_name + "_" + msg.site_name;
+    $(`#${token_id_to_highlight}`).find("img").css( "border", "3px solid red" );
+
     $('#set_initiative_button').prop('disabled', true);
     $('#start_battle_button').prop('disabled', true);
     $('#end_battle_button').prop('disabled', false);
@@ -185,6 +189,9 @@ $(document).ready(function() {
     $('#start_battle_button').prop('disabled', false);
     $('#end_battle_button').prop('disabled', true);
 
+    let token_id_to_unhighlight = current_turn_name + "_" + msg.site_name;
+    $(`#${token_id_to_unhighlight}`).find("img").css( "border", "0px" ); // Try empty string instead of "0px"
+
     if ($('#character_name option').length != 0) {
       $('#add_character_button').prop('disabled', false);
     }
@@ -204,15 +211,21 @@ $(document).ready(function() {
     else {
       next_index = turn_index + 1;
     }
-    var old_id = initiatives[turn_index][0].split(" ").join("_");
-    var next_id = initiatives[next_index][0].split(" ").join("_");
+    var previous_character_name = initiatives[turn_index][0].split(" ").join("_");
+    var next_character_name = initiatives[next_index][0].split(" ").join("_");
     turn_index = next_index;
 
     // $('#initiative_wrapper').html(checklist);
     $('#checklist_div').html("");
 
-    $(`#${old_id}-${msg.old_site_name}-row`).removeClass("bg-warning");
-    $(`#${next_id}-${msg.next_site_name}-row`).addClass("bg-warning");
+    $(`#${previous_character_name}-${msg.previous_site_name}-row`).removeClass("bg-warning");
+    $(`#${next_character_name}-${msg.next_site_name}-row`).addClass("bg-warning");
+
+    let token_id_to_highlight = next_character_name + "_" + msg.next_site_name;
+    $(`#${token_id_to_highlight}`).find("img").css( "border", "3px solid red" );
+
+    let token_id_to_unhighlight = previous_character_name + "_" + msg.previous_site_name;
+    $(`#${token_id_to_unhighlight}`).find("img").css( "border", "0px" ); // Try empty string instead of "0px"
 
     $('#end_turn_button').prop('disabled', true);
     if (site_name == msg.next_site_name) {
@@ -272,10 +285,11 @@ $(document).ready(function() {
     let width = msg[character].width;
     let top = msg[character].top;
     let left = msg[character].left;
+    let is_turn = msg[character].is_turn;
 
     let character_html_id = character_name + "_" + character_site_name;
 
-    let character_token_html = build_html_for_character_icon(character_html_id, character_image, height, width, top, left);
+    let character_token_html = build_html_for_character_icon(character_html_id, character_image, height, width, top, left, is_turn);
 
     $("#" + character_html_id).remove();
     $('#battle_map_container').append(character_token_html.outerHTML);
@@ -301,7 +315,7 @@ $(document).ready(function() {
     return code;
   }
 
-  function build_html_for_character_icon(character_id, character_image, height, width, top, left) {
+  function build_html_for_character_icon(character_id, character_image, height, width, top, left, is_turn) {
     let character_icon_wrapper = document.createElement("div");
     character_icon_wrapper.setAttribute("id", character_id);
     character_icon_wrapper.setAttribute("class", "characterIconWrapper draggable ui-draggable ui-draggable-handle");
@@ -310,8 +324,12 @@ $(document).ready(function() {
     let character_icon = document.createElement("img");
     character_icon.setAttribute("id", "characterIcon");
     character_icon.setAttribute("class", "characterIcon resizable ui-resizable");
-    character_icon.setAttribute("style", "position: static; height: " + height + "; width: " + width + "; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block; draggable: true;");
-    // Updating the src attribute causes the page to reload
+    if (is_turn) {
+      character_icon.setAttribute("style", "position: static; height: " + height + "; width: " + width + "; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block; draggable: true; border: 3px solid red");
+    }
+    else {
+      character_icon.setAttribute("style", "position: static; height: " + height + "; width: " + width + "; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block; draggable: true;");
+    }
     character_icon.setAttribute("src", character_image);
 
     character_icon_wrapper.appendChild(character_icon);
@@ -369,8 +387,16 @@ function reloadDroppable(socket, room_id){
       let character_name = ui.draggable[0].id.split("_")[0];
       let partially_sliced_character_image = ui.draggable[0].innerHTML.substring(ui.draggable[0].innerHTML.indexOf("src") + 5);
       let character_image = scrapeCharacterImage(partially_sliced_character_image);
-      socket.emit('character_icon_update_database', {desc: "ChangeLocation", character_image: character_image, site_name: site_name, character_name: character_name, new_top: new_top, new_left: new_left, new_width: "Null", new_height: "Null", room_id: room_id});
-      character_image = "";
+      if (ui.draggable[0].innerHTML.substring(ui.draggable[0].innerHTML.indexOf("border:"), ui.draggable[0].innerHTML.indexOf("border:") + 21) == "border: 3px solid red") {
+        var is_turn = 1;
+        socket.emit('character_icon_update_database', {desc: "ChangeLocation", character_image: character_image, site_name: site_name, character_name: character_name, new_top: new_top, new_left: new_left, new_width: "Null", new_height: "Null", is_turn: is_turn, room_id: room_id});
+        character_image = "";
+      }
+      else {
+        var is_turn = 0;
+        socket.emit('character_icon_update_database', {desc: "ChangeLocation", character_image: character_image, site_name: site_name, character_name: character_name, new_top: new_top, new_left: new_left, new_width: "Null", new_height: "Null", is_turn: is_turn, room_id: room_id});
+        character_image = "";
+      }
     }
   });
 
@@ -394,7 +420,14 @@ function reloadResizable(socket, room_id) {
       let site_name = ui.originalElement[0].offsetParent.id.split("_")[1];
       let character_name = ui.originalElement[0].offsetParent.id.split("_")[0];
       let character_image = ui.originalElement[0].src;
-      socket.emit('character_icon_update_database', {desc: "Resize", character_image: character_image, site_name: site_name, character_name: character_name, new_top: "Null", new_left: "Null", new_width: new_width, new_height: new_height, room_id: room_id});
+      if (ui.originalElement[0].outerHTML.substring(ui.originalElement[0].outerHTML.indexOf("border:"), ui.originalElement[0].outerHTML.indexOf("border:") + 21) == "border: 3px solid red") {
+        var is_turn = 1;
+        socket.emit('character_icon_update_database', {desc: "Resize", character_image: character_image, site_name: site_name, character_name: character_name, new_top: "Null", new_left: "Null", new_width: new_width, new_height: new_height, is_turn: is_turn, room_id: room_id});
+      }
+      else {
+        var is_turn = 0;
+        socket.emit('character_icon_update_database', {desc: "Resize", character_image: character_image, site_name: site_name, character_name: character_name, new_top: "Null", new_left: "Null", new_width: new_width, new_height: new_height, is_turn: is_turn, room_id: room_id});
+      }
     }
   });
 
@@ -406,8 +439,3 @@ function reloadResizable(socket, room_id) {
 //   $('#battle_map_container').html('<img id="battle_map" style="height:100%;width:100%;" draggable="false" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Flag_of_Libya_%281977%E2%80%932011%29.svg/300px-Flag_of_Libya_%281977%E2%80%932011%29.svg.png">');
 //   $('#initiative-table').html('<tbody><tr id=Helga-Yee-row><td>Helga</td><td>4444</td></tr></tbody>');
 // }
-
-
-// TODO: Standardize naming conventions for functions and variables
-// TODO: how to handle character tokens on different resolutions of screens?
-// TODO: Add functionality for only moving your own character tokens. Prohibit the movement of characters that are not yours

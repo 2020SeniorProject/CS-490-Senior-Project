@@ -43,7 +43,7 @@ def create_connection(db_file):
 # User_key - ‘owner’ of the room, needed to lock out others from editing the room
 # Name of room - what the owner of the room calls it (for visual purposes)
 # Active room id - null if room not open, changes when room is ‘opened’ !!! THIS IS EQUIVALENT TO 'ROOM_ID IN chat, active_room, log, and characters !!!
-# Map_status - stringified JSON representation of character tokens and locations on map. ex: { user_id: { site_name, character_name, character_image, room_id, height, width, top, left } }
+# Map_status - stringified JSON representation of character tokens and locations on map. ex: { user_id: { site_name, character_name, character_image, room_id, height, width, top, left, is_turn } }
 # Map URL - URL to the map (for the “background”)
 
 # users table ****** THIS IS THE ONLY TABLE THAT UTILIZES USER_ID INSTEAD OF USER_KEY BUT THEY ARE SYNONYMOUS ******
