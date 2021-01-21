@@ -278,7 +278,6 @@ $(document).ready(function() {
  socket.on('redraw_character_tokens_on_map', function(msg) {
   for (let character in msg) {
     let character_site_name = msg[character].site_name;
-    let character_name = msg[character].character_name;
     let character_image = msg[character].character_image;
     let room_id = msg[character].room_id;
     let height = msg[character].height;
@@ -286,8 +285,9 @@ $(document).ready(function() {
     let top = msg[character].top;
     let left = msg[character].left;
     let is_turn = msg[character].is_turn;
+    let char_name_parsed = $('#character_name').val().split(" ").join("_");
 
-    let character_html_id = character_name + "_" + character_site_name;
+    let character_html_id = char_name_parsed + "_" + character_site_name;
 
     let character_token_html = build_html_for_character_icon(character_html_id, character_image, height, width, top, left, is_turn);
 
