@@ -153,21 +153,19 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
 def process_room_form(form, user_id, usage, room_id):
     if form.validate():
         if usage == "create":
-
             values = (user_id, form.room_name.data, "null", '{}', form.map_url.data, form.dm_notes.data)
             app.logger.debug(f"User {current_user.get_site_name()} has created the room named {form.room_name.data}")
 
             add_to_db("room_object", values)
-            return redirect(url_for("home"))
+            return redirect(url_for("view_rooms"))
 
         if usage == "edit":
-
             values = (user_id, form.room_name.data, "null", '{}', form.map_url.data, form.dm_notes.data)
             app.logger.debug(f"User {current_user.get_site_name()} has saved changes to the room named {form.room_name.data}")
             
             delete_from_db("room_object", f"WHERE row_id ='{room_id}'")
             add_to_db("room_object", values)
-            return redirect(url_for("home"))
+            return redirect(url_for("view_rooms"))
 
     err_lis = readify_form_errors(form)
     if usage == "create":
@@ -300,9 +298,17 @@ def edit_character(name):
 
 
 # Post-Login Landing Page
+#TODO: Find way to cache guest users when they go onto the website
+#TODO: Create generalized function that can grab authorized users who skip the site name
 @app.route("/home", methods=["GET", "POST"])
-@login_required
 def home():
+    authenticated = False
+    if current_user.is_authenticated:
+        app.logger.debug(f"User logged in")
+        authenticated = True
+    else:
+        app.logger.debug(f"User not logged in")
+
     if request.method == "POST":
         if "site_name" in request.form:
             site_name = request.form["site_name"]
@@ -323,17 +329,32 @@ def home():
             update_db("users", f"site_name = '{site_name}'", f"WHERE user_id = '{current_user.get_user_id()}'")
             return redirect(url_for('home'))
 
-        if "room_number" in request.form:
-            app.logger.debug(f"Attempting to delete room owned by {current_user.get_site_name()} named {request.form['room_name']}.")
+        if "spectate_room_id" in request.form:
+            room_id = request.form['spectate_room_id']
+
+            if read_db("room_object", "*", f"WHERE active_room_id = '{room_id}'"):
+                app.logger.debug(f"{current_user.get_site_name()} is entering the room {room_id}")
+                return redirect(url_for('spectateRoom', room_id=room_id))
             
-            if read_db("active_room", "room_id", f"WHERE room_id = {request.form['room_number']}"):
-                app.logger.warning(f"User {current_user.get_site_name()} is attempting to delete an active room {request.form['room_name']}")
-                # Do we want this responsibility to be on the user or is there merit to just scrubbing the DBs from this page
-                return render_template("home.html" , message="Room is active! Close it first!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms)
+            app.logger.warning(f"User {current_user.get_site_name()} attempted to enter an nonexistant room. Reloading to form with a message")
+            if authenticated:
+                return render_template("home.html", spectate_message= "There is not an open room with that key!", spectate_room_id=room_id, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+            else:
+                return render_template("login.html", spectate_message= "There is not an open room with that key!", spectate_room_id=room_id, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+                
+
+        if "play_room_id" in request.form:
+            room_id = request.form['play_room_id']
+
+            if read_db("room_object", "*", f"WHERE active_room_id = '{room_id}'"):
+                app.logger.debug(f"User {current_user.get_site_name()} is entering room {room_id}")
+                return redirect(url_for('enterRoom', room_id=room_id))
             
-            delete_from_db("room_object", f"WHERE row_id = {request.form['room_number']}")
-            app.logger.debug(f"Deleted user {current_user.get_site_name()}'s room {request.form['room_name']}")
-            return redirect(url_for('home'))
+            app.logger.warning(f"User {current_user.get_site_name()} attempted to enter an nonexistant room. Reloading to form with a message")
+            return render_template("home.html", play_message="There is not an open room with that key!", play_room_id=room_id, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+
+    if not authenticated:
+        return render_template("login.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
     if not current_user.get_site_name():
         # site_name is what we call the username in the backend
@@ -347,16 +368,7 @@ def home():
     for i in read_db("active_room"):
         print(i)
 
-    app.logger.debug(f"User {current_user.get_site_name()} has gone to the home page.")
-
-    created_rooms = read_db("room_object", "row_id,room_name,map_url,dm_notes", f"WHERE user_key = '{current_user.get_user_id()}'")   
-    if not created_rooms:
-        created_rooms = [("create", "Looks like you don't have any encounters made!", "https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg", "Create rooms to start DMing your own game!")]
-        default = True
-    else:
-        default = False
-
-    return render_template("home.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms, defaulted = default)
+    return render_template("home.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
 
 @app.route("/user/settings", methods=["GET", "POST"])
@@ -364,6 +376,7 @@ def home():
 def user_settings():
     user_id = current_user.get_user_id()
     characters = read_db("characters", "chr_name, char_token", f"WHERE user_key = '{user_id}'")
+    user_email = current_user.get_email()
 
     if request.method == "POST":
         if 'site_name' in request.form:
@@ -374,27 +387,49 @@ def user_settings():
             if not form.validate():
                 err_lis = readify_form_errors(form)
                 app.logger.warning(f"There are issues in the renaming form. Allowing the user to change it")
-                return render_template("user_settings.html", characters=characters, username_errors=err_lis, new_site_name=new_site_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+                return render_template("user_settings.html", characters=characters, username_errors=err_lis, new_site_name=new_site_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), user_email=user_email)
 
             if read_db("users", "*", f"WHERE site_name = '{new_site_name}'"):
                 app.logger.warning(f"Site name {new_site_name} already has been used. Reloading the user settings page with warning message.")
-                return render_template("user_settings.html", characters=characters, username_message="That username is already in use!", new_site_name=new_site_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+                return render_template("user_settings.html", characters=characters, username_message="That username is already in use!", new_site_name=new_site_name, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), user_email=user_email)
 
             app.logger.debug(f"{new_site_name} is available as a site name. Updating {current_user.get_site_name()} site name.")
             update_db("users", f"site_name = '{new_site_name}'", f"WHERE user_id = '{user_id}'")
             return redirect(url_for('user_settings'))
-        
-        if 'token_url' in request.form:
-            new_char_token = request.form['token_url']
-
-            app.logger.debug(f"User's")
-
 
     app.logger.debug(f"User {current_user.get_site_name()} is accessing their user settings")
-    return render_template("user_settings.html", characters=characters, new_site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+    return render_template("user_settings.html", characters=characters, new_site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), user_email=user_email)
 
 
-@app.route("/room/create", methods=["GET", "POST"])
+@app.route("/rooms", methods=["GET", "POST"])
+@login_required
+def view_rooms():
+    if request.method == "POST":
+        print(request.form)
+        app.logger.debug(f"Attempting to delete room owned by {current_user.get_site_name()} named {request.form['room_name']}.")
+        
+        if read_db("active_room", "room_id", f"WHERE room_id = {request.form['room_id']}"):
+            app.logger.warning(f"User {current_user.get_site_name()} is attempting to delete an active room {request.form['room_name']}")
+            # Do we want this responsibility to be on the user or is there merit to just scrubbing the DBs from this page
+            return render_template("home.html" , message="Room is active! Close it first!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms)
+        
+        delete_from_db("room_object", f"WHERE row_id = {request.form['room_id']}")
+        app.logger.debug(f"Deleted user {current_user.get_site_name()}'s room {request.form['room_name']}")
+        return redirect(url_for('view_rooms'))
+
+    app.logger.debug(f"User {current_user.get_site_name()} has gone to the rooms page.")
+
+    created_rooms = read_db("room_object", "row_id,room_name,map_url,dm_notes", f"WHERE user_key = '{current_user.get_user_id()}'")   
+    if not created_rooms:
+        created_rooms = [("create", "Looks like you don't have any encounters made!", "https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg", "Create rooms to start DMing your own game!")]
+        default = True
+    else:
+        default = False
+
+    return render_template("view_rooms.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms, defaulted = default)
+
+
+@app.route("/rooms/create", methods=["GET", "POST"])
 @login_required
 def room_creation():
     app.logger.debug(f"User {current_user.get_site_name()} is creating a new room!")
@@ -408,7 +443,7 @@ def room_creation():
     return render_template("add_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg")
 
 
-@app.route("/room/<room_id>", methods=["GET", "POST"])
+@app.route("/rooms/<room_id>", methods=["GET", "POST"])
 @login_required
 def room_edit(room_id):
     user_id = current_user.get_user_id()
@@ -418,7 +453,7 @@ def room_edit(room_id):
         app.logger.warning(f"User {current_user.get_site_name()} is attempting to edit their room")
         return process_room_form(form, user_id, "edit", room_id)
 
-    room = read_db("room_object", "*", f"WHERE rowid = {room_id} and user_key= '{current_user.get_user_id()}'")
+    room = read_db("room_object", "*", f"WHERE row_id = {room_id} and user_key= '{current_user.get_user_id()}'")
     if room:
         room = room[0]
         app.logger.debug(f"User {current_user.get_site_name()} is prepping their room for their encounter!")
@@ -458,74 +493,29 @@ def enterRoom(room_id):
             return render_template("play.html", async_mode=socketio.async_mode, characters=characters, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
     except:
-        # TODO: Add a pop up on the page to notify user
         app.logger.debug(f"No such room exists")
-
-    # if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'") and not read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND user_key = '{user_id}' AND chr_name = '{char_name}'"):
-        # app.logger.debug(f"User {current_user.get_site_name()} is watching the room {room_id}")
-        # return render_template("watch.html", async_mode=socketio.async_mode, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
-
-
-# Gameplay Page
-@app.route("/play", methods=["GET", "POST"])
-@login_required
-def play():
-    if request.method == "POST":
-        room_id = request.form['room_id']
-
-        if read_db("room_object", "*", f"WHERE active_room_id = '{room_id}'"):
-            app.logger.debug(f"User {current_user.get_site_name()} is entering room {room_id}")
-            return redirect(url_for('enterRoom', room_id=room_id))
-        
-        app.logger.warning(f"User {current_user.get_site_name()} attempted to enter an nonexistant room. Reloading to form with a message")
-        return render_template("choose_room.html", message="There is not an open room with that key!", room_id=room_id, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
-
-    app.logger.debug(f"User {current_user.get_site_name()} is attempting to enter a room")
-    return render_template("choose_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
-
-
-#TODO: Allow anonymous users to join
-@app.route("/spectate", methods=["GET", "POST"])
-def spectate():
-    if request.method == "POST":
-        room_id = request.form['room_id']
-
-        if read_db("room_object", "*", f"WHERE active_room_id = '{room_id}'"):
-
-            app.logger.debug(f"{current_user.get_site_name()} is entering the room {room_id}")
-            return redirect(url_for('spectateRoom', room_id=room_id))
-        
-        app.logger.warning(f"User {current_user.get_site_name} attempted to enter an nonexistant room. Reloading to form with a message")
-        return render_template("choose_spectate.html", message= "There is not an open room with that key!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
-    
-    app.logger.debug(f"User {current_user.get_site_name()} is attempting to spectate a room")
-    return render_template("choose_spectate.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+        raise BadRequest(description=f"A room with room id {room_id} does not exist!")
 
 
 @app.route("/spectate/<room_id>", methods=["GET", "POST"])
 def spectateRoom(room_id):
     try:
-        image_url, map_owner = read_db("room_object", "map_url, user_key", f"WHERE active_room_id = '{room_id}'")[0]
+        image_url = read_db("room_object", "map_url", f"WHERE active_room_id = '{room_id}'")[0][0]
         
         app.logger.debug(f"User {current_user.get_site_name()} is spectating the room {room_id}")
 
         return render_template("watch.html", async_mode=socketio.async_mode, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
     except:
-        app.logger.debug(f"No such room exists to spectate")
+        app.logger.debug(f"No such room exists")
+        raise BadRequest(description=f"A room with room id {room_id} does not exist!")
 
 
 
 # Landing Login Page
 @app.route("/")
 def login_index():
-    if current_user.is_authenticated:
-        app.logger.debug(f"User logged in. Redirecting to the home page")
-
-        return redirect(url_for('home'))
-    else:
-        app.logger.debug("User not logged in. Loading the login page")
-        return render_template("login.html")
+    return redirect(url_for('home'))
 
 
 # Login Process
@@ -1016,6 +1006,13 @@ if __name__ != "__main__":
 # https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Auto_Racing_Black_Box.svg/800px-Auto_Racing_Black_Box.svg.png
 # https://upload.wikimedia.org/wikipedia/commons/e/ee/Flag_Admirals_of_the_Blue_Squadron_Royal_Navy.png
 # https://upload.wikimedia.org/wikipedia/commons/8/8e/Flag_Vice_Admiral_of_Red_1805_to_1864.png
+
+# TODO: When DMs upload battle maps, have the option to specify how many squares wide and how many tall, then have selectors for character tokens for different sizes, and have character tokens snap into the grid
+# TODO: rename variable "character_image" to "character_token_image"
+# TODO: disable start battle button if no characters in initiative
+# TODO: add a UI option in /play to allow a user to remove their character from the init order
+# TODO: Include list of users already in the room in initial log message when joining room
+# TODO: Fix 2 pixel "bleed" at the top of the table when partially scrolled
 
 
 

@@ -1,54 +1,63 @@
 <html>
     <head>
+        <link rel="icon" href="/static/images/symbol.png">
         <link rel="stylesheet" href="/static/css/bootstrap.min.css">
         <link rel="stylesheet" href="/static/css/style.css">
-        <script src="//code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
-    </head>
-    <body>
-        <div style="width:99%;">
-          <div class="row">
-              <div class="col-2"></div>
-              <div class="col-8">
-                  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-2">
-                      <!-- <a class="navbar-brand" href="/">Navbar</a> -->
-                      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                      </button>
-                    
-                      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="navbar-nav mr-auto">
-                          <li class="nav-item active">
-                            <a class="nav-link disabled" href="#">Home <span class="sr-only">(current)</span></a>
-                          </li>
-                          <li class="nav-item">
-                            <a class="nav-link disabled" href="#">Play</a>
-                          </li>
-                          <li class="nav-item">
-                            <a class="nav-link disabled" href="#">Character</a>
-                          </li>
-                          <li class="nav-item">
-                            <a class="nav-link disabled" href="#">Settings</a>
-                          </li>
-                        </ul>
-                      </div>
-                    </nav>
-              </div>
+        <link rel="stylesheet" type="text/css" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/cupertino/jquery-ui.css" />
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+        <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+        <script src="https://use.fontawesome.com/releases/v5.15.1/js/all.js" data-auto-replace-svg="nest"></script>
+        <script src="/static/js/navbar.js"></script>
+      </head>
+      <body>
+        <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark mb-2" style="font-size:20px; height:6%;">
+          <a class="navbar-brand" href="/home"><i class="fas fa-map ml-3 mr-3"></i></a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+              <li class="nav-item">
+                <a class="nav-link" id=path_home href="/home">Home</a>
+              </li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item align-self-center">
+                <a class="nav-link btn btn-success text-white mr-4" style="font-size:20px;" href="/login">Login</a>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <img src="{{ profile_pic }}" width="40" height="40" class="rounded-circle">
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                  <p class="dropdown-item navbar-text text-center mb-0"><b class=text-dark id=site_name>{{ site_name }}</b></p>
+                </div>
+              </li>
+            </ul>
           </div>
-          <div class=container>
-            <p class="text-center">
-                Welcome to Wizards of the Driftless' (were Wizards of the Plains) Online Battle Facilitator for DND 5e! In order to use this
-                tool, you need to be <a class="button" href="/login">logged in</a>...<br><br><br>
+        </nav>
 
-                <form action="/login">
-                    <input type=submit style="width:20%;" class="btn btn-success form-control btn-lg" value="Click here to login!">
-                </form>
-            </p>
-          </div>
-          <div class = container >
-            {{ errors }}
+        <div class=container>
+          <div class="mx-auto" style="width:99%; margin-top:4.5rem;">
+            <p class="text-center mb-5">Welcome to Wizards of the Driftless (formerly Wizards of the Plains) Online Battle Simulator! You currently are not logged in. As such, you cannot access most of the site's functionality. If you wish to do anything other than spectate a room, please log in!</p>
+            <form action="/home" method="POST" class="form">
+              <label class=form-label for=spectate_room_id>Spectate Room ID</label>
+              <div class="row">
+                  <div class="col form-group mb-0">
+                      <input type=text name="spectate_room_id" id="spectate_room_id" class="form-control" placeholder="Enter an 8 character room id" value="{{ spectate_room_id }}">
+                  </div>
+                  <div class="col form-group mb-0">
+                      <input type="submit" class="btn btn-danger btm-sm form-control" value="Choose a room to spectate">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  </div>
+              </div>
+              <p class="small">This form allows you to spectate in the active room with the provided id.</p>
+          </form>
+          {{ spectate_message }}
           </div>
         </div>
-
     </body>
 </html>
