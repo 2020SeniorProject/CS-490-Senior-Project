@@ -979,48 +979,11 @@ if __name__ != "__main__":
     # app.logger.setLevel(gunicorn_logger.level)
 
 
-# References
-# https://realpython.com/flask-google-login/\
-# https://blog.miguelgrinberg.com/post/easy-websockets-with-flask-and-gevent 
-# https://trstringer.com/logging-flask-gunicorn-the-manageable-way/
-# https://flask-login.readthedocs.io/en/latest
-# https://stackoverflow.com/a/30779367
+# --- References ---
+# Google login with Flask: https://realpython.com/flask-google-login/
+# Websockets: https://blog.miguelgrinberg.com/post/easy-websockets-with-flask-and-gevent 
+# Gunicorn logging: https://trstringer.com/logging-flask-gunicorn-the-manageable-way/
+# Random room_id generation: https://stackoverflow.com/a/30779367
 
-# Developer Links
+# --- Developer Links ---
 # Visit https://console.developers.google.com/apis/credentials/oauthclient/211539095216-3dnbifedm4u5599jf7spaomla4thoju6.apps.googleusercontent.com?project=seniorproject-294418&supportedpurview=project to get ID and SECRET, then export them in a terminal to set them as environment variables
-
-# Heroku specific changes - commit id: 6e0717afc16625b0cddb6410974bdb4c67bbf44f
-#	URL: https://github.com/2020SeniorProject/CS-490-Senior-Project/commit/6e0717afc16625b0cddb6410974bdb4c67bbf44f
-
-### Commit specific resources:
-# http://jsfiddle.net/jcgbq46p/19/
-# https://api.jqueryui.com/droppable/#event-drop
-# https://learn.jquery.com/jquery-ui/getting-started/
-# http://jsfiddle.net/8wkj2z79/1/
-# http://jsfiddle.net/v6PME/1/
-# https://stackoverflow.com/questions/22268881/referenceerror-is-not-defined/22268906
-# https://learn.jquery.com/using-jquery-core/document-ready/
-# https://www.w3schools.com/cssref/css_selectors.asp
-
-# Development character images:
-# https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Auto_Racing_Black_Box.svg/800px-Auto_Racing_Black_Box.svg.png
-# https://upload.wikimedia.org/wikipedia/commons/e/ee/Flag_Admirals_of_the_Blue_Squadron_Royal_Navy.png
-# https://upload.wikimedia.org/wikipedia/commons/8/8e/Flag_Vice_Admiral_of_Red_1805_to_1864.png
-
-# TODO: When DMs upload battle maps, have the option to specify how many squares wide and how many tall, then have selectors for character tokens for different sizes, and have character tokens snap into the grid
-# TODO: rename variable "character_image" to "character_token_image"
-# TODO: disable start battle button if no characters in initiative
-# TODO: add a UI option in /play to allow a user to remove their character from the init order
-# TODO: Include list of users already in the room in initial log message when joining room
-# TODO: Fix 2 pixel "bleed" at the top of the table when partially scrolled
-
-
-
-# Issue discovery. What do to about active_room table and room_object table. What information should be stored in each, respectively? 
-# when a user hops into join_actions, they are supposed to have their map and their initiative order updated. Init order gets updated just fine
-# because the program reads from active_room table, so if no characters have been added to the battle map yet, nothing is in the active_room
-# table for initiatives. However, map_status reads from room_object table and that means that if a hops into join_actions and no characters
-# have been added yet, they will still see their character tokens appear on the map. I think that we should sync initiative order with
-# map_status, probably by moving both to room_object. What's the harm in preserving initiative order in that table?
-
-# I have a work around for the problem above, I will double check that the room id for each character token in map_status matches the current room_id token, but this is just a temporary fix. If this design problem is not solved, map_status could easily balloon into a very large bit of data
