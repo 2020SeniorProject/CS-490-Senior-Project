@@ -31,6 +31,7 @@ global spam_penalty # in seconds
 spam_penalty = 30
 global spam_max_messages
 spam_max_messages = 5
+npc_images = ["http://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Auto_Racing_Black_Box.svg/800px-Auto_Racing_Black_Box.svg.png"]
 
 # Google OAuth configurations
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
@@ -362,12 +363,12 @@ def home():
         app.logger.warning("User does not have site name. Loading the Set User Name page.")
         return render_template("set_site_name.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
-    print("room_object")
+    app.logger.debug(f"Rooms in Database:")
     for i in read_db("room_object"):
-        print(i)
-    print("active_room")
+        app.logger.debug(f"{i}")
+    app.logger.debug(f"Active Rooms in Database:")
     for i in read_db("active_room"):
-        print(i)
+        app.logger.debug(f"{i}")
 
     return render_template("home.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
@@ -406,7 +407,6 @@ def user_settings():
 @login_required
 def view_rooms():
     if request.method == "POST":
-        print(request.form)
         app.logger.debug(f"Attempting to delete room owned by {current_user.get_site_name()} named {request.form['room_name']}.")
         
         if read_db("active_room", "room_id", f"WHERE room_id = {request.form['room_id']}"):
@@ -864,7 +864,6 @@ def character_icon_update_database(message):
     temp_read_for_user_id = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     for character in temp_read_for_user_id:
         if temp_read_for_user_id[character]['site_name'] == message['site_name'] and temp_read_for_user_id[character]['character_name'] == message['character_name']:
-            print(character)
             user_id_character_name = character
     
     # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
@@ -938,6 +937,26 @@ def add_character(message):
     character_icon_add_database(character_name, site_name, character_image, user_id, room_id)
     app.logger.debug(f"User {site_name} has added character {character_name} to the battle")
 
+@socketio.on('add_npc', namespace='/combat')
+def add_npc(message):
+    room_id = message['room_id']
+    user_id = current_user.get_user_id()
+    random_key = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
+    character_name = "NPC" + random_key
+    site_name = message['site_name']
+    init_val = 0
+    character_image = random.choice(npc_images)
+
+    temp_db_read_init_value = read_db("active_room", "init_val", f"WHERE room_id='{room_id}' AND user_key = '{user_id}' AND chr_name = '{character_name}'")
+    if temp_db_read_init_value:
+        init_val = temp_db_read_init_value[0][0]
+    else:
+        add_to_db("active_room", (room_id, user_id, character_name, 0, 0, character_image))
+
+    emit('populate_select_with_character_names', {'character_name': character_name, 'site_name': site_name}, room=room_id)
+    emit('initiative_update', {'character_name': character_name, 'init_val': init_val, 'site_name': site_name}, room=room_id)
+    character_icon_add_database(character_name, site_name, character_image, user_id, room_id)
+    app.logger.debug(f"User {site_name} has added character {character_name} to the battle")
 
 
 ### ERROR HANDLING 
