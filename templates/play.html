@@ -5,8 +5,8 @@
 <script src="/static/js/script.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js" integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ==" crossorigin="anonymous"></script>
 
-<div class=row style="height:75%;">
-    <div class="col-2 border border-dark h-100" style="overflow:scroll;">
+<div class="row border-top border-dark" style="height:75%;">
+    <div class="col-2 h-100" style="overflow:scroll;">
         <h4 class="text-center">Initiative Order</h4>
 
         <table id="initiative-table" class="table table-sm text-center">
@@ -14,19 +14,19 @@
             </tbody>
         </table>
     </div>
-    <div class="col-8 px-0 mx-0 border border-dark">
+    <div class="col-8 px-0 mx-0">
         <div id="battle_map_container" class="text-center droppable ui-droppable" style="width:100%">	
             <img id="battle_map" style="height:100%;width:100%;" draggable="false" src="{{ image_url }}">
         </div>
     </div>
-    <div class="col-2 border border-dark h-100" style="overflow:scroll;">
+    <div class="col-2 h-100" style="overflow:scroll;">
         <h4 class="text-center">Log</h4>
         <div id=checklist_div></div>
         <div id="log"></div>
     </div>
 </div>
 <!-- <div class="fixed-bottom" style="height:20%;"> -->
-    <div class="row mt-0" style="height:25%;">
+    <div class="row mt-0 border-bottom border-dark" style="height:25%;">
         <div class="col-2 my-auto text-center">
             <div id="initiative-wrapper">
                 <form class="form" id=set_initiative>
@@ -42,7 +42,7 @@
                 <input type=submit class="btn btn-danger form-control" value="End Turn!" id=end_turn_button disabled>
             </form>
         </div>
-        <div class="col-8 border border-dark">
+        <div class="col-8">
             <p class="text-center mb-0" id=chat-box><b>Chat</b></p>
             <div style="overflow:scroll;height:60%;" id=chat-box>
                 <div id="chat-list">
@@ -64,7 +64,7 @@
                 </div>
             </form>
         </div>
-        <div class="col-2 border border-dark h-100" style="overflow:scroll;">
+        <div class="col-2 h-100" style="overflow:scroll;">
             <p class="text-center mb-0"><b>Add a Character</b></p>
             <form class="form" id=add_character>
                 <select id=character_name class=form-control required>

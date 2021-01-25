@@ -505,10 +505,12 @@ def enterRoom(room_id):
 def spectateRoom(room_id):
     try:
         image_url = read_db("room_object", "map_url", f"WHERE active_room_id = '{room_id}'")[0][0]
-        
+
         app.logger.debug(f"User {current_user.get_site_name()} is spectating the room {room_id}")
 
-        return render_template("watch.html", async_mode=socketio.async_mode, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+        if current_user.is_authenticated:
+            return render_template("watch.html", async_mode=socketio.async_mode, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
+        return render_template("unlogged_watch.html", async_mode=socketio.async_mode, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
 
     except:
         app.logger.debug(f"No such room exists")
@@ -969,31 +971,31 @@ def add_npc(message):
 
 ### ERROR HANDLING 
 
-# @app.errorhandler(CSRFError)
-# def handle_csrf_error(e):
-#     app.logger.warning(f"A CSRFError has occurred. How did this happen?")
-#     return render_template("error.html", error_name="Error Code 400" ,error_desc = "The room you were in has closed!", site_name=current_user.get_site_name()), 400
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    app.logger.warning(f"A CSRFError has occurred. How did this happen?")
+    return render_template("error.html", error_name="Error Code 400" ,error_desc = "The room you were in has closed!", site_name=current_user.get_site_name()), 400
 
-# @app.errorhandler(HTTPException)
-# def generic_error(e):
-#     # Generic HTTP Exception handler
-#         app.logger.warning(f"A HTTP error with code {e.code} has occurred. Handling the error.")
-#         return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description, site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic()), e.code
+@app.errorhandler(HTTPException)
+def generic_error(e):
+    # Generic HTTP Exception handler
+        app.logger.warning(f"A HTTP error with code {e.code} has occurred. Handling the error.")
+        return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description, site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic()), e.code
 
-# @app.errorhandler(Exception)
-# def five_hundred_error(e):
-#     app.logger.warning(f"A server error occurred. Handling it, but you probably should fix the bug...")
-#     app.logger.error(f"Here it is: {e}")
-#     desc = "Internal Server Error. Congrats! You found an unexpected feature! Care to tell us about it?"
-#     return render_template("error.html", error_name="Error Code 500", error_desc=desc, site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic()), 500
+@app.errorhandler(Exception)
+def five_hundred_error(e):
+    app.logger.warning(f"A server error occurred. Handling it, but you probably should fix the bug...")
+    app.logger.error(f"Here it is: {e}")
+    desc = "Internal Server Error. Congrats! You found an unexpected feature!"
+    return render_template("error.html", error_name="Error Code 500", error_desc=desc, site_name=current_user.get_site_name(), profile_pic=current_user.get_profile_pic()), 500
 
-# @app.route("/process_error", methods=["POST"])
-# @login_required
-# def process_error():
-#     if 'error_desc' in request.form:
-#         add_to_error_db(request.form['error_desc'])
+@app.route("/process_error", methods=["POST"])
+@login_required
+def process_error():
+    if 'error_desc' in request.form:
+        add_to_error_db(request.form['error_desc'])
     
-#     return redirect(url_for("home"))
+    return redirect(url_for("home"))
 
 
 
