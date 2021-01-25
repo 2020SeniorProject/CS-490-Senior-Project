@@ -14,5 +14,16 @@ function resize_body() {
     $("#content").css("margin-top", navbarHeight + 10);
     $("#content").css("height", windowSize - navbarHeight - 20);
 
-    console.log("resize done");
+    if ($("#start_battle_button").length == 1) {
+        var parentHeight = $("#row1_col3").outerHeight(true);
+
+        var title = $("#dm_tools").outerHeight(true);
+        var startBattle = $("#start_battle").outerHeight(true);
+        var endBattle = $("#end_battle").outerHeight(true);
+        var endRoom = $("#close_room").outerHeight(true);
+
+        let totalHeight = title + startBattle + endBattle + endRoom;
+
+        $("#log_div").css("height", parentHeight - totalHeight - 10);
+    }
 }

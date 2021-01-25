@@ -19,8 +19,8 @@
             <img id="battle_map" style="height:100%;width:100%;" draggable="false" src="{{ image_url }}">
         </div>
     </div>
-    <div class="col-2 border border-dark h-100" style="overflow:scroll;">
-        <h4 class="text-center">DM's Tools</h4>
+    <div class="col-2 border border-dark h-100" id=row1_col3>
+        <h4 class="text-center" id=dm_tools>DM's Tools</h4>
         <!-- Will be finished later -->
         <!-- <form class=form id=update_grid_sizes>
             <div class=row>
@@ -44,8 +44,10 @@
         <form class=form id=close_room>
             <input type="submit" class="btn btn-warning form-control" value="End Session!" id="close_room_button">
         </form>
-        <div id=checklist_div></div>
-        <div id="log"></div>
+        <!-- <div id=checklist_div></div> -->
+        <div id=log_div style="overflow:scroll;">
+            <div id="log"></div>
+        </div>
     </div>
 </div>
 <!-- <div class="fixed-bottom" style="height:20%;"> -->

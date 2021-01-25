@@ -143,7 +143,14 @@ $(document).ready(function() {
   });
 
   socket.on('chat_update', function(msg) {
-    $('#chat-list').prepend($('<div/>').text(`${msg.character_name}: ${msg.chat}`).html() + '<br>');
+    var chat = $('<div/>').text(`${msg.character_name}: ${msg.chat}`).html();
+    var col = $('<div/>').addClass("col");
+    var row = $('<div/>').addClass("row");
+    col.append(chat);
+    row.append(col);
+    console.log(row.prop("outerHTML"));
+    $('#chat-list').prepend(row);
+    // $('#chat-list').prepend( + '<br>');
   });
 
   socket.on('lockout_spammer', function(msg) {
