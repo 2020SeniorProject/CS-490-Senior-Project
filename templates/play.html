@@ -43,9 +43,14 @@
             </form>
         </div>
         <div class="col-8 border border-dark">
-            <p class="text-center mb-0"><b>Chat</b></p>
-            <div style="overflow:scroll;height:60%;">
-                <div id="chat-list"></div>
+            <p class="text-center mb-0" id=chat-box><b>Chat</b></p>
+            <div style="overflow:scroll;height:60%;" id=chat-box>
+                <div id="chat-list">
+                    <div class=row>
+                        <div class="col mb-0 pb-0" style="max-width: 25%;" id=col1></div>
+                        <div class="col mb-0 pb-0" id=col2></div>
+                    </div>
+                </div>
             </div>
             
             <form class="form mb-0" id=send_chat>

@@ -21,8 +21,9 @@ function resize_body() {
         var startBattle = $("#start_battle").outerHeight(true);
         var endBattle = $("#end_battle").outerHeight(true);
         var endRoom = $("#close_room").outerHeight(true);
+        var logTitle = $("#log_title").outerHeight(true);
 
-        let totalHeight = title + startBattle + endBattle + endRoom;
+        let totalHeight = title + startBattle + endBattle + endRoom + logTitle;
 
         $("#log_div").css("height", parentHeight - totalHeight - 10);
     }

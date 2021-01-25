@@ -59,8 +59,10 @@ $(document).ready(function() {
   });
 
   $('form#send_chat').submit(function(event) {
-    socket.emit('send_chat', {chat: $('#chat_text').val(), character_name: site_name, room_id: room_id});
-    $('#chat_text').val(''); 
+    if ($('#chat_text').val().trim().length != 0) {
+      socket.emit('send_chat', {chat: $('#chat_text').val(), character_name: site_name, room_id: room_id});
+      $('#chat_text').val(''); 
+    }
     return false;
   });
   
@@ -114,7 +116,13 @@ $(document).ready(function() {
   });
 
   socket.on('log_update', function(msg) {
-    $('#log').prepend($('<div/>').text(msg.desc).html() + '<br>');
+    var log = $('<div/>').text(msg.desc).html();
+    var col = $('<div/>').addClass("col");
+    var row = $('<div/>').addClass("row");
+    col.append(log);
+    row.append(col);
+    $('#log').append(row);
+    $('#log_div').animate({ scrollTop: $('#log_div').prop("scrollHeight")}, 10);
   });
 
   // TODO: allow characters to select who goes first when initiatives tied
@@ -143,14 +151,18 @@ $(document).ready(function() {
   });
 
   socket.on('chat_update', function(msg) {
-    var chat = $('<div/>').text(`${msg.character_name}: ${msg.chat}`).html();
-    var col = $('<div/>').addClass("col");
-    var row = $('<div/>').addClass("row");
-    col.append(chat);
-    row.append(col);
-    console.log(row.prop("outerHTML"));
-    $('#chat-list').prepend(row);
-    // $('#chat-list').prepend( + '<br>');
+    var name = $('<p/>').text(`${msg.character_name}: `).addClass("mb-0 mt-0");
+    var chat;
+
+    var chat = $('<p/>').text(`${msg.chat}`).addClass("mb-0 mt-0");
+    // console.log(chat.width());
+    // console.log($('#col1').css("max-width"));
+    // if ($('#col1').css("max-width") == "100%") {
+    //   ($('#col1').css("max-width", )
+    // }
+    $('#col1').append(name);    
+    $('#col2').append(chat);    
+    $('#chat-box').animate({ scrollTop: $('#chat-box').prop("scrollHeight")}, 10);
   });
 
   socket.on('lockout_spammer', function(msg) {
@@ -169,7 +181,6 @@ $(document).ready(function() {
 
     // $('#initiative-wrapper').html(checklist);
 
-    $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
     $(`#${first_turn_name}-${msg.site_name}-row`).addClass("bg-warning");
 
     let token_id_to_highlight = first_turn_name + "_" + msg.site_name;
@@ -193,7 +204,6 @@ $(document).ready(function() {
     // $('#initiative-wrapper').html(initiative_form);
     $('#checklist_div').html("");
 
-    $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
     $(`#${current_turn_name}-${msg.site_name}-row`).removeClass("bg-warning");
 
     $('#end_turn_button').prop('disabled', true);
@@ -245,8 +255,6 @@ $(document).ready(function() {
       $('#end_turn_button').prop('disabled', false);
       $('#checklist_div').html(checklist);
     }
-
-    $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
   });
 
   socket.on('combat_connect', function(msg) {
@@ -256,7 +264,6 @@ $(document).ready(function() {
     // $('#initiative-wrapper').html(checklist);
     // TODO: highlight current character's icon here
 
-    $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
     $(`#${first_turn_name}-${msg.site_name}-row`).addClass("bg-warning");
 
     $('#set_initiative_button').prop('disabled', true);

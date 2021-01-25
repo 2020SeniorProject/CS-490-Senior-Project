@@ -705,6 +705,7 @@ def start_combat(message):
     update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_key = '{first_character[0]}' AND chr_name = '{first_character[1]}' AND init_val = '{first_character[2]}'")
     add_to_db("log", (room_id, user_id, "Combat", "Started Combat", time_rcvd))
 
+    emit('log_update', {'desc': "Started Combat"}, room=room_id)
     emit('combat_started', {'desc': 'Started Combat', 'first_turn_name': first_character[1], 'site_name': site_name}, room=room_id)
 
 
@@ -739,6 +740,7 @@ def end_combat(message):
     update_db("active_room", f"is_turn = '{0}'", f"WHERE room_id = '{room_id}'")
     add_to_db("log", (room_id, user_id, "Combat", "Ended Combat", time_rcvd))
 
+    emit('log_update', {'desc': "Ended Combat"}, room=room_id)
     emit('combat_ended', {'desc':'Ended Combat', 'current_turn_name': character[1], 'site_name': site_name}, room=room_id)
 
 
@@ -793,6 +795,7 @@ def end_turn(message):
     update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_key = '{next_character_id}' AND chr_name = '{next_character_name}'")
     add_to_db("log", (room_id, previous_character_id, "Combat", f"{previous_character_name}'s Turn Ended", time_rcvd))
 
+    emit('log_update', {'desc': message['desc']}, room=room_id)
     emit("turn_ended", {'desc': message['desc'], 'previous_site_name': previous_site_name, 'next_site_name': next_site_name}, room=room_id)
 
 
@@ -858,6 +861,7 @@ def connect(message):
         character = read_db("active_room", "user_key, chr_name", f"WHERE room_id = '{room_id}' AND is_turn = '1'")[0]
         turn_site_name = read_db("users", "site_name", f"WHERE user_id = '{character[0]}'")[0][0]
 
+        emit('log_update', {'desc': "Rejoined Combat"}, room=room_id)
         emit('combat_connect', {'desc': 'Rejoined Combat', 'first_turn_name': character[1], 'site_name': turn_site_name})
 
 
