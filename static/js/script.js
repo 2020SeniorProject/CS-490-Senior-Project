@@ -268,8 +268,8 @@ $(document).ready(function() {
   socket.on('populate_select_with_character_names', function(msg) {
     if (msg.site_name == site_name) {
       let character_name = msg.character_name;
-      let id_character_name = character_name.split(" ").join("_") + "-init-update";
-      let old_character_name = character_name.split(" ").join("_") + "-add-row";
+      let id_character_name = character_name.split(" ").join(":") + "-init-update";
+      let old_character_name = character_name.split(" ").join("\\:") + "-add-row";
       $('#init_placeholder').remove();
       $('#player_name').append(`<option id=${id_character_name}>${character_name}</option>`);
       $(`#${old_character_name}`).remove();
@@ -285,7 +285,7 @@ $(document).ready(function() {
  socket.on('redraw_character_tokens_on_map', function(msg) {
   for (let character in msg) {
     let character_site_name = msg[character].site_name;
-    let character_name = msg[character].character_name.split(" ").join(":+");
+    let character_name = msg[character].character_name.split(" ").join(":");
     let character_image = msg[character].character_image;
     let room_id = msg[character].room_id;
     let height = msg[character].height;
@@ -294,11 +294,13 @@ $(document).ready(function() {
     let left = msg[character].left;
     let is_turn = msg[character].is_turn;
 
-    let character_html_id = character_name + "_" + character_site_name;
+    let character_html_id_build = character_name + "_" + character_site_name;
 
-    let character_token_html = build_html_for_character_icon(character_html_id, character_image, height, width, top, left, is_turn);
+    let character_token_html = build_html_for_character_icon(character_html_id_build, character_image, height, width, top, left, is_turn);
 
-    $("#" + character_html_id).remove();
+    let character_html_id_remove = character_name.split(":").join("\\:") + "_" + character_site_name;
+
+    $("#" + character_html_id_remove).remove();
     $('#battle_map_container').append(character_token_html.outerHTML);
 
     reloadDraggable(socket);
@@ -390,7 +392,7 @@ function reloadDroppable(socket, room_id){
       let new_top = ui.position.top.toString() + "px";
       let new_left = ui.position.left.toString() + "px";
       let site_name = ui.draggable[0].id.split("_")[1];
-      let character_name = ui.draggable[0].id.split("_")[0].split(":+").join(" ");
+      let character_name = ui.draggable[0].id.split("_")[0].split(":").join(" ");
       let partially_sliced_character_image = ui.draggable[0].innerHTML.substring(ui.draggable[0].innerHTML.indexOf("src") + 5);
       let character_image = scrapeCharacterImage(partially_sliced_character_image);
       if (ui.draggable[0].innerHTML.substring(ui.draggable[0].innerHTML.indexOf("border:"), ui.draggable[0].innerHTML.indexOf("border:") + 21) == "border: 3px solid red") {
@@ -424,7 +426,7 @@ function reloadResizable(socket, room_id) {
       let new_width = ui.size.width.toString() + "px";
       let new_height = ui.size.height.toString() + "px";
       let site_name = ui.originalElement[0].offsetParent.id.split("_")[1];
-      let character_name = ui.originalElement[0].offsetParent.id.split("_")[0].split(":+").join(" ");
+      let character_name = ui.originalElement[0].offsetParent.id.split("_")[0].split(":").join(" ");
       let character_image = ui.originalElement[0].src;
       if (ui.originalElement[0].outerHTML.substring(ui.originalElement[0].outerHTML.indexOf("border:"), ui.originalElement[0].outerHTML.indexOf("border:") + 21) == "border: 3px solid red") {
         var is_turn = 1;
