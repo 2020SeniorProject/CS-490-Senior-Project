@@ -1,9 +1,7 @@
 {% extends "base.html" %}
 
+
 {% block content %}
-<script src="/static/js/page_resize.js"></script>
-<script src="/static/js/script.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js" integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ==" crossorigin="anonymous"></script>
 
 <div class=row style="height:75%;">
     <div class="col-2 border border-dark h-100" style="overflow:scroll;">
@@ -14,13 +12,36 @@
             </tbody>
         </table>
     </div>
-    <div class="col-8 px-0 mx-0 border border-dark">
+    <div class="col-8 border border-dark">
         <div id="battle_map_container" class="text-center droppable ui-droppable" style="width:100%">	
             <img id="battle_map" style="height:100%;width:100%;" draggable="false" src="{{ image_url }}">
         </div>
     </div>
     <div class="col-2 border border-dark h-100" style="overflow:scroll;">
-        <h4 class="text-center">Log</h4>
+        <h4 class="text-center">DM's Tools</h4>
+        <!-- Will be finished later -->
+        <!-- <form class=form id=update_grid_sizes>
+            <div class=row>
+                <div class="col text-center">
+                    <label class="form-label" for=grid_width>Map Width</label>
+                    <input type=number id=grid_width class=form-control value=30 required>
+                </div>
+                <div class="col text-center">
+                    <label class=form-label for=grid_height>Map Height</label>
+                    <input type=number id=grid_height class=form-control value=20 required>
+                </div>
+            </div>
+            <input type=submit class="btn btn-primary form-control" value="Update Map Grid" id=update_grid_size_button>
+        </form> -->
+        <!-- <form class=form id=start_battle>
+            <input type="submit" class="btn btn-primary form-control" value="Start Battle!" id="start_battle_button">
+        </form>
+        <form class=form id=end_battle>
+            <input type="submit" class="btn btn-danger form-control" value="End Battle" id="end_battle_button" disabled>
+        </form>
+        <form class=form id=close_room>
+            <input type="submit" class="btn btn-warning form-control" value="End Session!" id="close_room_button">
+        </form> -->
         <div id=checklist_div></div>
         <div id="log"></div>
     </div>
@@ -43,7 +64,7 @@
             </form>
         </div>
         <div class="col-8 border border-dark">
-            <p class="text-center mb-0" id=chat-box><b>Chat</b></p>
+            <p class="text-center mb-0"><b>Chat</b></p>
             <div style="overflow:scroll;height:60%;">
                 <div id="chat-list"></div>
             </div>
@@ -69,7 +90,11 @@
                 </select>
                 <input type=submit class="btn btn-primary form-control" value="Add Character" id=add_character_button>
             </form>
+            <form class="form" id=add_npc>
+                <input type=submit class="btn btn-primary form-control" value="Add NPC" id=add_npc_button>
+            </form>
         </div>
     </div>
 <!-- </div> -->
+
 {% endblock %}

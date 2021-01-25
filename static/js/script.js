@@ -114,7 +114,8 @@ $(document).ready(function() {
   });
 
   socket.on('log_update', function(msg) {
-    $('#log').prepend($('<div/>').text(msg.desc).html() + '<br>');
+    $('#log').append($('<div/>').text(msg.desc).html() + '<br>');
+    $('#log').animate({ scrollTop: $('#log').prop("scrollHeight")}, 1000);
   });
 
   // TODO: allow characters to select who goes first when initiatives tied
@@ -143,7 +144,8 @@ $(document).ready(function() {
   });
 
   socket.on('chat_update', function(msg) {
-    $('#chat-list').prepend($('<div/>').text(`${msg.character_name}: ${msg.chat}`).html() + '<br>');
+    $('#chat-list').append($('<div/>').text(`${msg.character_name}: ${msg.chat}`).html() + '<br>');    
+    $('#chat-box').animate({ scrollTop: $('#chat-box').prop("scrollHeight")}, 1000);
   });
 
   socket.on('lockout_spammer', function(msg) {
