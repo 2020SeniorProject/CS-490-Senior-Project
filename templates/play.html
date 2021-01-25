@@ -64,7 +64,7 @@
             <form class="form" id=add_character>
                 <select id=character_name class=form-control required>
                     {% for character in characters %}
-                    <option id="{{ character[0] }}-add-row">{{ character[0] }}</option>
+                    <option id='{{ character[0].split()|join(":") }}-add-row'>{{ character[0] }}</option>
                     {% endfor %}
                 </select>
                 <input type=submit class="btn btn-primary form-control" value="Add Character" id=add_character_button>
