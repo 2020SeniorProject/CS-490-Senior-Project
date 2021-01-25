@@ -59,7 +59,7 @@ $(document).ready(function() {
   });
 
   $('form#send_chat').submit(function(event) {
-    socket.emit('send_chat', {chat: $('#chat_text').val(), character_name: $('#player_name').val() || site_name, room_id: room_id});
+    socket.emit('send_chat', {chat: $('#chat_text').val(), character_name: site_name, room_id: room_id});
     $('#chat_text').val(''); 
     return false;
   });

@@ -412,7 +412,7 @@ def view_rooms():
         if read_db("active_room", "room_id", f"WHERE room_id = {request.form['room_id']}"):
             app.logger.warning(f"User {current_user.get_site_name()} is attempting to delete an active room {request.form['room_name']}")
             # Do we want this responsibility to be on the user or is there merit to just scrubbing the DBs from this page
-            return render_template("home.html" , message="Room is active! Close it first!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms)
+            return render_template("view_rooms.html" , message="Room is active! Close it first!", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms)
         
         delete_from_db("room_object", f"WHERE row_id = {request.form['room_id']}")
         app.logger.debug(f"Deleted user {current_user.get_site_name()}'s room {request.form['room_name']}")
@@ -420,14 +420,14 @@ def view_rooms():
 
     app.logger.debug(f"User {current_user.get_site_name()} has gone to the rooms page.")
 
-    created_rooms = read_db("room_object", "row_id,room_name,map_url,dm_notes", f"WHERE user_key = '{current_user.get_user_id()}'")   
-    if not created_rooms:
-        created_rooms = [("create", "Looks like you don't have any encounters made!", "https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg", "Create rooms to start DMing your own game!")]
-        default = True
-    else:
-        default = False
+    created_rooms = read_db("room_object", "row_id, room_name, map_url, dm_notes, active_room_id", f"WHERE user_key = '{current_user.get_user_id()}'")
 
-    return render_template("view_rooms.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms, defaulted = default)
+    active_rooms = []
+    for room in created_rooms:
+        if room[4] != "null":
+            active_rooms.append(room)
+
+    return render_template("view_rooms.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), room_list=created_rooms, active_rooms=active_rooms)
 
 
 @app.route("/rooms/create", methods=["GET", "POST"])
@@ -748,6 +748,7 @@ def end_session(message):
     delete_from_db("active_room", f"WHERE room_id = '{room_id}'")
     delete_from_db("chat", f"WHERE room_id = '{room_id}'")
     delete_from_db("log", f"WHERE room_id = '{room_id}'")
+    update_db("room_object", "map_status = '{}'", f"WHERE active_room_id = '{room_id}'")
     update_db("room_object", "active_room_id = 'null'", f"WHERE active_room_id = '{room_id}'")
 
     app.logger.debug(f"The room {room_id} owned by {current_user.get_site_name()} has closed")
