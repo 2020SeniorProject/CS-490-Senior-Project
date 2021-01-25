@@ -151,17 +151,18 @@ $(document).ready(function() {
   });
 
   socket.on('chat_update', function(msg) {
-    var name = $('<p/>').text(`${msg.character_name}: `).addClass("mb-0 mt-0");
-    var chat;
+    var name = $('<p/>').text(`${msg.character_name}: ${msg.chat}`).addClass("mb-0 mt-0");
+    // var chat;
 
-    var chat = $('<p/>').text(`${msg.chat}`).addClass("mb-0 mt-0");
-    // console.log(chat.width());
-    // console.log($('#col1').css("max-width"));
-    // if ($('#col1').css("max-width") == "100%") {
-    //   ($('#col1').css("max-width", )
-    // }
-    $('#col1').append(name);    
-    $('#col2').append(chat);    
+    // var chat = $('<p/>').text(`${msg.chat}`).addClass("mb-0 mt-0");
+    // // console.log(chat.width());
+    // // console.log($('#col1').css("max-width"));
+    // // if ($('#col1').css("max-width") == "100%") {
+    // //   ($('#col1').css("max-width", )
+    // // }
+    // $('#col1').append(name);    
+    // $('#col2').append(chat);
+    $('#chat-list').append(name);
     $('#chat-box').animate({ scrollTop: $('#chat-box').prop("scrollHeight")}, 10);
   });
 
