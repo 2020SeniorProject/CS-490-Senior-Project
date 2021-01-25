@@ -487,6 +487,9 @@ def enterRoom(room_id):
         image_url, map_owner = read_db("room_object", "map_url, user_key", f"WHERE active_room_id = '{room_id}'")[0]
         characters = read_db("characters", "chr_name", f"WHERE user_key='{user_id}'")
 
+        if not characters:
+            return redirect(url_for("character_creation", route=f"/play/{room_id}"))
+
         app.logger.debug(f"User {current_user.get_site_name()} has entered the room {room_id}")
         if user_id == map_owner:
             return render_template("play_dm.html", async_mode=socketio.async_mode, characters=characters, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name())
