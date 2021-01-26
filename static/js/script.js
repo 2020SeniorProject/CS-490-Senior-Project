@@ -116,7 +116,7 @@ $(document).ready(function() {
   });
 
   socket.on('log_update', function(msg) {
-    var log = $('<div/>').text(msg.desc).html();
+    var log = $('<div/>').text(msg.desc);
     var col = $('<div/>').addClass("col");
     var row = $('<div/>').addClass("row");
     col.append(log);
@@ -151,7 +151,12 @@ $(document).ready(function() {
   });
 
   socket.on('chat_update', function(msg) {
-    var name = $('<p/>').text(`${msg.character_name}: ${msg.chat}`).addClass("mb-0 mt-0");
+    var log = $('<div/>').text(`${msg.character_name}: ${msg.chat}`);
+    var col = $('<div/>').addClass("col");
+    var row = $('<div/>').addClass("row");
+    col.append(log);
+    row.append(col);
+    // var name = $('<p/>').text(`${msg.character_name}: ${msg.chat}`).addClass("mb-0 mt-0");
     // var chat;
 
     // var chat = $('<p/>').text(`${msg.chat}`).addClass("mb-0 mt-0");
@@ -162,7 +167,7 @@ $(document).ready(function() {
     // // }
     // $('#col1').append(name);    
     // $('#col2').append(chat);
-    $('#chat-list').append(name);
+    $('#chat-list').append(row);
     $('#chat-box').animate({ scrollTop: $('#chat-box').prop("scrollHeight")}, 10);
   });
 
