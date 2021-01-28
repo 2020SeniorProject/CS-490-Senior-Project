@@ -1,0 +1,21 @@
+{% extends "login_base.html" %}
+
+{% block content %}
+<div class="mx-auto" style="width:99%; margin-top:4.5rem;">
+  <p class="text-center mb-5">Welcome to Wizards of the Driftless (formerly Wizards of the Plains) Online Battle Simulator! You currently are not logged in. As such, you cannot access most of the site's functionality. If you wish to do anything other than spectate a room, please log in!</p>
+  <form action="/home" method="POST" class="form">
+    <label class=form-label for=spectate_room_id>Spectate Room ID</label>
+    <div class="row">
+        <div class="col form-group mb-0">
+            <input type=text name="spectate_room_id" id="spectate_room_id" class="form-control" placeholder="Enter an 8 character room id" value="{{ spectate_room_id }}">
+        </div>
+        <div class="col form-group mb-0">
+            <input type="submit" class="btn btn-danger btm-sm form-control" value="Choose a room to spectate">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        </div>
+    </div>
+    <p class="small">This form allows you to spectate in the active room with the provided id.</p>
+</form>
+{{ spectate_message }}
+</div>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block content %}
+<script src="/static/js/api_calls.js"></script>
+<div class="container">
+
+    <h1 class="text-center">Add a Character</h1>
+    <form action="{{ action }}" method="POST" class="form">
+        <div class="row">
+            <div class="col form-group">
+                <label>Character Name</label>
+                <input type="text" name="name" class="form-control" value="{{ name }}">
+            </div>
+            <div class="col">
+                <label>Race</label>
+                <select name="race" id="racename" class="form-control">
+                    <option id=></option>
+                </select>
+            </div>
+            <div class="col">
+                <label>Subrace</label>
+                <select name="subrace" id="subrace" class="form-control">
+                    <option>Choose a Race!</option>
+                </select>
+            </div>
+            <div class="col">
+                <label>Speed</label>
+                <input type="number" name="speed" class="form-control"  value="{{ speed }}">
+            </div>
+            <div class="col">
+                <label>Class</label>
+                <select name="classname" id="classname" class="form-control">
+                    <option></option>
+                </select>
+            </div>
+            <div class="col">
+                <label>Subclass</label>
+                <select name="subclass" id="subclass" class="form-control">
+                    <option>Choose a Class!</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <label>Level</label>
+                <input type="number" name="level" class="form-control" value="{{ lvl }}">
+            </div>
+            <div class="col">
+                <label>Strength</label>
+                <input type="number" name="strength" class="form-control" value="{{ str }}">
+            </div>
+            <div class="col">
+                <label>Dexterity</label>
+                <input type="number" name="dexterity" class="form-control" value="{{ dex }}">
+            </div>
+            <div class="col">
+                <label>Constitution</label>
+                <input type="number" name="constitution" class="form-control" value="{{ con }}">
+            </div>
+            <div class="col">
+                <label>Intelligence</label>
+                <input type="number" name="intelligence" class="form-control" value="{{ int }}">
+            </div>
+            <div class="col">
+                <label>Wisdom</label>
+                <input type="number" name="wisdom" class="form-control" value="{{ wis }}">
+            </div>
+            <div class="col">
+                <label>Charisma</label>
+                <input type="number" name="charisma" class="form-control" value="{{ cha }}">
+            </div>
+            <div class="col">
+                <label>Hitpoints</label>
+                <input type="number" name="hitpoints" class="form-control" value="{{ hp }}">
+            </div>
+        </div>
+        <div class="row pt-4">
+            <div class="col">
+                <label>Character Icon</label>
+                <input type="text" name="char_token" class="form-control" id="char_url" value="{{ char_token }}">
+                <div class="text-center" id=prev>
+                </div>
+                <div id="warning">
+
+                </div>
+            </div>
+        </div>
+        <div class="row pt-4">
+            <div class="col">
+                <input type="submit" class="btn btn-primary form-control" value="Add Character!">
+            </div>
+        </div>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <input type="hidden" id="old_race" value="{{ old_race }}">
+        <input type="hidden" id="old_subrace" value="{{ old_subrace }}">
+        <input type="hidden" id="old_class" value="{{ old_class }}">
+        <input type="hidden" id="old_subclass" value="{{ old_subclass }}">
+    </form>
+    <ul>
+    {{ message_text }}
+    {% for i in errors %}
+    <li> {{ i }} </li>
+    {% endfor %}
+    </ul>
+</div>
+
+<script>
+    $('#char_url').on('input', function() {
+  var src = jQuery(this).val();
+
+  var previews = $(".previewImage");
+  var drawPreview = true;
+
+  var PreviousSource = $(this).data('previousSource');
+
+  if(!src.match("^https?://(?:[a-z\-]+\.)+[a-z]{2,6}(?:/[^/#?]+)+\.(?:jpg|gif|png|jpeg|webp)$") && src != "") {
+    $("#warning").html("Must be an image");
+    return false;  
+  } else {
+    $("#warning").html("");
+  }
+
+  $.each(previews , function(index, value) { 
+    if (src == "" && PreviousSource == $(value).attr('src')) {
+      $(value).remove();
+      drawPreview = false;
+      return false; 
+    }
+    if($(value).attr('src') == src) {
+      drawPreview = false;
+      return false;
+    }
+  });
+
+  if(drawPreview) {
+    $('#prev').append('<img class="previewImage" width= 64 length=64 src="' + src + '">');   
+  }
+  
+  var previousSource = $(this).data('previousSource', src);
+});
+</script>
+
+
+{% endblock %}

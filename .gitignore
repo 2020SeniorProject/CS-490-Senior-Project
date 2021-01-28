@@ -145,7 +145,15 @@ dmypy.json
 .prof
 
 # database files
-.db
-src/sqlite_db
+*.db
+
+# Logs files
+log/
+
+# Gunicorn config
+gunicorn.config.py
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+
+# Personal editing environments
+edit.py

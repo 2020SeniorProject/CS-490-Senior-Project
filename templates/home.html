@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <form action="/home" method="POST" class="form">
+        <label class=form-label for=play_room_id>Play Room ID</label>
+        <div class="row">
+            <div class="col form-group mb-0">
+                <input type=text name="play_room_id" id="play_room_id" class="form-control" placeholder="Enter an 8 character room id" value="{{ play_room_id }}">
+            </div>
+            <div class="col form-group mb-0">
+                <input type="submit" class="btn btn-danger btm-sm form-control" value="Choose room">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            </div>
+        </div>
+        <p class="small">This form allows you to (re)join and play in the active room with the provided id.</p>
+    </form>
+    {{ play_message }}
+
+    <form action="/home" method="POST" class="form">
+        <label class=form-label for=spectate_room_id>Spectate Room ID</label>
+        <div class="row">
+            <div class="col form-group mb-0">
+                <input type=text name="spectate_room_id" id="spectate_room_id" class="form-control" placeholder="Enter an 8 character room id" value="{{ spectate_room_id }}">
+            </div>
+            <div class="col form-group mb-0">
+                <input type="submit" class="btn btn-danger btm-sm form-control" value="Choose a room to spectate">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            </div>
+        </div>
+        <p class="small">This form allows you to spectate in the active room with the provided id.</p>
+    </form>
+    {{ spectate_message }}
+    </div>
+{% endblock %}
