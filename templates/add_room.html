@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+<div class="container">
+    <h1 class="text-center">Create a room for your encounter!</h1>
+    <form class="form" method="POST" >
+        <div class=row>
+            <div class="col">
+                <label class=form-label for=room_name>Room Name</label>
+                <input type="text" name="room_name" class="form-control" value="{{ room_name }}">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <label class=form-label for=dm_notes_input>DM notes (Optional)</label>
+                <textarea name="dm_notes" id="dm_notes_input" class="form-control" value="{{ dm_notes }}"> {{ dm_notes }}</textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <label class=form-label for=map_url>Map URL</label>
+                <input type="text" id="map_url" name="map_url" class="form-control" value="{{ map_url }}">
+                <div id="warning">
+                </div>
+                <div class="text-center" id=prev>
+                  <img class="previewImage" id=initial_image width=50% src="{{ map_url }}">
+                </div>
+            </div>
+        </div>
+        <div class="row pt-4">
+            <div class="col">
+                <input type="submit" class="btn btn-primary form-control" value="Add Room!">
+            </div>
+        </div>
+        
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input type="hidden" id="old_name" value="{{ old_name }}">
+        <input type="hidden" id="old_notes" value="{{ old_notes }}">
+        <input type="hidden" id="old_tokens" value="{{ old_tokens }}">
+        <input type="hidden" id="old_url" value="{{ old_url }}">
+    </form>
+    <ul>
+        {% for i in errors %}
+        <li> {{ i }} </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<script src="/static/js/map_image.js"></script>
+
+{% endblock %}

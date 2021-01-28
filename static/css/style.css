@@ -1,0 +1,62 @@
+.chat-form {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+.resizable {
+  display: inline-block;
+  resize: both;
+  overflow: hidden;
+  line-height: 0;
+  }
+
+.resizable img {
+  width: 100%;
+  height: 100%;
+}
+
+.max-length-text-1 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.max-length-text-2 {
+  display: -webkit-box;   
+  -webkit-line-clamp: 2;   
+  -webkit-box-orient: vertical;   
+  overflow: hidden; 
+}
+
+.underline_text {
+  text-decoration: underline;
+  text-underline-position: under;
+}
+
+.sticky-cell-left {
+  position:sticky;
+  left:0px;
+  background-color: #ebebeb;
+}
+
+.sticky-cell-right {
+  position:sticky;
+  right:0px;
+  background-color: #ebebeb;
+}
+.table-responsive {
+  height:100%;
+  overflow:scroll;
+}
+
+thead tr:nth-child(1) th {
+  background: white; 
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+
+/* https://codepen.io/elad2412/pen/xxxNVRW */
+/* https://stackoverflow.com/questions/54286705/bootstrap-4-table-with-the-scrollable-body-and-header-fixed */

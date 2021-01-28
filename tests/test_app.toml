@@ -1,0 +1,181 @@
+[meta]
+author = "2020SeniorProject"
+date = 2020
+title = "Application testing cases"
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'Yanko'
+
+[[character_creation]]
+
+fields = ["subrace", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "20", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'name: Please Input Name'
+
+
+
+[[character_creation]]
+
+fields = ["name", "subrace", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "20", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'race: Please choose a race'
+
+
+[[character_creation]]
+
+fields = ["name", "race", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "20", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'subrace: Please choose a subrace'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'speed: Please input Speed'
+
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'classname: Please choose class'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'subclass: Please choose subclass'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'level: Please input level'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'strength: Please input strength'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'constitution: Please input cons'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname",  "subclass", "level", "strength", "intelligence", "constitution", "wisdom", "charisma", "hitpoints"]
+inputs = ["Fuyuki", "Tiefling", "Tiefling", "20", "Fighter", "Eldritch Knight", "20", "20", "20", "12", "13", "2", "12"]
+expected = 'dexterity: Please input dex'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname",  "subclass", "level", "strength", "dexterity", "constitution", "wisdom", "charisma", "hitpoints"]
+inputs = ["Fuyuki", "Tiefling", "Tiefling", "20", "Fighter", "Eldritch Knight", "20", "20", "20", "12", "13", "2", "12"]
+expected = 'intelligence: Please input int'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname",  "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "charisma", "hitpoints"]
+inputs = ["Fuyuki", "Tiefling", "Tiefling", "20", "Fighter", "Eldritch Knight", "20", "20", "20", "12", "13", "2", "12"]
+expected = 'wisdom: Please input wis'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "77", "lizardboi.jpg"]
+expected = 'charisma: Please input charisma'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "imgonnahackyou.com"]
+expected = 'char_token: Character token must be an image'
+
+[[room_creation]]
+
+fields = ["room_name", "map_url", "dm_notes"]
+inputs = ["Dungeon Battle", "this_is_sweet_map.jpg", "This is going to be an intense batle"]
+expected = 'Dungeon Battle'
+
+[[room_creation]]
+
+fields = ["room_name", "map_url", "dm_notes"]
+inputs = ["Dungeon Battle", "notaphish.net", "This is going to be an intense batle"]
+expected = 'map_url: Image must be a valid URL'
+
+[[room_creation]]
+
+fields = ["room_name", "map_url", "dm_notes"]
+inputs = ["Dungeon Battle", "https://www.luther.edu", "This is going to be an intense batle"]
+expected = 'map_url: Encounter map must be an image'
+
+[[room_creation]]
+
+fields = ["map_url"]
+inputs = ["this_is_sweet_map.jpg"]
+expected = 'room_name: Please input the name of your room'
+
+[[room_edit]]
+
+fields = ["room_name", "map_url", "dm_notes"]
+inputs = ["Field Battle", "this_is_sweet_map.jpg", "This is going to be an intense batle"]
+expected = 'Field Battle'
+
+
+[[room_edit]]
+
+fields = ["room_name", "map_url", "dm_notes"]
+inputs = ["Dungeon Battle", "this_is_sweet_map.jpg", "This is not going to be an intense batle"]
+expected = 'This is not going to be an intense batle'
+
+
+[[room_edit]]
+
+fields = ["room_name", "map_url", "dm_notes"]
+inputs = ["Dungeon Battle", "this_is_dope_map.jpg", "This is not going to be an intense batle"]
+expected = 'this_is_dope_map.jpg'
+
+#Problem: This test cannot be done with the current way I'm handling users
+# This form should alter user data but can't alter the user data given to the test client and therefore becomes problematic
+# [[site_name]]
+#fields = ["site_name"]
+#inputs = ["mockman69"]
+#expected = "mockman69"
+
+[[site_name]]
+fields = ["site_name"]
+inputs =["*"]
+expected = "site_name: Only alphanumeric characters are allowed"
+
+[[site_name]]
+# Operates under assumption that Charnk98 is in the DB
+fields = ["site_name"]
+inputs = ["Charnk98"]
+expected = "That username is already in use"
+
+[[edit_char]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints", "old_name", "old_race", "old_subrace", "old_class", "old_subclass"]
+inputs = ["Ibrov", "Centaur", "Centaur", "20", "Ranger", "Hunter", "20", "12", "12", "12", "12", "12", "12", "77", "Yanko", "Lizardfolk", "Lizardfolk", "Ranger", "Hunter"]
+expected = "Ibrov"
+
+[[edit_char]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints", "old_name", "old_race", "old_subrace", "old_class", "old_subclass"]
+inputs = ["Yanko", "Elf", "High Elf", "20", "Ranger", "Hunter", "20", "12", "12", "12", "12", "12", "12", "77", "Yanko", "Lizardfolk", "Lizardfolk", "Ranger", "Hunter"]
+expected = "Elf"
+
+[[edit_char]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints", "old_name", "old_race", "old_subrace", "old_class", "old_subclass"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "30", "Ranger", "Hunter", "20", "12", "12", "12", "12", "12", "12", "77", "Yanko", "Lizardfolk", "Lizardfolk", "Ranger", "Hunter"]
+expected = "30"
+
+
+

@@ -1,0 +1,113 @@
+# Player's Handbook
+Dragonborn,Dragonborn (Default),30
+Dwarf,Hill,25
+Dwarf,Mountain,25
+Elf,Drow,30
+Elf,High,30
+Elf,Wood,30
+Gnome,Forest,25
+Gnome,Rock,25
+Half-Elf,Half-Elf (Default),30
+Half-Elf,Half-Elf (Variant),30
+Half-Orc,Half-Orc,30
+Halfing,Lightfoot,25
+Halfing,Stout,25
+Human,Human (Default),30
+Human,Human (Variant),30
+Tiefling,Tiefling (PHB),30
+#
+# Volo's Guide to Monsters
+Aasimar,Fallen,30
+Aasimar,Protector,30
+Aasimar,Scourge,30
+Bugbear,Bugbear (VGM),30
+Firbolg,Firbolg,30
+Goblin,Goblin (VGM),30
+Goliath,Goliath,30
+Hobgoblin,Hobgoblin (VGM),30
+Kenku,Kenku,30
+Kobold,Kobold,30
+Lizardfolk,Lizardfolk,30
+Orc,Orc (VGM),30
+Tabaxi,Tabaxi,30
+Triton,Triton (VGM),30
+Yuan-ti Pureblood,Yuan-ti Pureblood,30
+#
+# Eberron
+Bugbear,Bugbear (Eberron),30
+Changeling,Changeing,30
+Dwarf,Mark of Warding,25
+Elf,Mark of Shadow,30
+Gnome,Mark of Scribing,25
+Goblin,Goblin (Eberron),30
+Half-Elf,Mark of Detection,30
+Half-Elf,Mark of Storm,30
+Half-Orc,Mark of Finding,30
+Halfling,Mark of Healing,25
+Halfling,Mark of Hospitality,25
+Hobgoblin,Hobgoblin (Eberron),30
+Human,Mark of Finding,30
+Human,Mark of Handling,30
+Human,Mark of Making,30
+Human,Mark of Passage,30
+Human,Mark of Sentinel,30
+Kalashtar,Kalashtar,30
+Orc,Orc (Eberron),30
+Shifter,Beasthide,30
+Shifter,Longtooth,30
+Shifter,Swiftstride,30
+Shifter,Wildhunt,30
+Warforged,Warforged,30
+#
+# Ravnica
+Centaur,Centaur (Ravnica),40
+Goblin,Goblin (Ravnica),30
+Loxodon,Loxodon,30
+Minotaur,Minotaur (Ravnica),30
+Simic Hybrid,Simic Hybrid,30
+Vedalken,Vedalken,30
+#
+# Wildemount
+Dragonborn,Draconblood,30
+Dragonborn,Ravenite,30
+Elf,Pallid,30
+Halfing,Lotusden,30
+Orc,Orc (Wildemount),30
+#
+# Mordenkainen's Tome of Foes
+Tiefling,Asmodeus,30
+Tiefling,Baalzebul,30
+Tiefling,Dispater,30
+Tiefling,Fierna,30
+Tiefling,Glasya,30
+Tiefling,Levistus,30
+Tiefling,Mammon,30
+Tiefling,Mephistopheles,30
+Tiefling,Zariel,30
+Elf,Eladrin,30
+Elf,Sea,30
+Elf,Shader-kai,30
+Dwarf,Duergar,25
+Gith,Githyanki,30
+Gith,Githzerai,30
+#
+# Mythic Odysseys of Theros
+Centaur,Centaur (MOT),40
+Leonin,Leonin,35
+Minotaur,Minotaur (MOT),30
+Satyr,Satyr,30
+Triton,Triton (MOT),30
+#
+# Sword Coast Adventurer's Guide
+Tiefling,Infernal Legacy,30
+Tiefling,Devil's Tongue,30
+Tiefling,Hellfire,30
+Tiefling,Winged,30
+Half-Elf,Aquatic Elf Descent,30
+Half-Elf,Drow Descent,30
+Half-Elf,Moon/Sun Elf Descent,30
+Half-Elf,Wood-Elf Descent,30
+Halfling,Ghostwise,25
+#
+# Acquisitions Incorporated
+Verden,Verden,30

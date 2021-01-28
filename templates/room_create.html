@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+<div class=row style="height:75%;">
+    <div class="col-2 border border-dark h-100" style="overflow:scroll;">
+        <h4 class="text-center">Initiative Order</h4>
+
+        <table id="initiative-table" class="table table-sm text-center">
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <div class="col-8 border border-dark">
+        <div id="battle_map_container" class="text-center droppable ui-droppable" style="width:100%">	
+            <img id="battle_map" style="height:100%;width:100%;" draggable="false" src="{{ image_url }}">
+        </div>
+    </div>
+    <div class="col-2 border border-dark h-100" style="overflow:scroll;">
+        <h4 class="text-center">DM's Tools</h4>
+        <!-- Will be finished later -->
+        <!-- <form class=form id=update_grid_sizes>
+            <div class=row>
+                <div class="col text-center">
+                    <label class="form-label" for=grid_width>Map Width</label>
+                    <input type=number id=grid_width class=form-control value=30 required>
+                </div>
+                <div class="col text-center">
+                    <label class=form-label for=grid_height>Map Height</label>
+                    <input type=number id=grid_height class=form-control value=20 required>
+                </div>
+            </div>
+            <input type=submit class="btn btn-primary form-control" value="Update Map Grid" id=update_grid_size_button>
+        </form> -->
+        <!-- <form class=form id=start_battle>
+            <input type="submit" class="btn btn-primary form-control" value="Start Battle!" id="start_battle_button">
+        </form>
+        <form class=form id=end_battle>
+            <input type="submit" class="btn btn-danger form-control" value="End Battle" id="end_battle_button" disabled>
+        </form>
+        <form class=form id=close_room>
+            <input type="submit" class="btn btn-warning form-control" value="End Session!" id="close_room_button">
+        </form> -->
+        <div id=checklist_div></div>
+        <div id="log"></div>
+    </div>
+</div>
+<!-- <div class="fixed-bottom" style="height:20%;"> -->
+    <div class="row mt-0" style="height:25%;">
+        <div class="col-2 my-auto text-center">
+            <div id="initiative-wrapper">
+                <form class="form" id=set_initiative>
+                    <select id=player_name class=form-control required>
+                        <option id=init_placeholder>Add a Character First!</option>
+                    </select>
+                    <input type=number id=initiative_roll class="form-control" min=0 max=30 placeholder="Initiative" required>
+                    <input type=submit class="btn btn-primary form-control" value="Update Initiative" id=set_initiative_button disabled>
+                </form>
+            </div>
+
+            <form class="form" id="end_turn">
+                <input type=submit class="btn btn-danger form-control" value="End Turn!" id=end_turn_button disabled>
+            </form>
+        </div>
+        <div class="col-8 border border-dark">
+            <p class="text-center mb-0"><b>Chat</b></p>
+            <div style="overflow:scroll;height:60%;">
+                <div id="chat-list"></div>
+            </div>
+            
+            <form class="form mb-0" id=send_chat>
+                <div class=row>
+                    <div class="col-10 form-group">
+                        <input type=text id=chat_text class=form-control placeholder="Type here">
+                    </div>
+                    <div class="col-2 form-group">
+                        <input id="send_chat_button" type=submit class="btn btn-primary form-control" value="Chat">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-2 border border-dark h-100" style="overflow:scroll;">
+            <p class="text-center mb-0"><b>Add a Character</b></p>
+            <form class="form" id=add_character>
+                <select id=character_name class=form-control required>
+                    {% for character in characters %}
+                    <option id='{{ character[0].split()|join(":") }}-add-row'>{{ character[0] }}</option>
+                    {% endfor %}
+                </select>
+                <input type=submit class="btn btn-primary form-control" value="Add Character" id=add_character_button>
+            </form>
+            <form class="form" id=add_npc>
+                <input type=submit class="btn btn-primary form-control" value="Add NPC" id=add_npc_button>
+            </form>
+        </div>
+    </div>
+<!-- </div> -->
+
+{% endblock %}

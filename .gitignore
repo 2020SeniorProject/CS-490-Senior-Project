@@ -118,6 +118,7 @@ ENV/
 env.bak/
 venv.bak/
 pythonenv*
+.vscode/launch.json
 
 # Spyder project settings
 .spyderproject
@@ -143,4 +144,16 @@ dmypy.json
 # profiling data
 .prof
 
+# database files
+*.db
+
+# Logs files
+log/
+
+# Gunicorn config
+gunicorn.config.py
+
 # End of https://www.toptal.com/developers/gitignore/api/python
+
+# Personal editing environments
+edit.py
