@@ -441,7 +441,7 @@ def room_creation():
         app.logger.debug(f"User {current_user.get_site_name()} is attempting to create a new room")
         return process_room_form(form, user_id, "create", "")
 
-    return render_template("add_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg")
+    return render_template("room_create.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg")
 
 
 @app.route("/rooms/<room_id>", methods=["GET", "POST"])
