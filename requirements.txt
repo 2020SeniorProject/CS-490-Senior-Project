@@ -18,5 +18,6 @@ WTForms==2.3.3
 gunicorn==20.0.4
 eventlet==0.30.0
 pytest==6.1.2
+pytest-mock==3.5.1
 wtforms-validators==1.0.0
 APScheduler==3.6.3

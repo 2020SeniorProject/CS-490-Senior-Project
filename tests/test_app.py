@@ -151,6 +151,7 @@ def test_invalid_user(client_3):
 
     login_view = client_3.get('/home', follow_redirects=True)
     assert b'Welcome to' in login_view.data
+    assert b'This form allows you to spectate in the active room with the provided id.' in login_view.data
 
 
 # Testing Authenticated User Login
@@ -162,12 +163,10 @@ def test_login(client_1):
     home_view = client_1.get('/home', follow_redirects=True)
     characters_view = client_1.get('/characters')
     settings_view = client_1.get('/user/settings')
-    play_entry_view = client_1.get("/play")
 
-    assert b'Create a room' in home_view.data
+    assert b'This form allows you to (re)join and play in the active room with the provided id.' in home_view.data
     assert b'Create a Character' in characters_view.data
-    assert b'Update your username:' in settings_view.data
-    assert b'Enter an 8 character room id' in play_entry_view.data
+    assert b'Account Actions' in settings_view.data
 
 
 
@@ -196,12 +195,12 @@ def test_character_create(client_1, fields, inputs, expected):
 # Utilize client 1(User w/o data)
 @pytest.mark.parametrize("fields, inputs, expected", get_cases("room_creation"))
 def test_room_create(client_1, fields, inputs, expected):
-    rooms_view = client_1.get("/room/create")
+    rooms_view = client_1.get("/rooms/create")
 
     data = {fields[x]:inputs[x] for x in range(len(fields))}
     data["csrf_token"] = client_1.csrf_token
 
-    create_room_attempt = client_1.post("/room/create", data = data, follow_redirects= True)
+    create_room_attempt = client_1.post("/rooms/create", data = data, follow_redirects= True)
 
     assert bytes(expected, 'utf-8') in create_room_attempt.data
 
@@ -210,12 +209,12 @@ def test_room_create(client_1, fields, inputs, expected):
 def test_room_edit(client_2, fields, inputs, expected):
     
     room_row_number = read_db("room_object","row_id", "WHERE user_key = 'paulinaMock21' and room_name = 'Dungeon Battle'")[0][0]
-    room_view = client_2.get(f"/room/{room_row_number}")
+    room_view = client_2.get(f"/rooms/{room_row_number}")
 
     data = {fields[x]:inputs[x] for x in range(len(fields))}
     data["csrf_token"] = client_2.csrf_token
 
-    room_edit_test = client_2.post(f"/room/{room_row_number}", data=data, follow_redirects=True)
+    room_edit_test = client_2.post(f"/rooms/{room_row_number}", data=data, follow_redirects=True)
 
     assert bytes(expected, 'utf-8') in room_edit_test.data
 
@@ -283,21 +282,21 @@ def test_delete_character(client_2):
     # assert b'Yanko' in open_room_test.data
 
 
-def testing_add_characters(socket_client, client_2):
-    room_object_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle' and user_key= 'paulinaMock21'")[0][0]
-    app_context = client_2.get(f"/room/{room_object_id}")
-    open_room_test = client_2.post("/generate_room", data={"room_name":"Dungeon Battle", "csrf_token":client_2.csrf_token}, follow_redirects=True)
+# def testing_add_characters(socket_client, client_2):
+#     room_object_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle' and user_key= 'paulinaMock21'")[0][0]
+#     app_context = client_2.get(f"/room/{room_object_id}")
+#     open_room_test = client_2.post("/generate_room", data={"room_name":"Dungeon Battle", "csrf_token":client_2.csrf_token}, follow_redirects=True)
 
-    room_id = read_db("room_object", "active_room_id", f"WHERE row_id= {room_object_id}")
+#     room_id = read_db("room_object", "active_room_id", f"WHERE row_id= {room_object_id}")
 
-    socket_client = socketio.test_client(app, namespace="/combat", flask_test_client=client_2)
-    socket_client.join_room(room_id)
-    # socket_client.emit("join_actions", {"room_id":room_id, "character_name":""}, room_id=room_id)
-    socket_join_events = socket_client.get_received()
-    # print(socket_join_events)
-    assert socket_join_events[0]["site_name"] == mrsmock69
+#     socket_client = socketio.test_client(app, namespace="/combat", flask_test_client=client_2)
+#     socket_client.join_room(room_id)
+#     # socket_client.emit("join_actions", {"room_id":room_id, "character_name":""}, room_id=room_id)
+#     socket_join_events = socket_client.get_received()
+#     # print(socket_join_events)
+#     assert socket_join_events[0]["site_name"] == mrsmock69
 
-    # add_char_event = socket_client.emit("add_character", {"character_name":"Yanko", "site_name":"mrsmock69", "room_id":room_id})
+#     # add_char_event = socket_client.emit("add_character", {"character_name":"Yanko", "site_name":"mrsmock69", "room_id":room_id})
 
 
 
