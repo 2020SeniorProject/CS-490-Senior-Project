@@ -36,34 +36,20 @@ class RoomValidation(FlaskForm):
     dm_notes = StringField("DM_notes", [Optional()])
 
 
-# def check_char():
-#     def _check_char(form, field):
-#         semicolon_check = field.data.split(';')
-#         if len(semicolon_check) != 1:
-#             raise ValidationError("';' are not allowed in usernames")
-#         space_check = field.data.split(' ')
-#         if len(space_check) != 1:
-#             raise ValidationError("Spaces are not allowed in usernames")
-#     return _check_char
-
 class SitenameValidation(FlaskForm):
-    site_name = StringField('Username', [DataRequired(message="You need to enter some text!"), AlphaNumeric(message="Only alphanumeric characters are allowed")])
+    username = StringField('Username', [DataRequired(message="You need to enter some text!"), AlphaNumeric(message="Only alphanumeric characters are allowed")])
     
 
 class User(UserMixin):
-    def __init__(self, id_, name, email, profile_pic, site_name=None):
+    def __init__(self, id_, email, profile_pic, username=None):
         self.id = id_
-        self.name = name
         self.email = email
         self.profile_pic = profile_pic
-        self.site_name = site_name
+        self.username = username
 
     # GETTERS
     def get_user_id(self):
         return self.id
-
-    def get_name(self):
-        return self.name
 
     def get_email(self):
         return self.email
@@ -71,11 +57,11 @@ class User(UserMixin):
     def get_profile_pic(self):
         return self.profile_pic
 
-    def get_site_name(self):
-        return self.site_name
+    def get_username(self):
+        return self.username
 
     def __repr__(self):
-        return f"User({self.id}, {self.name}, {self.email}, {self.profile_pic}, {self.site_name})"
+        return f"User({self.id}, {self.email}, {self.profile_pic}, {self.username})"
 
 
 
@@ -83,7 +69,7 @@ class AnonymousUser(AnonymousUserMixin):
     def __init__(self):
         self.id = ''.join(random.choice(string.digits) for _ in range(4))
         self.profile_pic = "https://i.stack.imgur.com/34AD2.jpg"
-        self.site_name = "guest" + self.id
+        self.username = "guest" + self.id
         
     def get_user_id(self):
         return self.id
@@ -91,7 +77,7 @@ class AnonymousUser(AnonymousUserMixin):
     def get_profile_pic(self):
         return self.profile_pic
     
-    def get_site_name(self):
-        return self.site_name
+    def get_username(self):
+        return self.username
 
 

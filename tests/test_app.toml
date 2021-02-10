@@ -148,19 +148,19 @@ expected = 'this_is_dope_map.jpg'
 
 #Problem: This test cannot be done with the current way I'm handling users
 # This form should alter user data but can't alter the user data given to the test client and therefore becomes problematic
-# [[site_name]]
-#fields = ["site_name"]
+# [[username]]
+#fields = ["username"]
 #inputs = ["mockman69"]
 #expected = "mockman69"
 
-[[site_name]]
-fields = ["site_name"]
+[[username]]
+fields = ["username"]
 inputs =["*"]
-expected = "site_name: Only alphanumeric characters are allowed"
+expected = "username: Only alphanumeric characters are allowed"
 
-[[site_name]]
+[[username]]
 # Operates under assumption that Charnk98 is in the DB
-fields = ["site_name"]
+fields = ["username"]
 inputs = ["Charnk98"]
 expected = "That username is already in use"
 

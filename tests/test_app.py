@@ -98,14 +98,14 @@ class FlaskClient(BaseFlaskClient):
 def client_1(mocker):
     app.config['TESTING'] = True
     app.test_client_class = FlaskClient
-    add_to_db("users", ("6969testingCharnky", "Charles", "treach01@luther.edu", "mock.jpg", "Charnk98"))
+    add_to_db("users", ("6969testingCharnky", "treach01@luther.edu", "mock.jpg", "Charnk98"))
     with app.test_client() as client_1:
         create_dbs()
-        mocker.patch("flask_login.utils._get_user", return_value = User("mocksterid", "john Mock", "mail", "mock.jpg", "mrMock420"))
-        add_to_db("users", ("mocksterid", "john Mock", "mail", "mock.jpg", "mrMock420"))
+        mocker.patch("flask_login.utils._get_user", return_value = User("mocksterid", "mail", "mock.jpg", "mrMock420"))
+        add_to_db("users", ("mocksterid", "mail", "mock.jpg", "mrMock420"))
         yield client_1
     
-    delete_from_db("users", "WHERE site_name = 'Charnk98'")
+    delete_from_db("users", "WHERE username = 'Charnk98'")
     delete_from_db("users", "WHERE user_id = 'mocksterid'")
     delete_from_db("room_object", "WHERE user_key = 'mocksterid'")
     delete_from_db("characters", "WHERE user_key = 'mocksterid'")
@@ -118,9 +118,9 @@ def client_2(mocker):
     app.test_client_class = FlaskClient
     with app.test_client() as client_2:
         create_dbs()
-        mocker.patch("flask_login.utils._get_user", return_value = User("paulinaMock21", "Paulina Mock", "mail", "mock.jpg", "mrsmock69"))
+        mocker.patch("flask_login.utils._get_user", return_value = User("paulinaMock21", "mail", "mock.jpg", "mrsmock69"))
         add_to_db("room_object", ("paulinaMock21", "Dungeon Battle", "", "", "this_is_sweet_map.jpg", "This is going to be an intense batle"))
-        add_to_db("users", ("paulinaMock21", "Paulina Mock", "mail", "mock.jpg", "mrsmock69"))
+        add_to_db("users", ("paulinaMock21", "mail", "mock.jpg", "mrsmock69"))
         add_to_db("characters", ["paulinaMock21" ,"Yanko", "Lizardfolk", "Lizardfolk", 20, "Ranger", "Hunter", 20, 12, 18, 16, 12, 18, 8, 77, "lizardboi.jpg"])
         yield client_2
     
@@ -224,15 +224,15 @@ def test_room_edit(client_2, fields, inputs, expected):
 # Only checks that illegal characters fail 
 # Utilize Client 1 (User w/o data)
 # Note: Checking for user name change success will fail due to means with which we authenticate fake users
-@pytest.mark.parametrize("fields, inputs, expected", get_cases("site_name"))
-def test_site_name_change(client_1, fields, inputs, expected):
+@pytest.mark.parametrize("fields, inputs, expected", get_cases("username"))
+def test_username_change(client_1, fields, inputs, expected):
     settings_view = client_1.get("/user/settings")
 
     data = {fields[0]:inputs[0]}
     data["csrf_token"] = client_1.csrf_token
 
-    update_site_name_attempt = client_1.post("/user/settings", data = data, follow_redirects= True)
-    assert bytes(expected, 'utf-8') in update_site_name_attempt.data
+    update_username_attempt = client_1.post("/user/settings", data = data, follow_redirects= True)
+    assert bytes(expected, 'utf-8') in update_username_attempt.data
 
 # Testing editing a character
 # utilize Client_2 - > User with data 
@@ -294,9 +294,9 @@ def test_delete_character(client_2):
 #     # socket_client.emit("join_actions", {"room_id":room_id, "character_name":""}, room_id=room_id)
 #     socket_join_events = socket_client.get_received()
 #     # print(socket_join_events)
-#     assert socket_join_events[0]["site_name"] == mrsmock69
+#     assert socket_join_events[0]["username"] == mrsmock69
 
-#     # add_char_event = socket_client.emit("add_character", {"character_name":"Yanko", "site_name":"mrsmock69", "room_id":room_id})
+#     # add_char_event = socket_client.emit("add_character", {"character_name":"Yanko", "username":"mrsmock69", "room_id":room_id})
 
 
 

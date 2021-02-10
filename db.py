@@ -43,15 +43,14 @@ def create_connection(db_file):
 # User_key - ‘owner’ of the room, needed to lock out others from editing the room
 # Name of room - what the owner of the room calls it (for visual purposes)
 # Active room id - null if room not open, changes when room is ‘opened’ !!! THIS IS EQUIVALENT TO 'ROOM_ID IN chat, active_room, log, and characters !!!
-# Map_status - stringified JSON representation of character tokens and locations on map. ex: { user_id: { site_name, character_name, character_image, room_id, height, width, top, left, is_turn } }
+# Map_status - stringified JSON representation of character tokens and locations on map. ex: { user_id: { username, character_name, character_image, room_id, height, width, top, left, is_turn } }
 # Map URL - URL to the map (for the “background”)
 
 # users table ****** THIS IS THE ONLY TABLE THAT UTILIZES USER_ID INSTEAD OF USER_KEY BUT THEY ARE SYNONYMOUS ******
 # user_id = user_id gotten from Google 
-# user_name = username gotten from Google (first name of Google account)
 # email = email address gotten from Google
 # profile_pic = URL to Google profile pic
-# site_name = username specific to our site. e.g. SirRunner
+# username = username specific to our site. e.g. SirRunner
   
 # characters table
 # user_key = used to connect players to their created characters
@@ -75,7 +74,7 @@ def create_dbs():
                         (row_id INTEGER PRIMARY KEY, user_key TEXT, room_name TEXT, active_room_id TEXT, map_status TEXT, map_url TEXT, dm_notes TEXT);""")
         
         cur.execute(f"""CREATE TABLE IF NOT EXISTS users 
-                        (user_id TEXT PRIMARY KEY, user_name TEXT NOT NULL, email TEXT NOT NULL, profile_pic TEXT, site_name Text);""") 
+                        (user_id TEXT PRIMARY KEY, email TEXT NOT NULL, profile_pic TEXT, username Text);""") 
 
         cur.execute(f""" CREATE TABLE IF NOT EXISTS characters
                             (user_key TEXT, chr_name TEXT, class TEXT, subclass TEXT, race TEXT, subrace TEXT, speed INT, level INT, strength INT, dexterity INT, constitution INT, intelligence INT, wisdom INT, charisma INT, hitpoints INT, char_token TEXT, PRIMARY KEY(user_key, chr_name));""")
@@ -96,7 +95,7 @@ def add_to_db(table_name, values):
             cur.execute("""INSERT INTO characters(user_key, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints, char_token) 
                            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
         elif table_name == "users":
-            cur.execute("INSERT INTO users(user_id, user_name, email, profile_pic, site_name) VALUES (?, ?, ?, ?, ?)", values)
+            cur.execute("INSERT INTO users(user_id, email, profile_pic, username) VALUES (?, ?, ?, ?)", values)
         conn.commit()
 
 
