@@ -565,6 +565,7 @@ def callback():
     userinfo_response = get(uri, headers=headers, data=body)
     # Verify email that Google served us is valid, and verify that the user has authorized us to get their information
     if userinfo_response.json().get("email_verified"):
+        print(userinfo_response.json())
         unique_id = userinfo_response.json()["sub"]
         users_email = userinfo_response.json()["email"]
         picture = userinfo_response.json()["picture"]
