@@ -171,7 +171,7 @@ def process_room_form(form, user_id, usage, room_id):
     err_lis = readify_form_errors(form)
     if usage == "create":
         app.logger.debug(f"The room {current_user.get_site_name()} was attempting to create had some errors. Sending back to creation page to fix errors.")
-        return render_template("add_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name() )
+        return render_template("room_create.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name() )
 
     if usage == "edit":
         app.logger.debug(f"The room {current_user.get_site_name()} was attempting to edit had some errors. Sending back to edit page to fix errors.")
