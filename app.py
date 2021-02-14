@@ -17,7 +17,7 @@ from werkzeug.exceptions import HTTPException, BadRequest
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # Internal imports
-from classes import User, AnonymousUser, CharacterValidation, RoomValidation, SitenameValidation
+from classes import User, AnonymousUser, CharacterValidation, RoomValidation, UsernameValidation
 from db import create_dbs, add_to_db, read_db, delete_from_db, update_db, build_api_db, get_api_info, build_error_db, add_to_error_db, read_error_db
 
 
@@ -60,7 +60,6 @@ login_manager.init_app(app)
 login_manager.anonymous_user = AnonymousUser
 
 
-
 # OAuth 2 client setup
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
@@ -83,7 +82,7 @@ def load_user(user_id):
     db_response = read_db("users", "*", f"WHERE user_id = '{user_id}'")
     if not db_response:
         return None
-    return User(id_=db_response[0][0], email=db_response[0][1], profile_pic=db_response[0][2], username=db_response[0][3])
+    return User(id_=db_response[0][0], email=db_response[0][1], profile_picture=db_response[0][2], username=db_response[0][3])
 
 
 @login_manager.unauthorized_handler
@@ -94,7 +93,7 @@ def readify_form_errors(form):
     errs_lis = []
 
     for errs in form.errors.keys():
-        err_mes = errs + ": " + form.errors[errs][0] + "!" +"\n"
+        err_mes = errs + ": " + form.errors[errs][0] +"\n"
         errs_lis += [err_mes]
 
     return errs_lis
@@ -102,67 +101,67 @@ def readify_form_errors(form):
 
 def process_character_form(form, user_id, usage, route="/characters/create"):
     if form.validate():
-        values = (user_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data, form.char_token.data or current_user.get_profile_pic())
+        values = (user_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data, form.character_token.data or current_user.profile_picture)
     
         if usage == "create":
             if read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{values[1]}'") != []:
-                app.logger.warning(f"User {current_user.get_username()} already has a character with name {form.name.data}. Reloading the Add Character page to allow them to change the name")
-                return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, char_token=form.char_token.data, profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+                app.logger.warning(f"User {current_user.username} already has a character with name {form.name.data}. Reloading the Add Character page to allow them to change the name")
+                return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
 
-            app.logger.debug(f"User {current_user.get_username()} successfully added a character with name {form.name.data}. Redirecting them to the View Characters page.")
+            app.logger.debug(f"User {current_user.username} successfully added a character with name {form.name.data}. Redirecting them to the View Characters page.")
             add_to_db("chars", values)
 
             return redirect(url_for("view_characters"))
 
         elif usage == "edit":
             if request.form['old_name'] != request.form['name'] and read_db("characters", "*", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['name']}'") != []:
-                app.logger.warning(f"User {current_user.get_username()} attempted to change the name of character {request.form['old_name']} to {request.form['name']}. They already have another character with that name. Reloading the Edit Character page to allow them to change the name.")
-                return render_template("edit_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'], char_token=form.char_token.data, profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+                app.logger.warning(f"User {current_user.username} attempted to change the name of character {request.form['old_name']} to {request.form['name']}. They already have another character with that name. Reloading the Edit Character page to allow them to change the name.")
+                return render_template("edit_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'], char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
 
-            app.logger.debug(f"Updating the characters owned by user {current_user.get_username()}.")
+            app.logger.debug(f"Updating the characters owned by user {current_user.username}.")
             delete_from_db("characters", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['old_name']}'")
             add_to_db("chars", values)
 
             if request.form['old_name'] != form.name.data:
-                app.logger.warning(f"User {current_user.get_username()} updating the character name. Updating all of the references to that character in the database.")
+                app.logger.warning(f"User {current_user.username} updating the character name. Updating all of the references to that character in the database.")
                 update_db("active_room", f"chr_name = '{form.name.data}'", f"WHERE chr_name = '{request.form['old_name']}' AND user_key = '{user_id}'")
                 update_db("chat", f"chr_name = '{form.name.data}'", f"WHERE chr_name = '{request.form['old_name']}' AND user_key = '{user_id}'")
             
-            app.logger.debug(f"User {current_user.get_username()} successfully updated a character with name {form.name.data}. Redirecting them to the View Characters page.")
+            app.logger.debug(f"User {current_user.username} successfully updated a character with name {form.name.data}. Redirecting them to the View Characters page.")
             return redirect(url_for("view_characters"))
         
         elif usage == "play":
             add_to_db("chars", values)
-            app.logger.debug(f"User {current_user.get_username()} successfully created their first character with name {form.name.data}. Redirecting them to the Choose Characters Page")
+            app.logger.debug(f"User {current_user.username} successfully created their first character with name {form.name.data}. Redirecting them to the Choose Characters Page")
             return redirect(route)
 
     err_lis = readify_form_errors(form)
 
     if usage == "create":
-        app.logger.warning(f"Character that user {current_user.get_username()} attempted to add had errors. Reloading the Add Character page to allow them to fix the errors.")
-        return render_template("add_character.html", errors=err_lis, action="/characters/create", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data,  char_token=form.char_token.data, profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+        app.logger.warning(f"Character that user {current_user.username} attempted to add had errors. Reloading the Add Character page to allow them to fix the errors.")
+        return render_template("add_character.html", errors=err_lis, action="/characters/create", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data,  char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
     
     if usage == "edit": 
-        app.logger.warning(f"Character that user {current_user.get_username()} attempted to edit had errors. Reloading the Edit Character page to allow them to fix the errors.")
-        return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'],  char_token=form.char_token.data, profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+        app.logger.warning(f"Character that user {current_user.username} attempted to edit had errors. Reloading the Edit Character page to allow them to fix the errors.")
+        return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'],  char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
 
     if usage == "play":
-        app.logger.warning(f"Character user {current_user.get_username()} attempted to add had errors. Reloading Add Character page to allow them to fix the errors.")
-        return render_template("add_character.html", errors=err_lis, action="/play/choose", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data,  char_token=form.char_token.data, profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+        app.logger.warning(f"Character user {current_user.username} attempted to add had errors. Reloading Add Character page to allow them to fix the errors.")
+        return render_template("add_character.html", errors=err_lis, action="/play/choose", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data,  char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
 
 
 def process_room_form(form, user_id, usage, room_id):
     if form.validate():
         if usage == "create":
             values = (user_id, form.room_name.data, "null", '{}', form.map_url.data, form.dm_notes.data)
-            app.logger.debug(f"User {current_user.get_username()} has created the room named {form.room_name.data}")
+            app.logger.debug(f"User {current_user.username} has created the room named {form.room_name.data}")
 
             add_to_db("room_object", values)
             return redirect(url_for("view_rooms"))
 
         if usage == "edit":
             values = (user_id, form.room_name.data, "null", '{}', form.map_url.data, form.dm_notes.data)
-            app.logger.debug(f"User {current_user.get_username()} has saved changes to the room named {form.room_name.data}")
+            app.logger.debug(f"User {current_user.username} has saved changes to the room named {form.room_name.data}")
             
             delete_from_db("room_object", f"WHERE row_id ='{room_id}'")
             add_to_db("room_object", values)
@@ -170,12 +169,12 @@ def process_room_form(form, user_id, usage, room_id):
 
     err_lis = readify_form_errors(form)
     if usage == "create":
-        app.logger.debug(f"The room {current_user.get_username()} was attempting to create had some errors. Sending back to creation page to fix errors.")
-        return render_template("add_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), username=current_user.get_username() )
+        app.logger.debug(f"The room {current_user.username} was attempting to create had some errors. Sending back to creation page to fix errors.")
+        return render_template("add_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_picture=current_user.profile_picture, username=current_user.username )
 
     if usage == "edit":
-        app.logger.debug(f"The room {current_user.get_username()} was attempting to edit had some errors. Sending back to edit page to fix errors.")
-        return render_template("edit_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), username=current_user.get_username() )
+        app.logger.debug(f"The room {current_user.username} was attempting to edit had some errors. Sending back to edit page to fix errors.")
+        return render_template("edit_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_picture=current_user.profile_picture, username=current_user.username )
         
 
 
@@ -245,16 +244,16 @@ def character_icon_add_database(character_name, username, character_image, user_
 @app.route("/characters", methods=["GET", "POST"])
 @login_required
 def view_characters():
-    user_id = current_user.get_user_id()
+    user_id = current_user.id
 
     if request.method == "POST":
-        app.logger.debug(f"Attempting to delete character owned by {current_user.get_username()} named {request.form['character_name']}.")
+        app.logger.debug(f"Attempting to delete character owned by {current_user.username} named {request.form['character_name']}.")
         delete_from_db("characters", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['character_name']}'")
         delete_from_db("active_room", f"WHERE user_key = '{user_id}' AND chr_name = '{request.form['character_name']}'")
                         
     items = read_db("characters", "*", f"WHERE user_key = '{user_id}'")
-    app.logger.debug(f"User {current_user.get_username()} has gone to view their characters. They have {len(items)} characters.")
-    return render_template("view_characters.html", items=items, profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+    app.logger.debug(f"User {current_user.username} has gone to view their characters. They have {len(items)} characters.")
+    return render_template("view_characters.html", items=items, profile_picture=current_user.profile_picture, username=current_user.username)
 
 
 # Character creation page
@@ -262,38 +261,38 @@ def view_characters():
 @login_required
 def character_creation():
     form = CharacterValidation()
-    user_id = current_user.get_user_id()
+    user_id = current_user.id
     route = request.args.get('route')
     if request.method == "POST":
-        app.logger.debug(f"User {current_user.get_username()} is attempting to register a character with name {form.name.data}.")
+        app.logger.debug(f"User {current_user.username} is attempting to register a character with name {form.name.data}.")
         if route:
             return process_character_form(form, user_id, "play", route)
             
         return process_character_form(form, user_id, "create")
 
-    app.logger.debug(f"User {current_user.get_username()} has gone to add a character.")
+    app.logger.debug(f"User {current_user.username} has gone to add a character.")
     action = "/characters/create"
     if route:
         action += f"?route={route}"
-    return render_template("add_character.html", profile_pic=current_user.get_profile_pic(), username=current_user.get_username(), action=action)
+    return render_template("add_character.html", profile_picture=current_user.profile_picture, username=current_user.username, action=action)
 
 
 @app.route("/characters/edit/<name>", methods=["GET", "POST"])
 @login_required
 def edit_character(name):
-    user_id = current_user.get_user_id()
+    user_id = current_user.id
     form = CharacterValidation()
 
     if request.method == "POST":
-        app.logger.warning(f"User {current_user.get_username()} is attempting to update a character with name {request.form['old_name']}.")
+        app.logger.warning(f"User {current_user.username} is attempting to update a character with name {request.form['old_name']}.")
         return process_character_form(form, user_id, "edit")
 
-    character = read_db("characters", "*", f"WHERE user_key = '{current_user.get_user_id()}' AND chr_name = '{name}'")
+    character = read_db("characters", "*", f"WHERE user_key = '{current_user.id}' AND chr_name = '{name}'")
 
     if character:
         character = character[0]
-        app.logger.debug(f"User {current_user.get_username()} has gone to edit a character with name {character[1]}.")
-        return render_template("edit_character.html", name=character[1], hp=character[14], old_race=character[4], old_subrace=character[5], old_class=character[2], old_subclass=character[3], speed=character[6], lvl=character[7], str=character[8], dex=character[9], con=character[10], int=character[11], wis=character[12], cha=character[13], old_name=character[1], char_token=character[15], profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+        app.logger.debug(f"User {current_user.username} has gone to edit a character with name {character[1]}.")
+        return render_template("edit_character.html", name=character[1], hp=character[14], old_race=character[4], old_subrace=character[5], old_class=character[2], old_subclass=character[3], speed=character[6], lvl=character[7], str=character[8], dex=character[9], con=character[10], int=character[11], wis=character[12], cha=character[13], old_name=character[1], char_token=character[15], profile_picture=current_user.profile_picture, username=current_user.username)
 
     app.logger.warning(f"User attempted to edit a character with name {name}. They do not have a character with that name. Throwing a Bad Request error.")
     raise BadRequest(description=f"You don't have a character named {name}!")
@@ -315,53 +314,52 @@ def home():
         if "username" in request.form:
             username = request.form["username"]
 
-            form = SitenameValidation()
+            form = UsernameValidation()
 
             if not form.validate():
                 err_lis = readify_form_errors(form)
                 app.logger.warning(f"There were errors in the chosen site name. Reloading the page")
-                return render_template("set_username.html", errors=err_lis, error_username=username, profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+                return render_template("set_username.html", errors=err_lis, error_username=username, profile_picture=current_user.profile_picture, username=current_user.username)
 
             app.logger.debug(f"User is attempting to set their site name as {username}")
             if read_db("users", "*", f"WHERE username = '{username}'"):
                 app.logger.warning(f"Site name {username} already has been used. Reloading the Set User Name with warning message.")
-                return render_template("set_username.html", message="Another user has that username!" ,error_username=username, profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+                return render_template("set_username.html", message="Another user has that username!" ,error_username=username, profile_picture=current_user.profile_picture, username=current_user.username)
 
             app.logger.debug(f"{username} is available as a site name. Adding it to the user.")
-            update_db("users", f"username = '{username}'", f"WHERE user_id = '{current_user.get_user_id()}'")
+            update_db("users", f"username = '{username}'", f"WHERE user_id = '{current_user.id}'")
             return redirect(url_for('home'))
 
         if "spectate_room_id" in request.form:
             room_id = request.form['spectate_room_id']
 
             if read_db("room_object", "*", f"WHERE active_room_id = '{room_id}'"):
-                app.logger.debug(f"{current_user.get_username()} is entering the room {room_id}")
+                app.logger.debug(f"{current_user.username} is entering the room {room_id}")
                 return redirect(url_for('spectateRoom', room_id=room_id))
             
-            app.logger.warning(f"User {current_user.get_username()} attempted to enter an nonexistant room. Reloading to form with a message")
+            app.logger.warning(f"User {current_user.username} attempted to enter an nonexistant room. Reloading to form with a message")
             if authenticated:
-                return render_template("home.html", spectate_message= "There is not an open room with that key!", spectate_room_id=room_id, profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+                return render_template("home.html", spectate_message= "There is not an open room with that key!", spectate_room_id=room_id, profile_picture=current_user.profile_picture, username=current_user.username)
             else:
-                return render_template("login.html", spectate_message= "There is not an open room with that key!", spectate_room_id=room_id, profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+                return render_template("login.html", spectate_message= "There is not an open room with that key!", spectate_room_id=room_id, profile_picture=current_user.profile_picture, username=current_user.username)
                 
 
         if "play_room_id" in request.form:
             room_id = request.form['play_room_id']
 
             if read_db("room_object", "*", f"WHERE active_room_id = '{room_id}'"):
-                app.logger.debug(f"User {current_user.get_username()} is entering room {room_id}")
+                app.logger.debug(f"User {current_user.username} is entering room {room_id}")
                 return redirect(url_for('enterRoom', room_id=room_id))
             
-            app.logger.warning(f"User {current_user.get_username()} attempted to enter an nonexistant room. Reloading to form with a message")
-            return render_template("home.html", play_message="There is not an open room with that key!", play_room_id=room_id, profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+            app.logger.warning(f"User {current_user.username} attempted to enter an nonexistant room. Reloading to form with a message")
+            return render_template("home.html", play_message="There is not an open room with that key!", play_room_id=room_id, profile_picture=current_user.profile_picture, username=current_user.username)
 
     if not authenticated:
-        return render_template("login.html", profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+        return render_template("login.html", profile_picture=current_user.profile_picture, username=current_user.username)
 
-    if not current_user.get_username():
-        # username is what we call the username in the backend
+    if not current_user.username:
         app.logger.warning("User does not have site name. Loading the Set User Name page.")
-        return render_template("set_username.html", profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+        return render_template("set_username.html", profile_picture=current_user.profile_picture, username=current_user.username)
 
     app.logger.debug(f"Rooms in Database:")
     for i in read_db("room_object"):
@@ -370,95 +368,95 @@ def home():
     for i in read_db("active_room"):
         app.logger.debug(f"{i}")
 
-    return render_template("home.html", profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+    return render_template("home.html", profile_picture=current_user.profile_picture, username=current_user.username)
 
 
 @app.route("/user/settings", methods=["GET", "POST"])
 @login_required
 def user_settings():
-    user_id = current_user.get_user_id()
+    user_id = current_user.id
     characters = read_db("characters", "chr_name, char_token", f"WHERE user_key = '{user_id}'")
-    user_email = current_user.get_email()
+    user_email = current_user.email
 
     if request.method == "POST":
         if 'username' in request.form:
             new_username = request.form['username']
 
-            form = SitenameValidation()
+            form = UsernameValidation()
 
             if not form.validate():
                 err_lis = readify_form_errors(form)
                 app.logger.warning(f"There are issues in the renaming form. Allowing the user to change it")
-                return render_template("user_settings.html", characters=characters, username_errors=err_lis, new_username=new_username, profile_pic=current_user.get_profile_pic(), username=current_user.get_username(), user_email=user_email)
+                return render_template("user_settings.html", characters=characters, username_errors=err_lis, new_username=new_username, profile_picture=current_user.profile_picture, username=current_user.username, user_email=user_email)
 
             if read_db("users", "*", f"WHERE username = '{new_username}'"):
                 app.logger.warning(f"Site name {new_username} already has been used. Reloading the user settings page with warning message.")
-                return render_template("user_settings.html", characters=characters, username_message="That username is already in use!", new_username=new_username, profile_pic=current_user.get_profile_pic(), username=current_user.get_username(), user_email=user_email)
+                return render_template("user_settings.html", characters=characters, username_message="That username is already in use!", new_username=new_username, profile_picture=current_user.profile_picture, username=current_user.username, user_email=user_email)
 
-            app.logger.debug(f"{new_username} is available as a site name. Updating {current_user.get_username()} site name.")
+            app.logger.debug(f"{new_username} is available as a site name. Updating {current_user.username} site name.")
             update_db("users", f"username = '{new_username}'", f"WHERE user_id = '{user_id}'")
             return redirect(url_for('user_settings'))
 
-    app.logger.debug(f"User {current_user.get_username()} is accessing their user settings")
-    return render_template("user_settings.html", characters=characters, new_username=current_user.get_username(), profile_pic=current_user.get_profile_pic(), username=current_user.get_username(), user_email=user_email)
+    app.logger.debug(f"User {current_user.username} is accessing their user settings")
+    return render_template("user_settings.html", characters=characters, new_username=current_user.username, profile_picture=current_user.profile_picture, username=current_user.username, user_email=user_email)
 
 
 @app.route("/rooms", methods=["GET", "POST"])
 @login_required
 def view_rooms():
     if request.method == "POST":
-        app.logger.debug(f"Attempting to delete room owned by {current_user.get_username()} named {request.form['room_name']}.")
+        app.logger.debug(f"Attempting to delete room owned by {current_user.username} named {request.form['room_name']}.")
         
         if read_db("active_room", "room_id", f"WHERE room_id = {request.form['room_id']}"):
-            app.logger.warning(f"User {current_user.get_username()} is attempting to delete an active room {request.form['room_name']}")
+            app.logger.warning(f"User {current_user.username} is attempting to delete an active room {request.form['room_name']}")
             # Do we want this responsibility to be on the user or is there merit to just scrubbing the DBs from this page
-            return render_template("view_rooms.html" , message="Room is active! Close it first!", profile_pic=current_user.get_profile_pic(), username=current_user.get_username(), room_list=created_rooms)
+            return render_template("view_rooms.html" , message="Room is active! Close it first!", profile_picture=current_user.profile_picture, username=current_user.username, room_list=created_rooms)
         
         delete_from_db("room_object", f"WHERE row_id = {request.form['room_id']}")
-        app.logger.debug(f"Deleted user {current_user.get_username()}'s room {request.form['room_name']}")
+        app.logger.debug(f"Deleted user {current_user.username}'s room {request.form['room_name']}")
         return redirect(url_for('view_rooms'))
 
-    app.logger.debug(f"User {current_user.get_username()} has gone to the rooms page.")
+    app.logger.debug(f"User {current_user.username} has gone to the rooms page.")
 
-    created_rooms = read_db("room_object", "row_id, room_name, map_url, dm_notes, active_room_id", f"WHERE user_key = '{current_user.get_user_id()}'")
+    created_rooms = read_db("room_object", "row_id, room_name, map_url, dm_notes, active_room_id", f"WHERE user_key = '{current_user.id}'")
 
     active_rooms = []
     for room in created_rooms:
         if room[4] != "null":
             active_rooms.append(room)
 
-    return render_template("view_rooms.html", profile_pic=current_user.get_profile_pic(), username=current_user.get_username(), room_list=created_rooms, active_rooms=active_rooms)
+    return render_template("view_rooms.html", profile_picture=current_user.profile_picture, username=current_user.username, room_list=created_rooms, active_rooms=active_rooms)
 
 
 @app.route("/rooms/create", methods=["GET", "POST"])
 @login_required
 def room_creation():
-    app.logger.debug(f"User {current_user.get_username()} is creating a new room!")
+    app.logger.debug(f"User {current_user.username} is creating a new room!")
     form = RoomValidation()
-    user_id = current_user.get_user_id()
+    user_id = current_user.id
 
     if request.method == "POST":
-        app.logger.debug(f"User {current_user.get_username()} is attempting to create a new room")
+        app.logger.debug(f"User {current_user.username} is attempting to create a new room")
         return process_room_form(form, user_id, "create", "")
 
-    return render_template("add_room.html", profile_pic=current_user.get_profile_pic(), username=current_user.get_username(), map_url="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg")
+    return render_template("add_room.html", profile_picture=current_user.profile_picture, username=current_user.username, map_url="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg")
 
 
 @app.route("/rooms/<room_id>", methods=["GET", "POST"])
 @login_required
 def room_edit(room_id):
-    user_id = current_user.get_user_id()
+    user_id = current_user.id
     form = RoomValidation()
 
     if request.method == "POST":
-        app.logger.warning(f"User {current_user.get_username()} is attempting to edit their room")
+        app.logger.warning(f"User {current_user.username} is attempting to edit their room")
         return process_room_form(form, user_id, "edit", room_id)
 
-    room = read_db("room_object", "*", f"WHERE row_id = {room_id} and user_key= '{current_user.get_user_id()}'")
+    room = read_db("room_object", "*", f"WHERE row_id = {room_id} and user_key= '{current_user.id}'")
     if room:
         room = room[0]
-        app.logger.debug(f"User {current_user.get_username()} is prepping their room for their encounter!")
-        return render_template("edit_room.html", profile_pic=current_user.get_profile_pic(), username=current_user.get_username(), map_url= room[5], room_name=room[2], dm_notes = room[6], room_id=room_id )
+        app.logger.debug(f"User {current_user.username} is prepping their room for their encounter!")
+        return render_template("edit_room.html", profile_picture=current_user.profile_picture, username=current_user.username, map_url= room[5], room_name=room[2], dm_notes = room[6], room_id=room_id )
 
     app.logger.warning(f"User attempted to prep a room with name {room_id}. They do not have a room with that id. Throwing a Bad Request error.")
     raise BadRequest(description=f"You don't have a room with id: {room_id}!")
@@ -467,7 +465,7 @@ def room_edit(room_id):
 @app.route("/generate_room", methods=["POST"])
 @login_required
 def generate_room_id():
-    user_id = current_user.get_user_id()
+    user_id = current_user.id
     room_name = request.form["room_name"]
     random_key = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
 
@@ -482,7 +480,7 @@ def generate_room_id():
 @app.route("/play/<room_id>", methods=["GET", "POST"])
 @login_required
 def enterRoom(room_id):
-    user_id = current_user.get_user_id()
+    user_id = current_user.id
     try:
         image_url, map_owner = read_db("room_object", "map_url, user_key", f"WHERE active_room_id = '{room_id}'")[0]
         characters = read_db("characters", "chr_name", f"WHERE user_key='{user_id}'")
@@ -490,11 +488,11 @@ def enterRoom(room_id):
         if not characters:
             return redirect(url_for("character_creation", route=f"/play/{room_id}"))
 
-        app.logger.debug(f"User {current_user.get_username()} has entered the room {room_id}")
+        app.logger.debug(f"User {current_user.username} has entered the room {room_id}")
         if user_id == map_owner:
-            return render_template("play_dm.html", async_mode=socketio.async_mode, characters=characters, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+            return render_template("play_dm.html", async_mode=socketio.async_mode, characters=characters, in_room=room_id, image_url=image_url, profile_picture=current_user.profile_picture, username=current_user.username)
         else:
-            return render_template("play.html", async_mode=socketio.async_mode, characters=characters, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+            return render_template("play.html", async_mode=socketio.async_mode, characters=characters, in_room=room_id, image_url=image_url, profile_picture=current_user.profile_picture, username=current_user.username)
 
     except:
         app.logger.debug(f"No such room exists")
@@ -506,11 +504,11 @@ def spectateRoom(room_id):
     try:
         image_url = read_db("room_object", "map_url", f"WHERE active_room_id = '{room_id}'")[0][0]
 
-        app.logger.debug(f"User {current_user.get_username()} is spectating the room {room_id}")
+        app.logger.debug(f"User {current_user.username} is spectating the room {room_id}")
 
         if current_user.is_authenticated:
-            return render_template("watch.html", async_mode=socketio.async_mode, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
-        return render_template("unlogged_watch.html", async_mode=socketio.async_mode, in_room=room_id, image_url=image_url, profile_pic=current_user.get_profile_pic(), username=current_user.get_username())
+            return render_template("watch.html", async_mode=socketio.async_mode, in_room=room_id, image_url=image_url, profile_picture=current_user.profile_picture, username=current_user.username)
+        return render_template("unlogged_watch.html", async_mode=socketio.async_mode, in_room=room_id, image_url=image_url, profile_picture=current_user.profile_picture, username=current_user.username)
 
     except:
         app.logger.debug(f"No such room exists")
@@ -571,7 +569,7 @@ def callback():
     else:
         return "User email not available or not verified by Google.", 400
     # Create a user in the datbase if they don't already exist
-    user = User(id_=unique_id, email=users_email, profile_pic=picture, username=None)
+    user = User(id_=unique_id, email=users_email, profile_picture=picture, username=None)
     if not read_db("users", "*", f"WHERE user_id = '{unique_id}'"):
         add_to_db("users", (unique_id, users_email, picture, None))
     # Log the user in and send them to the homepage
@@ -583,7 +581,7 @@ def callback():
 @app.route("/logout")
 @login_required
 def logout():
-    app.logger.debug(f"User {current_user.get_username()} just logged out")
+    app.logger.debug(f"User {current_user.username} just logged out")
     logout_user()
     return redirect(url_for("login_index"))
 
@@ -592,8 +590,8 @@ def logout():
 @app.route("/delete")
 @login_required
 def delete_account():
-    user_id = current_user.get_user_id()
-    app.logger.debug(f"User {current_user.get_username()} is deleting their account. Deleting all associated information")
+    user_id = current_user.id
+    app.logger.debug(f"User {current_user.username} is deleting their account. Deleting all associated information")
     delete_from_db("log", f"WHERE user_key = '{user_id}'")
     delete_from_db("chat", f"WHERE user_key = '{user_id}'")
     delete_from_db("active_room", f"WHERE user_key = '{user_id}'")
@@ -631,7 +629,7 @@ def set_initiative(message):
     init_val = message['init_val']
     username = message['username']
     room_id = message['room_id']
-    user_id = current_user.get_user_id()
+    user_id = current_user.id
 
     if not character_name and not init_val:
         return
@@ -653,10 +651,10 @@ def set_initiative(message):
 @socketio.on('send_chat', namespace='/combat')
 def send_chat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    user_id = current_user.get_user_id()
+    user_id = current_user.id
     chr_name = message['character_name']
     room_id = message['room_id']
-    username = current_user.get_username()
+    username = current_user.username
 
     chats = read_db("chat", "user_key, timestamp", f"WHERE room_id = '{room_id}' and user_key = '{user_id}'")
 
@@ -677,7 +675,7 @@ def send_chat(message):
 @socketio.on('start_combat', namespace='/combat')
 def start_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    user_id = current_user.get_user_id()
+    user_id = current_user.id
     room_id = message['room_id']
     characters = read_db("active_room", "user_key, chr_name, init_val", f"WHERE room_id = '{room_id}' ORDER BY init_val, chr_name DESC ")
     first_character = characters[-1]
@@ -713,7 +711,7 @@ def start_combat(message):
 @socketio.on('end_combat', namespace='/combat')
 def end_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    user_id = current_user.get_user_id()
+    user_id = current_user.id
     room_id = message['room_id']
     character = read_db("active_room","user_key, chr_name", f"WHERE room_id = '{room_id}' AND is_turn = '1'")[0]
     character_id = character[0]
@@ -754,7 +752,7 @@ def end_session(message):
     update_db("room_object", "map_status = '{}'", f"WHERE active_room_id = '{room_id}'")
     update_db("room_object", "active_room_id = 'null'", f"WHERE active_room_id = '{room_id}'")
 
-    app.logger.debug(f"The room {room_id} owned by {current_user.get_username()} has closed")
+    app.logger.debug(f"The room {room_id} owned by {current_user.username} has closed")
     
     emit("room_ended", {'desc': message['desc']}, room=room_id)
     close_room(room_id)
@@ -763,7 +761,7 @@ def end_session(message):
 @socketio.on('end_turn', namespace='/combat')
 def end_turn(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    previous_character_id = current_user.get_user_id()
+    previous_character_id = current_user.id
     previous_character_name = message['previous_character_name']
     next_character_name = message['next_character_name']
     previous_username = message['previous_username']
@@ -802,7 +800,7 @@ def end_turn(message):
 
 @socketio.on('on_join', namespace='/combat')
 def on_join(message):
-    app.logger.debug(f"Battle update: User {current_user.get_username()} has entered room {message['room_id']}")
+    app.logger.debug(f"Battle update: User {current_user.username} has entered room {message['room_id']}")
     join_room(message['room_id'])
     emit('joined', {'desc': 'Joined room'})
 
@@ -811,8 +809,8 @@ def on_join(message):
 def connect(message):
     # Sends upon a new connection
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    user_id = current_user.get_user_id()
-    username = current_user.get_username()
+    user_id = current_user.id
+    username = current_user.username
     room_id = message['room_id']
     initiatives = read_db("active_room", "chr_name, init_val, user_key", f"WHERE room_id = '{room_id}'")
     chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{room_id}'")
@@ -828,7 +826,7 @@ def connect(message):
         del walla_walla[i]
 
     add_to_db("log", (room_id, user_id, "Connection", f"User with id {user_id} connected", time_rcvd))
-    app.logger.debug(f"Battle update: User {current_user.get_username()} has connected to room {room_id}")
+    app.logger.debug(f"Battle update: User {current_user.username} has connected to room {room_id}")
 
     emit('log_update', {'desc': f"{username} Connected"}, room=room_id)
 
@@ -840,7 +838,7 @@ def connect(message):
         if player_id == user_id and walla_walla[player_id]['character_name'] not in your_chars:
             your_chars.append(walla_walla[player_id]['character_name'])
     for char in your_chars:
-        emit('populate_select_with_character_names', {'character_name': char, 'username': current_user.get_username()})
+        emit('populate_select_with_character_names', {'character_name': char, 'username': current_user.username})
 
     for item in initiatives:
         username = read_db("users", "username", f"WHERE user_id = '{item[2]}'")[0][0]
@@ -905,7 +903,7 @@ def character_icon_update_database(message):
         new_height = message['new_height']
         
 
-    # TODO: Add check here to make sure that the token you're trying to move is your own and not someone elses. Check the user_id_character_name from user_id_character_name = character in the loop above against current_user.get_username(). Add exception for if you are the DM
+    # TODO: Add check here to make sure that the token you're trying to move is your own and not someone elses. Check the user_id_character_name from user_id_character_name = character in the loop above against current_user.username. Add exception for if you are the DM
     json_character_to_update = { user_id_character_name: {"username": message['username'], "character_name": message['character_name'], "room_id": message['room_id'], "character_image": message['character_image'], "height": new_height, "width": new_width, "top": new_top, "left": new_left, "is_turn": message['is_turn']}}
     walla_walla[user_id_character_name] = json_character_to_update[user_id_character_name]
     characters_json = json.dumps(walla_walla)
@@ -924,7 +922,7 @@ def character_icon_update_database(message):
 def add_character(message):
     character_name = message['char_name']
     room_id = message['room_id']
-    user_id = current_user.get_user_id()
+    user_id = current_user.id
     username = message['username']
     temp_db_read_character_token = read_db("characters", "char_token", f"WHERE user_key = '{user_id}' AND chr_name = '{character_name}'")
     init_val = 0
@@ -949,7 +947,7 @@ def add_character(message):
 @socketio.on('add_npc', namespace='/combat')
 def add_npc(message):
     room_id = message['room_id']
-    user_id = current_user.get_user_id()
+    user_id = current_user.id
     random_key = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
     character_name = "NPC" + random_key
     username = message['username']
@@ -973,20 +971,20 @@ def add_npc(message):
 @app.errorhandler(CSRFError)
 def handle_csrf_error(e):
     app.logger.warning(f"A CSRFError has occurred. How did this happen?")
-    return render_template("error.html", error_name="Error Code 400" ,error_desc = "The room you were in has closed!", username=current_user.get_username()), 400
+    return render_template("error.html", error_name="Error Code 400" ,error_desc = "The room you were in has closed!", username=current_user.username), 400
 
 @app.errorhandler(HTTPException)
 def generic_error(e):
     # Generic HTTP Exception handler
         app.logger.warning(f"A HTTP error with code {e.code} has occurred. Handling the error.")
-        return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description, username=current_user.get_username(), profile_pic=current_user.get_profile_pic()), e.code
+        return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description, username=current_user.username, profile_picture=current_user.profile_picture), e.code
 
 @app.errorhandler(Exception)
 def five_hundred_error(e):
     app.logger.warning(f"A server error occurred. Handling it, but you probably should fix the bug...")
     app.logger.error(f"Here it is: {e}")
     desc = "Internal Server Error. Congrats! You found an unexpected feature!"
-    return render_template("error.html", error_name="Error Code 500", error_desc=desc, username=current_user.get_username(), profile_pic=current_user.get_profile_pic()), 500
+    return render_template("error.html", error_name="Error Code 500", error_desc=desc, username=current_user.username, profile_picture=current_user.profile_picture), 500
 
 @app.route("/process_error", methods=["POST"])
 @login_required
