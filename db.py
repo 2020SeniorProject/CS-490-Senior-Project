@@ -1,7 +1,10 @@
 import sqlite3
 import csv
 
+
 # Global variable declarations
+# These variables point towards the
+# names of the database files.
 global battle_sesh_db
 global api_db
 global error_db
@@ -9,26 +12,21 @@ battle_sesh_db = "battle_sesh.db"
 api_db = "api.db"
 error_db = "error.db"
 
+
 def create_connection(db_file):
+    """
+    The create_connection function. This function
+    was created to promote encapsulation and make
+    code more readable. It simple creates and returns
+    a connection to the specified database file.
+
+    :param db_file:
+        The name of the database file
+        to which is being connected
+    """
     conn = sqlite3.connect(db_file)
     return conn
 
-
-# TODO: Update these table descriptions
-
-# log table
-# room_id = Global identifier for battle map created by user
-# user_key = Unique user ID, allows for maps to be sorted by users
-# title = ***CHANGED** used to name type of data being saved such as chat, action, connections etc.
-# Log = entry from log, entered by users. Tracked to actions in battle and other relevant info
-# timestamp = used to keep order of log entries for the room
-
-# chat table
-# (derived from log table to better ecapsulate these two tools)
-# room_id & user_key = tracks room and user who output text
-# character name = utilized to track which character in the party chatted
-# chat = holds what has been sent to chat
-# timestamp = when a chat was sent
 
 # active_room table
 # room_id = Global identifier for battle map created by user
@@ -59,6 +57,65 @@ def create_connection(db_file):
 # user_key and chr_name = primary keys to allow a character to be tracked across rooms and to allow repeats of character names across 
 
 def create_dbs():
+    """
+    The create_dbs function. This function
+    initializes the main database used by
+    the application. The tables are as follows:
+
+    :table log:
+        row_id:     an autoincrementing primary key
+                    Not truly necessary. Should be removed
+        room_id:    the 8 alphanumeric key of the room
+                    the log belongs to. Matches with
+                    all other room_id rows in other tables.
+        user_key:   the user ID we get from Google OAuth
+                    of the user who generated the log.
+                    Matches with all other user_id rows
+                    in other tables. Should be renamed
+                    user_id
+        title:      Deprecated. Should be removed.
+        log:        The actual log message generated
+                    by the application during runtime.
+        timestamp:  The time the log was generated.
+    :table chat:
+        row_id:     an autoincrementing primary key.
+                    Not truly necessary. Should be removed
+        room_id:    the 8 alphanumeric key of the room
+                    the log belongs to. Matches with
+                    all other room_id rows in other tables.
+        user_key:   the user ID we get from Google OAuth
+                    of the user who sent the chat.
+                    Matches with all other user_id rows
+                    in other tables. Should be renamed
+                    user_id
+        chr_name:   Name of the character? Not all too sure 
+                    without further testing. It may be the user's
+                    username. In either case, it is unused and
+                    should be removed
+        chat:       The actual chat sent by the user
+        timestamp:  The time the chat was received by
+                    the backend.
+    :table active_room:
+        room_id:    the 8 alphanumeric key of the room
+                    the log belongs to. Matches with
+                    all other room_id rows in other tables.
+        user_key:   the user ID we get from Google OAuth
+                    of the user who sent the chat.
+                    Matches with all other user_id rows
+                    in other tables. Should be renamed
+                    user_id
+        chr_name:   The name of the user's character
+                    in the room. Matches with all other
+                    character_name rows. Should be renamed
+                    character_name
+        init_val:   The initiative value of the character
+        is_turn:    Boolean value stating if it is that
+                    character's turn.
+        char_token: The URL to the character's battlemap image.
+    :table room_object:
+    :table users:
+    :table characters:
+    """
     with create_connection(battle_sesh_db) as conn:
         cur = conn.cursor()
         cur.execute(f"""CREATE TABLE IF NOT EXISTS log 
