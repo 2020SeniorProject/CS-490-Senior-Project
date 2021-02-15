@@ -175,7 +175,7 @@ def process_room_form(form, user_id, usage, room_id):
 
     if usage == "edit":
         app.logger.debug(f"The room {current_user.get_site_name()} was attempting to edit had some errors. Sending back to edit page to fix errors.")
-        return render_template("edit_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name() )
+        return render_template("room_edit.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name() )
         
 
 
@@ -458,7 +458,7 @@ def room_edit(room_id):
     if room:
         room = room[0]
         app.logger.debug(f"User {current_user.get_site_name()} is prepping their room for their encounter!")
-        return render_template("edit_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url= room[5], room_name=room[2], dm_notes = room[6], room_id=room_id )
+        return render_template("room_edit.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url= room[5], room_name=room[2], dm_notes = room[6], room_id=room_id )
 
     app.logger.warning(f"User attempted to prep a room with name {room_id}. They do not have a room with that id. Throwing a Bad Request error.")
     raise BadRequest(description=f"You don't have a room with id: {room_id}!")

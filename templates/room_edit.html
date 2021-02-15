@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="row border-top border-dark" style="height:75%;">
+    <div class="col-2 h-100" style="overflow:scroll;">
+        <h4 class="text-center">Initiative Order</h4>
+
+        <table id="initiative-table" class="table table-sm text-center">
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <!-- TODO fix image not resizing issue -->
+    <div class="col-8 px-0 mx-0">
+        <div class="text-center" id=prev style="width:100%">
+            <img class="previewImage" id=initial_image style="height:100%;width:100%;" src="{{ map_url }}">
+          </div>
+    </div>
+    <div class="col-2 h-100" id=row1_col3>
+        <h4 class="text-center" id=dm_tools>DM's Tools</h4>
+        <!-- Will be finished later -->
+        <!-- <form class=form id=update_grid_sizes>
+            <div class=row>
+                <div class="col text-center">
+                    <label class="form-label" for=grid_width>Map Width</label>
+                    <input type=number id=grid_width class=form-control value=30 required>
+                </div>
+                <div class="col text-center">
+                    <label class=form-label for=grid_height>Map Height</label>
+                    <input type=number id=grid_height class=form-control value=20 required>
+                </div>
+            </div>
+            <input type=submit class="btn btn-primary form-control" value="Update Map Grid" id=update_grid_size_button>
+        </form> -->
+        <form class=form method=POST>
+            <label class=form-label for=room_name>Room Name</label>
+            <input type="text" name="room_name" class="form-control" value="{{ room_name }}">
+            <label class=form-label for=dm_notes_input>DM notes (Optional)</label>
+            <textarea name="dm_notes" id="dm_notes_input" class="form-control" style="max-height:50%;" value="{{ dm_notes }}"> {{ dm_notes }}</textarea>
+            <label class=form-label for=map_url>Map URL</label>
+            <input type="text" id="map_url" name="map_url" class="form-control" value="{{ map_url }}">
+            <input type="submit" class="btn btn-primary form-control" value="Save Changes">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" id="old_name" value="{{ old_name }}">
+            <input type="hidden" id="old_notes" value="{{ old_notes }}">
+            <input type="hidden" id="old_tokens" value="{{ old_tokens }}">
+            <input type="hidden" id="old_url" value="{{ old_url }}">
+        </form>
+        <!-- <div id=checklist_div></div> -->
+        <form class="form" action="/generate_room" method="POST">
+            <input type="submit" class="btn btn-success form-control" value="Open room">
+            <input type="hidden" name="room_name" class="form-control" value="{{ room_name }}">
+            <input type="hidden" name="map_url" class="form-control" value="{{ map_url }}">
+            <input type="hidden" name="dm_notes" class="form-control" value="{{ dm_notes }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        </form>
+        <h6 class="text-center mb-0" id=log_title><b>Log</b></h6>
+        <div id=log_div>
+            <div id="log">
+                <ul>
+                    {% for i in errors %}
+                    <li> {{ i }} </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- <div class="fixed-bottom" style="height:20%;"> -->
+    <div class="row mt-0 border-bottom border-dark" style="height:25%;">
+        <div class="col-2 my-auto text-center">
+            <div id="initiative-wrapper">
+                    <select id=player_name class=form-control required>
+                        <option id=init_placeholder>This is where characters can input initiative!</option>
+                    </select>
+                    <input type=number id=initiative_roll class="form-control" min=0 max=30 placeholder="Initiative" required>
+                    <input type=submit class="btn btn-primary form-control" value="Update Initiative" id=set_initiative_button disabled>
+            </div>
+
+            <input type=submit class="btn btn-danger form-control" value="End Turn!" id=end_turn_button disabled>
+        </div>
+        <div class="col-8">
+            <p class="text-center mb-0"><b>Chat</b></p>
+            <div style="overflow:scroll;height:60%;" id=chat-box>
+                <div id="chat-list">
+                    
+                </div>
+            </div>
+            
+                <div class=row>
+                    <div class="col-10 form-group">
+                        <input type=text id=chat_text class=form-control placeholder="Type here">
+                    </div>
+                    <div class="col-2 form-group">
+                        <input id="send_chat_button" type=submit class="btn btn-primary form-control" value="Chat" disabled>
+                    </div>
+                </div>
+        </div>
+        <div class="col-2 h-100" style="overflow:scroll;">
+            <p class="text-center mb-0"><b>Add a Character</b></p>
+            <form class="form" id=add_character>
+                <select id=character_name class=form-control required>
+                    {% for character in characters %}
+                    <option id='{{ character[0].split()|join(":") }}-add-row'>{{ character[0] }}</option>
+                    {% endfor %}
+                </select>
+                <input type=submit class="btn btn-primary form-control" value="Add Character" id=add_character_button disabled>
+                <input type=submit class="btn btn-primary form-control" value="Add NPC" id=add_npc_button disabled>
+        </div>
+    </div>
+<!-- </div> -->
+<script src="/static/js/map_image.js"></script>
+{% endblock %}
