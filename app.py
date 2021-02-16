@@ -468,13 +468,13 @@ def room_edit(room_id):
 @login_required
 def generate_room_id():
     user_id = current_user.get_user_id()
-    room_name = request.form["room_name"]
+    room_id = request.form["room_id"]
     random_key = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
 
     while read_db("room_object", "*", f"WHERE active_room_id = '{random_key}'"):
         random_key = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
 
-    update_db("room_object", f"active_room_id = '{random_key}'", f"WHERE user_key = '{user_id}' AND room_name = '{room_name}'")
+    update_db("room_object", f"active_room_id = '{random_key}'", f"WHERE user_key = '{user_id}' AND row_id = '{room_id}'")
 
     return redirect(url_for('enterRoom', room_id=random_key))
 

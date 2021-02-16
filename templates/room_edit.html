@@ -47,10 +47,9 @@
             <input type="hidden" id="old_tokens" value="{{ old_tokens }}">
             <input type="hidden" id="old_url" value="{{ old_url }}">
         </form>
-        <!-- <div id=checklist_div></div> -->
         <form class="form" action="/generate_room" method="POST">
             <input type="submit" class="btn btn-success form-control" value="Open room">
-            <input type="hidden" name="room_name" class="form-control" value="{{ room_name }}">
+            <input type="hidden" name="room_id" class="form-control" value="{{ room_id }}">
             <input type="hidden" name="map_url" class="form-control" value="{{ map_url }}">
             <input type="hidden" name="dm_notes" class="form-control" value="{{ dm_notes }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
