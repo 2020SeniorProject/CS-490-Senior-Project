@@ -28,28 +28,6 @@ def create_connection(db_file):
     return conn
 
 
-# active_room table
-# room_id = Global identifier for battle map created by user
-# user_key = Unique user ID, allows for maps to be sorted by users
-# chr_name = Entered by DM/map owner, player character name associated with the given intiative
-# init_val = intiative # associated with a player
-# is_turn = boolean stating whos turn it is - for any given room, only one entry will be 1 (true)
-# char_token = String url of image to use for the character's token
-
-# room_object 
-# secret room ID # - incremental in the table
-# User_key - ‘owner’ of the room, needed to lock out others from editing the room
-# Name of room - what the owner of the room calls it (for visual purposes)
-# Active room id - null if room not open, changes when room is ‘opened’ !!! THIS IS EQUIVALENT TO 'ROOM_ID IN chat, active_room, log, and characters !!!
-# Map_status - stringified JSON representation of character tokens and locations on map. ex: { user_id: { username, character_name, character_image, room_id, height, width, top, left, is_turn } }
-# Map URL - URL to the map (for the “background”)
-
-# users table ****** THIS IS THE ONLY TABLE THAT UTILIZES USER_ID INSTEAD OF USER_KEY BUT THEY ARE SYNONYMOUS ******
-# user_id = user_id gotten from Google 
-# email = email address gotten from Google
-# profile_pic = URL to Google profile pic
-# username = username specific to our site. e.g. SirRunner
-  
 # characters table
 # user_key = used to connect players to their created characters
 # room_id = used to connect room_id to the room in which the character is playing
@@ -63,58 +41,146 @@ def create_dbs():
     the application. The tables are as follows:
 
     :table log:
-        row_id:     an autoincrementing primary key
-                    Not truly necessary. Should be removed
-        room_id:    the 8 alphanumeric key of the room
-                    the log belongs to. Matches with
-                    all other room_id rows in other tables.
-        user_key:   the user ID we get from Google OAuth
-                    of the user who generated the log.
-                    Matches with all other user_id rows
-                    in other tables. Should be renamed
-                    user_id
-        title:      Deprecated. Should be removed.
-        log:        The actual log message generated
-                    by the application during runtime.
-        timestamp:  The time the log was generated.
+        row_id:         an autoincrementing primary key
+        room_id:        the 8 alphanumeric key of the room
+                        the log belongs to. Matches with
+                        all other room_id rows in other tables.
+        user_key:       the user ID we get from Google OAuth
+                        of the user who generated the log.
+                        Matches with all other user_id rows
+                        in other tables. Should be renamed
+                        user_id
+        title:          Deprecated. Should be removed.
+        log:            The actual log message generated
+                        by the application during runtime.
+        timestamp:      The time the log was generated.
     :table chat:
-        row_id:     an autoincrementing primary key.
-                    Not truly necessary. Should be removed
-        room_id:    the 8 alphanumeric key of the room
-                    the log belongs to. Matches with
-                    all other room_id rows in other tables.
-        user_key:   the user ID we get from Google OAuth
-                    of the user who sent the chat.
-                    Matches with all other user_id rows
-                    in other tables. Should be renamed
-                    user_id
-        chr_name:   Name of the character? Not all too sure 
-                    without further testing. It may be the user's
-                    username. In either case, it is unused and
-                    should be removed
-        chat:       The actual chat sent by the user
-        timestamp:  The time the chat was received by
-                    the backend.
+        row_id:         an autoincrementing primary key.
+        room_id:        the 8 alphanumeric key of the room
+                        the log belongs to. Matches with
+                        all other room_id rows in other tables.
+        user_key:       the user ID we get from Google OAuth
+                        of the user who sent the chat.
+                        Matches with all other user_id rows
+                        in other tables. Should be renamed
+                        user_id
+        chr_name:       Name of the character? Not all too sure 
+                        without further testing. It may be the user's
+                        username. In either case, it appears is unused and
+                        should be removed
+        chat:           The actual chat sent by the user
+        timestamp:      The time the chat was received by
+                        the backend.
     :table active_room:
-        room_id:    the 8 alphanumeric key of the room
-                    the log belongs to. Matches with
-                    all other room_id rows in other tables.
-        user_key:   the user ID we get from Google OAuth
-                    of the user who sent the chat.
-                    Matches with all other user_id rows
-                    in other tables. Should be renamed
-                    user_id
-        chr_name:   The name of the user's character
-                    in the room. Matches with all other
-                    character_name rows. Should be renamed
-                    character_name
-        init_val:   The initiative value of the character
-        is_turn:    Boolean value stating if it is that
-                    character's turn.
-        char_token: The URL to the character's battlemap image.
+        room_id:        the 8 alphanumeric key of the room
+                        the log belongs to. Matches with
+                        all other room_id rows in other tables.
+        user_key:       the user ID we get from Google OAuth
+                        of the user who owns the characters.
+                        Matches with all other user_id rows
+                        in other tables. Should be renamed
+                        user_id
+        chr_name:       The name of the user's character
+                        in the room. Matches with all other
+                        character_name rows. Should be renamed
+                        character_name
+        init_val:       The initiative value of the character
+        is_turn:        Boolean value stating if it is that
+                        character's turn.
+        char_token:     The URL to the character's battlemap image.
+                        Should be renamed character_token
     :table room_object:
+        row_id:         an autoincrementing primary key.
+                        Is hidden from all users except
+                        the owner of a room.
+        user_key:       the user ID we get from Google OAuth
+                        of the user who owns the room.
+                        Matches with all other user_id rows
+                        in other tables. Should be renamed
+                        user_id
+        chr_name:       Honestly, doesn't look like this does
+                        anything. Should be removed.
+        room_name:      String name of the room
+        active_room_id: String name of the active rooms that
+                        use this template. Currently only holds
+                        a string. Should be updated to hold a
+                        jsonified list of active room ids.
+        map_status:     Jsonified dictionary of dictionares of
+                        character information in the room. Is
+                        structured as follows:
+                        {"user_id": {"username": username, "character_name": character_name
+                        "room_id": room_id, "character_image": character_token URL,
+                        "height": height, "width": width, "top": top pixel location,
+                        "left": left pixel location, "is_turn": 0 or 1 Boolean}}
+        map_url:        URL of the battle map used by the room
+        dm_notes:       The DM Notes entered by the user. Can be
+                        updated by editing the room.
     :table users:
+        user_id:        the user ID we get from Google OAuth.
+                        Matches with all other user_id rows
+                        in other tables.
+        email:          the email we get from Google OAuth
+        profile_pic:    the URL to the Google profile
+                        picture we recieve from Google
+                        OAuth. Should be renamed profile_picture
+        username:       the username of the user on the
+                        application. Must be unique across all
+                        users. Can be updated via the settings page.
+                        On the backend, the username
+                        or user_id can be used to identify users.
+                        However, on the front end, only the username
+                        should be used.
     :table characters:
+        user_key:       the user ID we get from Google OAuth
+                        of the user who owns the character.
+                        Matches with all other user_id rows
+                        in other tables. Should be renamed
+                        user_id
+        chr_name:       the name of the character. Matches
+                        with all other character_name rows
+                        Should be renamed character_name
+        class:          the class of the character. Not truly
+                        used at the moment. Is being collected
+                        for future use.
+        subclass:       the subclass of the character. Not truly
+                        used at the moment. Is being collected for
+                        future use.
+        race:           the race of the character. Not truly
+                        used at the moment. Is being collected for
+                        future use.
+        subrace:        the subrace of the character. Not truly
+                        used at the moment. Is being collected for
+                        future use.
+        speed:          the speed of the character. Not truly
+                        used at the moment. Is being collected for
+                        future use.
+        level:          the level of the character. Not truly
+                        used at the moment. Is being collected for
+                        future use.
+        strength:       the strength stat of the character. Not truly
+                        used at the moment. Is being collected for
+                        future use.
+        dexterity:      the dexterity stat of the character. Not truly
+                        used at the moment. Is being collected for
+                        future use.
+        constitution:   the constitution stat of the character. Not truly
+                        used at the moment. Is being collected for
+                        future use.
+        intelligence:   the intelligence stat of the character. Not truly
+                        used at the moment. Is being collected for
+                        future use.
+        wisdom:         the wisdom stat of the character. Not truly
+                        used at the moment. Is being collected for
+                        future use.
+        charisma:       the charisma stat of the character. Not truly
+                        used at the moment. Is being collected for
+                        future use.
+        hitpoints:      the hitpoints of the character. Not truly
+                        used at the moment. Is being collected for
+                        future use.
+        char_token:     the URL of the character's battlemap image.
+                        Matches with all other character_token rows.
+                        Should be renaed char_token.
     """
     with create_connection(battle_sesh_db) as conn:
         cur = conn.cursor()
@@ -138,6 +204,20 @@ def create_dbs():
         
 
 def add_to_db(table_name, values):
+    """
+    The add_to_db function. This function
+    adds a row to the specified table. This
+    is only used on the battle_sesh_db. Adding
+    to the error db should use add_to_error_db.
+
+    :param table_name:
+        The name of the table to which
+        is being appended
+    :param values:
+        The data values that are being
+        appended to the row. Comes in
+        as a tuple in the correct order
+    """
     with create_connection(battle_sesh_db) as conn:
         cur = conn.cursor()
         if table_name == "log":
@@ -157,6 +237,10 @@ def add_to_db(table_name, values):
 
 
 def read_db(table_name, rows="*", extra_clause = "", read_api_db=False):
+    """
+    The read_db function. This function
+    reads all specified rows of a table.
+    """
     if read_api_db:
         db_to_read_from = api_db
     else:
