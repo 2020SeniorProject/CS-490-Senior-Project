@@ -380,6 +380,8 @@ def get_api_info(table, row):
     :param row:
         The name of the main row in the table. Most likely
         matches the table name.
+
+    Should rename either the paramater row or the iterator row
     """
     rows = read_db(table, read_api_db=True)
     main_column = read_db(table, row, read_api_db=True)
