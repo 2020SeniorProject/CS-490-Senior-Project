@@ -240,6 +240,20 @@ def read_db(table_name, rows="*", extra_clause = "", read_api_db=False):
     """
     The read_db function. This function
     reads all specified rows of a table.
+
+    :param table_name:
+        the name of the table being accessed
+    :param rows:
+        the row names being accessed. Defaults to
+        "*": all of the rows
+    :param extra_clause:
+        any sort of extra filter that may be used in
+        an SQL query. E.G. "WHERE user_id = '0304920349'"
+        Defaults to the empty string
+    :read_api_db:
+        a Boolean variable stating if the api db is being accessed.
+        If true, the api db is accessed. Otherwise, the battle
+        session db is accessed.
     """
     if read_api_db:
         db_to_read_from = api_db
@@ -254,12 +268,34 @@ def read_db(table_name, rows="*", extra_clause = "", read_api_db=False):
 
 
 def delete_from_db(table_name, extra_clause = ""):
+    """
+    The delete_from_db function. This function
+    deletes rows with the specified information.
+
+    :param table_name:
+        The name of the table in the battle_sesh
+        db. This is the only db that can be accessed
+        from this function
+    :param extra_clause:
+        Any extraneous part of a delete query beyond
+        "DELETE FROM table_name". This parameter filters
+        the specific rows to its defines.
+    """
     with create_connection(battle_sesh_db) as conn:
         cur = conn.cursor()
         cur.execute(f"DELETE FROM {table_name} {extra_clause};")
         conn.commit()
 
 def reset_db(table_name):
+    """
+    The reset_db function. This function drops a
+    table and then calls the create_dbs() function
+    in order to recreate it.
+
+    :param table_name:
+        The name of the table that is going
+        to be reset.
+    """
     with create_connection(battle_sesh_db) as conn:
         cur = conn.cursor()
         cur.execute(f"""DROP TABLE IF EXISTS {table_name};""")
@@ -268,6 +304,18 @@ def reset_db(table_name):
         create_dbs()
 
 def update_db(table_name, columns_values, extra_clause):
+    """
+    The update_db function. This function updates the
+    specified rows with the new values.
+
+    :param table_name:
+        The name of the table that is being accessed
+    :param columns_values:
+        The columns and their new values
+    :param extra_clause:
+        The final part of the SQL query where the
+        specific rows are filtered to.
+    """
     with create_connection(battle_sesh_db) as conn:
         cur = conn.cursor()
         cur.execute(f"""UPDATE {table_name} SET {columns_values} {extra_clause};""")
@@ -275,8 +323,27 @@ def update_db(table_name, columns_values, extra_clause):
 
 
 def build_api_db(files):
+    """
+    The build_api_db function. This function
+    builds the api tables based upon the files
+    that it is given.
+
+    :param files:
+        A list of the files that are used
+        to build the api tables.
+    """
 
     def decomment(csvfile):
+        """
+        The decomment function. This function is only
+        accessible by the build_api_db function to strip
+        off comments written in the given csv files.
+
+        Comments are denotated by a hashtag (#) until a newline.
+
+        :param csvfile:
+            The name of the csv file
+        """
         for row in csvfile:
             raw = row.split('#')[0].strip()
             if raw: yield raw
@@ -304,6 +371,16 @@ def build_api_db(files):
 
 
 def get_api_info(table, row):
+    """
+    The get_api_info function. This function retrieves all of the
+    data from the specified api table.
+
+    :param table:
+        The name of the api table being accessed.
+    :param row:
+        The name of the main row in the table. Most likely
+        matches the table name.
+    """
     rows = read_db(table, read_api_db=True)
     main_column = read_db(table, row, read_api_db=True)
 
@@ -321,18 +398,40 @@ def get_api_info(table, row):
 
 
 def build_error_db():
+    """
+    The build_error_db function. This function
+    builds the error db.
+
+    Isn't really used. Ever. Should be removed.
+    """
     with create_connection(error_db) as conn:
         cur = conn.cursor()              
         cur.execute(f"""CREATE TABLE IF NOT EXISTS error 
                         (row_id INT PRIMARY KEY, error_desc TEXT); """)
 
 def add_to_error_db(values):
+    """
+    The add_to_error_db. This function adds
+    data to the error db.
+
+    Isn't really used. Ever. Should be removed.
+
+    :param values:
+        A tuple of the values that get put into 
+        the error db.
+    """
     with create_connection(error_db) as conn:
         cur = conn.cursor()
         cur.execute("INSERT INTO error(error_desc) VALUES(?)", (values,))
         conn.commit()
     
 def read_error_db():
+    """
+    The read_error_db function. This function
+    reads the error db.
+
+    Isn't really used. Ever. Should be removed.
+    """
     with create_connection(error_db) as conn:
         cur = conn.cursor()
         ret_lst = []
