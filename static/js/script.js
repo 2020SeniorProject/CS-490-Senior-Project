@@ -60,7 +60,7 @@ $(document).ready(function() {
 
   $('form#send_chat').submit(function(event) {
     if ($('#chat_text').val().trim().length != 0) {
-      socket.emit('send_chat', {chat: $('#chat_text').val(), character_name: username, room_id: room_id});
+      socket.emit('send_chat', {chat: $('#chat_text').val(), username: username, room_id: room_id});
       $('#chat_text').val(''); 
     }
     return false;

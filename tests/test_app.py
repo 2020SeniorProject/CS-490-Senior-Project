@@ -189,7 +189,6 @@ def test_character_create(client_1, fields, inputs, expected):
     data["csrf_token"] = client_1.csrf_token
 
     character_create_attempt = client_1.post("/characters/create", data = data, follow_redirects=True)
-    print(character_create_attempt.data)
     assert bytes(expected,'utf-8') in character_create_attempt.data
 
 # Testing creation of rooms 

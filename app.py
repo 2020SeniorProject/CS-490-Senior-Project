@@ -104,7 +104,7 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
         values = (user_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data, form.character_token.data or current_user.profile_picture)
     
         if usage == "create":
-            if read_db("characters", "*", f"WHERE user_id = '{user_id}' AND chr_name = '{values[1]}'") != []:
+            if read_db("characters", "*", f"WHERE user_id = '{user_id}' AND character_name = '{values[1]}'") != []:
                 app.logger.warning(f"User {current_user.username} already has a character with name {form.name.data}. Reloading the Add Character page to allow them to change the name")
                 return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
 
@@ -114,18 +114,18 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
             return redirect(url_for("view_characters"))
 
         elif usage == "edit":
-            if request.form['old_name'] != request.form['name'] and read_db("characters", "*", f"WHERE user_id = '{user_id}' AND chr_name = '{request.form['name']}'") != []:
+            if request.form['old_name'] != request.form['name'] and read_db("characters", "*", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['name']}'") != []:
                 app.logger.warning(f"User {current_user.username} attempted to change the name of character {request.form['old_name']} to {request.form['name']}. They already have another character with that name. Reloading the Edit Character page to allow them to change the name.")
                 return render_template("edit_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'], char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
 
             app.logger.debug(f"Updating the characters owned by user {current_user.username}.")
-            delete_from_db("characters", f"WHERE user_id = '{user_id}' AND chr_name = '{request.form['old_name']}'")
+            delete_from_db("characters", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['old_name']}'")
             add_to_db("chars", values)
 
             if request.form['old_name'] != form.name.data:
                 app.logger.warning(f"User {current_user.username} updating the character name. Updating all of the references to that character in the database.")
-                update_db("active_room", f"chr_name = '{form.name.data}'", f"WHERE chr_name = '{request.form['old_name']}' AND user_id = '{user_id}'")
-                update_db("chat", f"chr_name = '{form.name.data}'", f"WHERE chr_name = '{request.form['old_name']}' AND user_id = '{user_id}'")
+                update_db("active_room", f"character_name = '{form.name.data}'", f"WHERE character_name = '{request.form['old_name']}' AND user_id = '{user_id}'")
+                update_db("chat", f"character_name = '{form.name.data}'", f"WHERE character_name = '{request.form['old_name']}' AND user_id = '{user_id}'")
             
             app.logger.debug(f"User {current_user.username} successfully updated a character with name {form.name.data}. Redirecting them to the View Characters page.")
             return redirect(url_for("view_characters"))
@@ -248,8 +248,8 @@ def view_characters():
 
     if request.method == "POST":
         app.logger.debug(f"Attempting to delete character owned by {current_user.username} named {request.form['character_name']}.")
-        delete_from_db("characters", f"WHERE user_id = '{user_id}' AND chr_name = '{request.form['character_name']}'")
-        delete_from_db("active_room", f"WHERE user_id = '{user_id}' AND chr_name = '{request.form['character_name']}'")
+        delete_from_db("characters", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['character_name']}'")
+        delete_from_db("active_room", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['character_name']}'")
                         
     items = read_db("characters", "*", f"WHERE user_id = '{user_id}'")
     app.logger.debug(f"User {current_user.username} has gone to view their characters. They have {len(items)} characters.")
@@ -287,7 +287,7 @@ def edit_character(name):
         app.logger.warning(f"User {current_user.username} is attempting to update a character with name {request.form['old_name']}.")
         return process_character_form(form, user_id, "edit")
 
-    character = read_db("characters", "*", f"WHERE user_id = '{current_user.id}' AND chr_name = '{name}'")
+    character = read_db("characters", "*", f"WHERE user_id = '{current_user.id}' AND character_name = '{name}'")
 
     if character:
         character = character[0]
@@ -375,7 +375,7 @@ def home():
 @login_required
 def user_settings():
     user_id = current_user.id
-    characters = read_db("characters", "chr_name, char_token", f"WHERE user_id = '{user_id}'")
+    characters = read_db("characters", "character_name, char_token", f"WHERE user_id = '{user_id}'")
     user_email = current_user.email
 
     if request.method == "POST":
@@ -483,7 +483,7 @@ def enterRoom(room_id):
     user_id = current_user.id
     try:
         image_url, map_owner = read_db("room_object", "map_url, user_id", f"WHERE active_room_id = '{room_id}'")[0]
-        characters = read_db("characters", "chr_name", f"WHERE user_id='{user_id}'")
+        characters = read_db("characters", "character_name", f"WHERE user_id='{user_id}'")
 
         if not characters:
             return redirect(url_for("character_creation", route=f"/play/{room_id}"))
@@ -638,10 +638,10 @@ def set_initiative(message):
     app.logger.debug(f"Battle update: {desc}.")
 
     if not init_val:
-        a = read_db("active_room", "init_val", f"WHERE room_id = '{room_id}' AND user_id = '{user_id}' AND chr_name = '{character_name}'")
-        init_val = read_db("active_room", "init_val", f"WHERE room_id = '{room_id}' AND user_id = '{user_id}' AND chr_name = '{character_name}'")[0][0]
+        a = read_db("active_room", "init_val", f"WHERE room_id = '{room_id}' AND user_id = '{user_id}' AND character_name = '{character_name}'")
+        init_val = read_db("active_room", "init_val", f"WHERE room_id = '{room_id}' AND user_id = '{user_id}' AND character_name = '{character_name}'")[0][0]
 
-    update_db("active_room", f"init_val = '{init_val}'", f"WHERE room_id = '{room_id}' AND user_id = '{user_id}' AND chr_name = '{character_name}'")
+    update_db("active_room", f"init_val = '{init_val}'", f"WHERE room_id = '{room_id}' AND user_id = '{user_id}' AND character_name = '{character_name}'")
     add_to_db("log", (room_id, user_id, "Init", desc, time_rcvd))
 
     emit('initiative_update', {'character_name': character_name, 'init_val': init_val, 'username': username}, room=room_id)
@@ -652,7 +652,7 @@ def set_initiative(message):
 def send_chat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.id
-    chr_name = message['character_name']
+    username = message['username']
     room_id = message['room_id']
     username = current_user.username
 
@@ -665,10 +665,10 @@ def send_chat(message):
         app.logger.debug(f"{username} was spamming the chat. They have been disabled for {spam_penalty} seconds")
 
     else:
-        add_to_db("chat",(room_id, user_id, chr_name, message['chat'], time_rcvd))
+        add_to_db("chat",(room_id, user_id, username, message['chat'], time_rcvd))
         add_to_db("log", (room_id, user_id, "Chat", message['character_name'], time_rcvd))
         emit('chat_update', {'chat': message['chat'], 'character_name': message['character_name']}, room=room_id)
-        app.logger.debug(f"Battle update: {chr_name} has sent chat {message['chat']} in room {room_id}")
+        app.logger.debug(f"Battle update: {username} has sent chat {message['chat']} in room {room_id}")
 
 
 # TODO: Button to hide or show character icon on map
@@ -677,7 +677,7 @@ def start_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.id
     room_id = message['room_id']
-    characters = read_db("active_room", "user_id, chr_name, init_val", f"WHERE room_id = '{room_id}' ORDER BY init_val, chr_name DESC ")
+    characters = read_db("active_room", "user_id, character_name, init_val", f"WHERE room_id = '{room_id}' ORDER BY init_val, character_name DESC ")
     first_character = characters[-1]
     character_id = first_character[0]
     character_name = first_character[1]
@@ -701,7 +701,7 @@ def start_combat(message):
     characters_json = json.dumps(walla_walla)
     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
-    update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_id = '{first_character[0]}' AND chr_name = '{first_character[1]}' AND init_val = '{first_character[2]}'")
+    update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_id = '{first_character[0]}' AND character_name = '{first_character[1]}' AND init_val = '{first_character[2]}'")
     add_to_db("log", (room_id, user_id, "Combat", "Started Combat", time_rcvd))
 
     emit('log_update', {'desc': "Started Combat"}, room=room_id)
@@ -713,7 +713,7 @@ def end_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.id
     room_id = message['room_id']
-    character = read_db("active_room","user_id, chr_name", f"WHERE room_id = '{room_id}' AND is_turn = '1'")[0]
+    character = read_db("active_room","user_id, character_name", f"WHERE room_id = '{room_id}' AND is_turn = '1'")[0]
     character_id = character[0]
     character_name = character[1]
     username = read_db("users", "username", f"WHERE user_id = '{character[0]}'")[0][0]
@@ -790,8 +790,8 @@ def end_turn(message):
     characters_json = json.dumps(walla_walla)
     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
-    update_db("active_room", f"is_turn = '{0}'", f"WHERE room_id = '{room_id}'AND user_id = '{previous_character_id}' AND chr_name = '{previous_character_name}'")
-    update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_id = '{next_character_id}' AND chr_name = '{next_character_name}'")
+    update_db("active_room", f"is_turn = '{0}'", f"WHERE room_id = '{room_id}'AND user_id = '{previous_character_id}' AND character_name = '{previous_character_name}'")
+    update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_id = '{next_character_id}' AND character_name = '{next_character_name}'")
     add_to_db("log", (room_id, previous_character_id, "Combat", f"{previous_character_name}'s Turn Ended", time_rcvd))
 
     emit('log_update', {'desc': message['desc']}, room=room_id)
@@ -812,8 +812,8 @@ def connect(message):
     user_id = current_user.id
     username = current_user.username
     room_id = message['room_id']
-    initiatives = read_db("active_room", "chr_name, init_val, user_id", f"WHERE room_id = '{room_id}'")
-    chats = read_db("chat", "chr_name, chat", f"WHERE room_id = '{room_id}'")
+    initiatives = read_db("active_room", "character_name, init_val, user_id", f"WHERE room_id = '{room_id}'")
+    chats = read_db("chat", "character_name, chat", f"WHERE room_id = '{room_id}'")
     # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     
@@ -831,7 +831,7 @@ def connect(message):
     emit('log_update', {'desc': f"{username} Connected"}, room=room_id)
 
     your_chars = []
-    character_names_read_from_db = read_db("active_room", "chr_name", f"WHERE user_id='{user_id}' AND room_id='{room_id}'")
+    character_names_read_from_db = read_db("active_room", "character_name", f"WHERE user_id='{user_id}' AND room_id='{room_id}'")
     for name in character_names_read_from_db:
         your_chars.append(name[0])
     for player_id in walla_walla:
@@ -857,7 +857,7 @@ def connect(message):
     if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'"):
         emit('log_update', {'desc': "Combat has already started; grabbing the latest information"})
 
-        character = read_db("active_room", "user_id, chr_name", f"WHERE room_id = '{room_id}' AND is_turn = '1'")[0]
+        character = read_db("active_room", "user_id, character_name", f"WHERE room_id = '{room_id}' AND is_turn = '1'")[0]
         turn_username = read_db("users", "username", f"WHERE user_id = '{character[0]}'")[0][0]
 
         emit('log_update', {'desc': "Rejoined Combat"}, room=room_id)
@@ -924,7 +924,7 @@ def add_character(message):
     room_id = message['room_id']
     user_id = current_user.id
     username = message['username']
-    temp_db_read_character_token = read_db("characters", "char_token", f"WHERE user_id = '{user_id}' AND chr_name = '{character_name}'")
+    temp_db_read_character_token = read_db("characters", "char_token", f"WHERE user_id = '{user_id}' AND character_name = '{character_name}'")
     init_val = 0
 
     if temp_db_read_character_token:
@@ -933,7 +933,7 @@ def add_character(message):
         # TODO: This is just a place holder for if a user does not have an image for their character - but that should never happen anyways
         character_image = "http://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Auto_Racing_Black_Box.svg/800px-Auto_Racing_Black_Box.svg.png"
 
-    temp_db_read_init_value = read_db("active_room", "init_val", f"WHERE room_id='{room_id}' AND user_id = '{user_id}' AND chr_name = '{character_name}'")
+    temp_db_read_init_value = read_db("active_room", "init_val", f"WHERE room_id='{room_id}' AND user_id = '{user_id}' AND character_name = '{character_name}'")
     if temp_db_read_init_value:
         init_val = temp_db_read_init_value[0][0]
     else:
@@ -954,7 +954,7 @@ def add_npc(message):
     init_val = 0
     character_image = random.choice(npc_images)
 
-    temp_db_read_init_value = read_db("active_room", "init_val", f"WHERE room_id='{room_id}' AND user_id = '{user_id}' AND chr_name = '{character_name}'")
+    temp_db_read_init_value = read_db("active_room", "init_val", f"WHERE room_id='{room_id}' AND user_id = '{user_id}' AND character_name = '{character_name}'")
     if temp_db_read_init_value:
         init_val = temp_db_read_init_value[0][0]
     else:

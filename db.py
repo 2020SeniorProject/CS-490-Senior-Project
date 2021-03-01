@@ -31,8 +31,8 @@ def create_connection(db_file):
 # characters table
 # user_id = used to connect players to their created characters
 # room_id = used to connect room_id to the room in which the character is playing
-# chr_name, race, subclass, hitpoints = tracks character details and stats
-# user_id and chr_name = primary keys to allow a character to be tracked across rooms and to allow repeats of character names across 
+# character_name, race, subclass, hitpoints = tracks character details and stats
+# user_id and character_name = primary keys to allow a character to be tracked across rooms and to allow repeats of character names across 
 
 def create_dbs():
     """
@@ -45,11 +45,10 @@ def create_dbs():
         room_id:        the 8 alphanumeric key of the room
                         the log belongs to. Matches with
                         all other room_id rows in other tables.
-        user_id:       the user ID we get from Google OAuth
+        user_id:        the user ID we get from Google OAuth
                         of the user who generated the log.
                         Matches with all other user_id rows
-                        in other tables. Should be renamed
-                        user_id
+                        in other tables.
         title:          Deprecated. Should be removed.
         log:            The actual log message generated
                         by the application during runtime.
@@ -63,7 +62,7 @@ def create_dbs():
                         of the user who sent the chat.
                         Matches with all other user_id rows
                         in other tables.
-        chr_name:       Name of the character? Not all too sure 
+        character_name: Name of the character? Not all too sure 
                         without further testing. It may be the user's
                         username. In either case, it appears is unused and
                         should be removed
@@ -78,10 +77,9 @@ def create_dbs():
                         of the user who owns the characters.
                         Matches with all other user_id rows
                         in other tables.
-        chr_name:       The name of the user's character
+        character_name: The name of the user's character
                         in the room. Matches with all other
-                        character_name rows. Should be renamed
-                        character_name
+                        character_name rows.
         init_val:       The initiative value of the character
         is_turn:        Boolean value stating if it is that
                         character's turn.
@@ -95,7 +93,7 @@ def create_dbs():
                         of the user who owns the room.
                         Matches with all other user_id rows
                         in other tables.
-        chr_name:       Honestly, doesn't look like this does
+        character_name: Honestly, doesn't look like this does
                         anything. Should be removed.
         room_name:      String name of the room
         active_room_id: String name of the active rooms that
@@ -132,9 +130,8 @@ def create_dbs():
                         of the user who owns the character.
                         Matches with all other user_id rows
                         in other tables.
-        chr_name:       the name of the character. Matches
+        character_name: the name of the character. Matches
                         with all other character_name rows
-                        Should be renamed character_name
         class:          the class of the character. Not truly
                         used at the moment. Is being collected
                         for future use.
@@ -176,7 +173,7 @@ def create_dbs():
                         future use.
         char_token:     the URL of the character's battlemap image.
                         Matches with all other character_token rows.
-                        Should be renaed char_token.
+                        Should be renamed char_token.
     """
     with create_connection(battle_sesh_db) as conn:
         cur = conn.cursor()
@@ -184,10 +181,10 @@ def create_dbs():
                         (row_id INT PRIMARY KEY, room_id TEXT, user_id TEXT, title TEXT, log LONGTEXT, timestamp DATETIME); """)
         
         cur.execute(f"""CREATE TABLE IF NOT EXISTS chat
-                        (row_id INT PRIMARY KEY, room_id TEXT, user_id TEXT, chr_name TEXT, chat TEXT, timestamp DATETIME);""")
+                        (row_id INT PRIMARY KEY, room_id TEXT, user_id TEXT, character_name TEXT, chat TEXT, timestamp DATETIME);""")
         
         cur.execute(f"""CREATE TABLE IF NOT EXISTS active_room 
-                        (room_id TEXT, user_id TEXT, chr_name TEXT, init_val INT, is_turn INT, char_token TEXT, PRIMARY KEY(room_id, user_id, chr_name));""") 
+                        (room_id TEXT, user_id TEXT, character_name TEXT, init_val INT, is_turn INT, char_token TEXT, PRIMARY KEY(room_id, user_id, character_name));""") 
 
         cur.execute(f"""CREATE TABLE IF NOT EXISTS room_object
                         (row_id INTEGER PRIMARY KEY, user_id TEXT, room_name TEXT, active_room_id TEXT, map_status TEXT, map_url TEXT, dm_notes TEXT);""")
@@ -196,7 +193,7 @@ def create_dbs():
                         (user_id TEXT PRIMARY KEY, email TEXT NOT NULL, profile_pic TEXT, username Text);""") 
 
         cur.execute(f""" CREATE TABLE IF NOT EXISTS characters
-                            (user_id TEXT, chr_name TEXT, class TEXT, subclass TEXT, race TEXT, subrace TEXT, speed INT, level INT, strength INT, dexterity INT, constitution INT, intelligence INT, wisdom INT, charisma INT, hitpoints INT, char_token TEXT, PRIMARY KEY(user_id, chr_name));""")
+                            (user_id TEXT, character_name TEXT, class TEXT, subclass TEXT, race TEXT, subrace TEXT, speed INT, level INT, strength INT, dexterity INT, constitution INT, intelligence INT, wisdom INT, charisma INT, hitpoints INT, char_token TEXT, PRIMARY KEY(user_id, character_name));""")
         
 
 def add_to_db(table_name, values):
@@ -219,13 +216,13 @@ def add_to_db(table_name, values):
         if table_name == "log":
             cur.execute("INSERT INTO log(room_id, user_id, title, log, timestamp) VALUES(?, ?, ?, ?, ?)", values)
         elif table_name == "chat":
-            cur.execute("INSERT INTO chat(room_id, user_id, chr_name, chat, timestamp) VALUES(?, ?, ?, ?, ?)", values)
+            cur.execute("INSERT INTO chat(room_id, user_id, character_name, chat, timestamp) VALUES(?, ?, ?, ?, ?)", values)
         elif table_name == "active_room":
-            cur.execute("INSERT INTO active_room(room_id, user_id, chr_name, init_val, is_turn, char_token) VALUES(?, ?, ?, ?, ?, ?)", values)
+            cur.execute("INSERT INTO active_room(room_id, user_id, character_name, init_val, is_turn, char_token) VALUES(?, ?, ?, ?, ?, ?)", values)
         elif table_name == "room_object":
             cur.execute("INSERT INTO room_object(user_id, room_name, active_room_id, map_status, map_url, dm_notes) VALUES(?,?,?,?,?,?)", values)
         elif table_name == "chars":
-            cur.execute("""INSERT INTO characters(user_id, chr_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints, char_token) 
+            cur.execute("""INSERT INTO characters(user_id, character_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints, char_token) 
                            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
         elif table_name == "users":
             cur.execute("INSERT INTO users(user_id, email, profile_pic, username) VALUES (?, ?, ?, ?)", values)
