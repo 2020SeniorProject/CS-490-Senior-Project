@@ -107,8 +107,8 @@ def client_1(mocker):
     
     delete_from_db("users", "WHERE username = 'Charnk98'")
     delete_from_db("users", "WHERE user_id = 'mocksterid'")
-    delete_from_db("room_object", "WHERE user_key = 'mocksterid'")
-    delete_from_db("characters", "WHERE user_key = 'mocksterid'")
+    delete_from_db("room_object", "WHERE user_id = 'mocksterid'")
+    delete_from_db("characters", "WHERE user_id = 'mocksterid'")
 
 #User with a character in the DB and 
 # a room in it for socketio testing
@@ -125,8 +125,8 @@ def client_2(mocker):
         yield client_2
     
     delete_from_db("users", "WHERE user_id = 'paulinaMock21'")
-    delete_from_db("room_object", "WHERE user_key = 'paulinaMock21'")
-    delete_from_db("characters", "WHERE user_key = 'paulinaMock21'")
+    delete_from_db("room_object", "WHERE user_id = 'paulinaMock21'")
+    delete_from_db("characters", "WHERE user_id = 'paulinaMock21'")
 
 
 
@@ -189,6 +189,7 @@ def test_character_create(client_1, fields, inputs, expected):
     data["csrf_token"] = client_1.csrf_token
 
     character_create_attempt = client_1.post("/characters/create", data = data, follow_redirects=True)
+    print(character_create_attempt.data)
     assert bytes(expected,'utf-8') in character_create_attempt.data
 
 # Testing creation of rooms 
@@ -208,7 +209,7 @@ def test_room_create(client_1, fields, inputs, expected):
 @pytest.mark.parametrize("fields, inputs, expected", get_cases("room_edit"))
 def test_room_edit(client_2, fields, inputs, expected):
     
-    room_row_number = read_db("room_object","row_id", "WHERE user_key = 'paulinaMock21' and room_name = 'Dungeon Battle'")[0][0]
+    room_row_number = read_db("room_object","row_id", "WHERE user_id = 'paulinaMock21' and room_name = 'Dungeon Battle'")[0][0]
     room_view = client_2.get(f"/rooms/{room_row_number}")
 
     data = {fields[x]:inputs[x] for x in range(len(fields))}
@@ -283,7 +284,7 @@ def test_delete_character(client_2):
 
 
 # def testing_add_characters(socket_client, client_2):
-#     room_object_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle' and user_key= 'paulinaMock21'")[0][0]
+#     room_object_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle' and user_id= 'paulinaMock21'")[0][0]
 #     app_context = client_2.get(f"/room/{room_object_id}")
 #     open_room_test = client_2.post("/generate_room", data={"room_name":"Dungeon Battle", "csrf_token":client_2.csrf_token}, follow_redirects=True)
 
