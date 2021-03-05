@@ -62,10 +62,7 @@ def create_dbs():
                         of the user who sent the chat.
                         Matches with all other user_id rows
                         in other tables.
-        character_name: Name of the character? Not all too sure 
-                        without further testing. It may be the user's
-                        username. In either case, it appears is unused and
-                        should be removed
+        username:       the name of the user who sent the chat.
         chat:           The actual chat sent by the user
         timestamp:      The time the chat was received by
                         the backend.
@@ -181,7 +178,7 @@ def create_dbs():
                         (row_id INT PRIMARY KEY, room_id TEXT, user_id TEXT, title TEXT, log LONGTEXT, timestamp DATETIME); """)
         
         cur.execute(f"""CREATE TABLE IF NOT EXISTS chat
-                        (row_id INT PRIMARY KEY, room_id TEXT, user_id TEXT, character_name TEXT, chat TEXT, timestamp DATETIME);""")
+                        (row_id INT PRIMARY KEY, room_id TEXT, user_id TEXT, username TEXT, chat TEXT, timestamp DATETIME);""")
         
         cur.execute(f"""CREATE TABLE IF NOT EXISTS active_room 
                         (room_id TEXT, user_id TEXT, character_name TEXT, init_val INT, is_turn INT, char_token TEXT, PRIMARY KEY(room_id, user_id, character_name));""") 
@@ -216,7 +213,7 @@ def add_to_db(table_name, values):
         if table_name == "log":
             cur.execute("INSERT INTO log(room_id, user_id, title, log, timestamp) VALUES(?, ?, ?, ?, ?)", values)
         elif table_name == "chat":
-            cur.execute("INSERT INTO chat(room_id, user_id, character_name, chat, timestamp) VALUES(?, ?, ?, ?, ?)", values)
+            cur.execute("INSERT INTO chat(room_id, user_id, username, chat, timestamp) VALUES(?, ?, ?, ?, ?)", values)
         elif table_name == "active_room":
             cur.execute("INSERT INTO active_room(room_id, user_id, character_name, init_val, is_turn, char_token) VALUES(?, ?, ?, ?, ?, ?)", values)
         elif table_name == "room_object":

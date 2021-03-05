@@ -125,7 +125,7 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
             if request.form['old_name'] != form.name.data:
                 app.logger.warning(f"User {current_user.username} updating the character name. Updating all of the references to that character in the database.")
                 update_db("active_room", f"character_name = '{form.name.data}'", f"WHERE character_name = '{request.form['old_name']}' AND user_id = '{user_id}'")
-                update_db("chat", f"character_name = '{form.name.data}'", f"WHERE character_name = '{request.form['old_name']}' AND user_id = '{user_id}'")
+                update_db("chat", f"username = '{form.name.data}'", f"WHERE username = '{request.form['old_name']}' AND user_id = '{user_id}'")
             
             app.logger.debug(f"User {current_user.username} successfully updated a character with name {form.name.data}. Redirecting them to the View Characters page.")
             return redirect(url_for("view_characters"))
@@ -654,6 +654,7 @@ def send_chat(message):
     user_id = current_user.id
     username = message['username']
     room_id = message['room_id']
+    chat = message['chat']
     username = current_user.username
 
     chats = read_db("chat", "user_id, timestamp", f"WHERE room_id = '{room_id}' and user_id = '{user_id}'")
@@ -665,10 +666,10 @@ def send_chat(message):
         app.logger.debug(f"{username} was spamming the chat. They have been disabled for {spam_penalty} seconds")
 
     else:
-        add_to_db("chat",(room_id, user_id, username, message['chat'], time_rcvd))
-        add_to_db("log", (room_id, user_id, "Chat", message['character_name'], time_rcvd))
-        emit('chat_update', {'chat': message['chat'], 'character_name': message['character_name']}, room=room_id)
-        app.logger.debug(f"Battle update: {username} has sent chat {message['chat']} in room {room_id}")
+        add_to_db("chat",(room_id, user_id, username, chat, time_rcvd))
+        add_to_db("log", (room_id, user_id, "Chat", username, time_rcvd))
+        emit('chat_update', {'chat': chat, 'character_name': username}, room=room_id)
+        app.logger.debug(f"Battle update: {username} has sent chat `{chat}` in room {room_id}")
 
 
 # TODO: Button to hide or show character icon on map
@@ -813,7 +814,7 @@ def connect(message):
     username = current_user.username
     room_id = message['room_id']
     initiatives = read_db("active_room", "character_name, init_val, user_id", f"WHERE room_id = '{room_id}'")
-    chats = read_db("chat", "character_name, chat", f"WHERE room_id = '{room_id}'")
+    chats = read_db("chat", "username, chat", f"WHERE room_id = '{room_id}'")
     # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     
