@@ -251,10 +251,10 @@ def read_db(table_name, rows="*", extra_clause = "", read_api_db=False):
         db_to_read_from = battle_sesh_db
     with create_connection(db_to_read_from) as conn:
         cur = conn.cursor()
-        ret_lst = []
+        return_list = []
         for row in cur.execute(f"SELECT {rows} FROM {table_name} {extra_clause};"):
-            ret_lst.append(row)
-        return ret_lst
+            return_list.append(row)
+        return return_list
 
 
 def delete_from_db(table_name, extra_clause = ""):
@@ -426,7 +426,7 @@ def read_error_db():
     """
     with create_connection(error_db) as conn:
         cur = conn.cursor()
-        ret_lst = []
+        return_list = []
         for row in cur.execute(f"SELECT * FROM error;"):
-            ret_lst.append(row)
-        return ret_lst
+            return_list.append(row)
+        return return_list

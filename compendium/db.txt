@@ -25,7 +25,7 @@ read_db:
     db_to_read_from: Either battle_sesh_db or api_db depending on the value of read_api_db
     conn: The db connection object
     cur: The cursor of conn. Use this for changing db information.
-    ret_lst: The list of tuples that gets returned. Can return []
+    return_list: The list of tuples that gets returned. Can return []
 
 delete_from_db:
     table_name: The name of the table being accessed
@@ -76,4 +76,4 @@ add_to_error_db:
 read_error_db:
     conn: The db connection object
     cur: The cursor of conn. Use this for changing db information
-    ret_lst: A list of Tuples from the error table that are read
+    return_list: A list of Tuples from the error table that are read
