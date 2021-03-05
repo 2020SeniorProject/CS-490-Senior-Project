@@ -1,74 +1,98 @@
+"""
+Imported Libraries:
+    This is a list of all imported libraries. They
+    are organized as follows in alphabetical order:
+        1. Python standard libraries
+        2. Third-party libaries
+        3. Internal imports
+"""
 # Python standard libraries
-import json
-import os
 import datetime
+import json
 import logging
+import os
 import random
 import string
 
 # Third-party libraries
-from flask import Flask, render_template, session, request, redirect, url_for, jsonify
-from flask_socketio import SocketIO, emit, join_room, close_room
-from flask_login import LoginManager, current_user, login_required, login_user, logout_user
+from apscheduler.schedulers.background import BackgroundScheduler
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for
+from flask_login import current_user, login_required, login_user, LoginManager, logout_user
+from flask_socketio import close_room, emit, join_room, SocketIO
+from flask_wtf.csrf import CSRFError, CSRFProtect
 from oauthlib.oauth2 import WebApplicationClient
 from requests import get, post
-from flask_wtf.csrf import CSRFProtect, CSRFError
-from werkzeug.exceptions import HTTPException, BadRequest
-from apscheduler.schedulers.background import BackgroundScheduler
+from werkzeug.exceptions import BadRequest, HTTPException
 
 # Internal imports
-from classes import User, AnonymousUser, CharacterValidation, RoomValidation, UsernameValidation
-from db import create_dbs, add_to_db, read_db, delete_from_db, update_db, build_api_db, get_api_info, build_error_db, add_to_error_db, read_error_db
+from classes import AnonymousUser, CharacterValidation, RoomValidation, User, UsernameValidation
+from db import add_to_db, add_to_error_db, build_api_db, build_error_db, create_dbs, delete_from_db, get_api_info, read_db, read_error_db, update_db
 
-
-### SET VARIABLES AND INITIALIZE PRIMARY PROCESSES
+"""
+Initialization and Setup:
+    All of these function calls and variable
+    definitions are used in the initialization
+    of the application. It is organized as follows:
+        1. Flask application initialization and
+           variable setting
+        2. SocketIO application initialization and
+           variable setting
+        3. Flask Login manager initiazation and variable
+           setting
+        4. CSRF protection
+        5. Serverside Google OAuth initialization and 
+           configuation
+        6. Google Oath client handler initialization
+        7. Database creation
+        8. Scheduled database clearing
+"""
+# TODO: Should we have a "setup" function?
+# Basic Flask application
 app = Flask(__name__)
+# TODO: hmmmm... this doesn't seem like it's good
 app.config['SECRET_KEY'] = 'secret!'
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
-global spam_timeout # in seconds
-spam_timeout = 10 
-global spam_penalty # in seconds
-spam_penalty = 30
-global spam_max_messages
-spam_max_messages = 5
-npc_images = ["http://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Auto_Racing_Black_Box.svg/800px-Auto_Racing_Black_Box.svg.png"]
-
-# Google OAuth configurations
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
-GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
-GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
-
-# This disables the SSL usage check - TODO: solution to this needed as it may pose security risk. see https://oauthlib.readthedocs.io/en/latest/oauth2/security.html and https://requests-oauthlib.readthedocs.io/en/latest/examples/real_world_example.html
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 # Setups to the SocketIO server that is used
+# None defaults to whatever supported library is installed
 async_mode = None
 socketio = SocketIO(app, async_mode=async_mode)
-
-# Create the database
-create_dbs()
-
-# Creates the API db
-build_api_db(["race", "class"])
-
-# Creates the error holding db
-build_error_db()
 
 # User session management setup
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.anonymous_user = AnonymousUser
 
+# CSRF authenticator to prevent CSRF attacks
+csrf = CSRFProtect(app)
+
+# Google OAuth configurations
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
+GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
+# This disables the SSL usage check - TODO: solution to this needed as it may pose security risk. see https://oauthlib.readthedocs.io/en/latest/oauth2/security.html and https://requests-oauthlib.readthedocs.io/en/latest/examples/real_world_example.html
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 # OAuth 2 client setup
 client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
-# CSRF authenticator to prevent CSRF attacks
-csrf = CSRFProtect(app)
+# Database creation
+create_dbs()
+build_api_db(["race", "class"])
+build_error_db()
 
 # Schedules daily cleaning of DBs (commented out until production)
 # scheduler = BackgroundScheduler()
 # scheduler.start()
+
+# Global variables for chats
+spam_timeout = 10 
+spam_penalty = 30
+spam_max_messages = 5
+
+# NPC setup
+npc_images = ["http://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Auto_Racing_Black_Box.svg/800px-Auto_Racing_Black_Box.svg.png"]
+
 
 ### FUNCTIONS
 
