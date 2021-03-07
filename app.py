@@ -33,18 +33,20 @@ Initialization and Setup:
     All of these function calls and variable
     definitions are used in the initialization
     of the application. It is organized as follows:
-        1. Flask application initialization and
-           variable setting
-        2. SocketIO application initialization and
-           variable setting
-        3. Flask Login manager initiazation and variable
-           setting
-        4. CSRF protection
-        5. Serverside Google OAuth initialization and 
-           configuation
-        6. Google Oath client handler initialization
-        7. Database creation
-        8. Scheduled database clearing
+        1.  Flask application initialization and
+            variable setting
+        2.  SocketIO application initialization and
+            variable setting
+        3.  Flask Login manager initiazation and variable
+            setting
+        4.  CSRF protection
+        5.  Serverside Google OAuth initialization and 
+            configuation
+        6.  Google Oath client handler initialization
+        7.  Database creation
+        8.  Scheduled database clearing
+        9.  Chat spam limits
+        10. NPC setup
 """
 # TODO: Should we have a "setup" function?
 # Basic Flask application
@@ -81,9 +83,9 @@ create_dbs()
 build_api_db(["race", "class"])
 build_error_db()
 
-# Schedules daily cleaning of DBs (commented out until production)
-# scheduler = BackgroundScheduler()
-# scheduler.start()
+# Schedules cleaning (every 4 hours) of DBs
+scheduler = BackgroundScheduler()
+scheduler.start()
 
 # Global variables for chats
 spam_timeout = 10 
@@ -94,36 +96,103 @@ spam_max_messages = 5
 npc_images = ["http://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Auto_Racing_Black_Box.svg/800px-Auto_Racing_Black_Box.svg.png"]
 
 
-### FUNCTIONS
+"""
+Functions:
+    All of the following functions are "helper functions".
+    All of them except clean_dbs are called by at least one 
+    Flask route. In the case of clean_dbs, it is called every 
+    4 hours. They are organized as follows:
+        1. get_google_provider_cfg
+        2. readify_form_errors
+        3. process_character_form
+        4. process_room_form
+        5. determine_if_user_spamming
+        6. character_icon_add_database
+        7. clean_dbs
+"""
 
 # Retrieves Google's provider configuration
 def get_google_provider_cfg():
+    """
+    The get_google_provider_cfg function. This
+    function returns a jsonified get request to
+    the GOOGLE_DISCOVERY_URL. This is used when 
+    logging a user in.
+    """
     return get(GOOGLE_DISCOVERY_URL).json()
 
-# Flask-Login helper to retrieve a user from our db
-@login_manager.user_loader
-def load_user(user_id):
-    db_response = read_db("users", "*", f"WHERE user_id = '{user_id}'")
-    if not db_response:
-        return None
-    return User(id_=db_response[0][0], email=db_response[0][1], profile_picture=db_response[0][2], username=db_response[0][3])
-
-
-@login_manager.unauthorized_handler
-def sent_to_login():
-    return redirect(url_for("login_index"))
 
 def readify_form_errors(form):
-    errs_lis = []
+    """
+    The readify_form_errors function. This
+    function takes one of the form validatation
+    classes from classes.py and converts the dictionary
+    of errors into a list of easy-readable strings.
+    This function is only called if a form fails to validate.
 
-    for errs in form.errors.keys():
-        err_mes = errs + ": " + form.errors[errs][0] +"\n"
-        errs_lis += [err_mes]
+    :param form:
+        Either a CharacterValidation, RoomValidation
+        or UserValidation object depending on the situation.
+    """
+    error_list = []
 
-    return errs_lis
+    for error in form.errors.keys():
+        error_message = error + ": " + form.errors[error][0] +"\n"
+        error_list += [error_message]
+
+    return error_list
 
 
 def process_character_form(form, user_id, usage, route="/characters/create"):
+    """
+    TODO: Simplify this function. Definitely can
+    and should be simplified (logically)
+
+    The process_character_form function. This
+    function takes a validation form, the user's id, 
+    usage and endpoint route, processes the form,
+    and takes action depending on the status of the form.
+
+    There are a two main branches in this function:
+    the form validates or it fails to validate.
+        1.  The form validates
+            Should the form validate, a Tuple of the
+            values is created. From here, the usage determines
+            the next actions.
+            a.  create
+                A check is done to see if the user already has a
+                character with that name. If so, they are sent back
+                to the addition page with a message. Otherwise, the character
+                is added to the database and they are sent to view their
+                characters.
+            b.  edit
+                A check is done to see if the new name is not already used (ignoring the
+                character being edited). If it is, they are sent back to the
+                edit page with a message. Otherwise, the database is updated
+                to the new values. If the name was changed, all references
+                to that character are updated.
+            c.  play
+                This route is only used when a user does not have a 
+                character and is attempting to join a game. As such,
+                their character is added to the database and they are
+                sent to their game
+        2.  The form fails to validate
+            Should the form fail to validate, a list of errors is compiled.
+            From here, they are redicted to their specific route and template
+            depending on their usage (create, edit and play).
+    
+    :param form:
+        A CharacterValidation object with the information scraped from
+        the pages' form.
+    :param user_id:
+        The id of the user attempting to create/edit a character.
+    :param usage:
+        Where the user is coming from. Three possible values:
+        "create", "edit", "play".
+    :param route:
+        The endpoint route of where the user is attempting to
+        go. Only used in when the usage is "play".
+    """
     if form.validate():
         values = (user_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data, form.character_token.data or current_user.profile_picture)
     
@@ -159,60 +228,95 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
             app.logger.debug(f"User {current_user.username} successfully created their first character with name {form.name.data}. Redirecting them to the Choose Characters Page")
             return redirect(route)
 
-    err_lis = readify_form_errors(form)
+    error_list = readify_form_errors(form)
 
     if usage == "create":
         app.logger.warning(f"Character that user {current_user.username} attempted to add had errors. Reloading the Add Character page to allow them to fix the errors.")
-        return render_template("add_character.html", errors=err_lis, action="/characters/create", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data,  char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
+        return render_template("add_character.html", errors=error_list, action="/characters/create", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data,  char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
     
     if usage == "edit": 
         app.logger.warning(f"Character that user {current_user.username} attempted to edit had errors. Reloading the Edit Character page to allow them to fix the errors.")
-        return render_template("edit_character.html", errors=err_lis, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'],  char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
+        return render_template("edit_character.html", errors=error_list, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'],  char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
 
     if usage == "play":
         app.logger.warning(f"Character user {current_user.username} attempted to add had errors. Reloading Add Character page to allow them to fix the errors.")
-        return render_template("add_character.html", errors=err_lis, action="/play/choose", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data,  char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
+        # TODO: Fix the route here
+        return render_template("add_character.html", errors=error_list, action="/play/choose", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data,  char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
 
 
 def process_room_form(form, user_id, usage, room_id):
+    """
+    TODO: Simplify this function. Definitely can
+    and should be simplified (logically)
+
+    The process_room_form. This
+    function takes a validation form, the user's id, 
+    usage and room id, processes the form,
+    and takes action depending on the status of the form.
+
+    There are a two main branches in this function:
+    the form validates or it fails to validate.
+        1.  The form validates
+            Should the form validate, a Tuple of the values
+            scraped from the form is made. If the form is being edited,
+            its values are updated. Otherwise, the form is added to the
+            database.
+        2.  The form fails to validate
+            Should the form fail to validate, a list of errors is compiled
+            and the user is sent back to the form with the errors.
+    """
     if form.validate():
+        values = (user_id, form.room_name.data, "null", '{}', form.map_url.data, form.dm_notes.data)
+
         if usage == "create":
-            values = (user_id, form.room_name.data, "null", '{}', form.map_url.data, form.dm_notes.data)
             app.logger.debug(f"User {current_user.username} has created the room named {form.room_name.data}")
 
             add_to_db("room_object", values)
             return redirect(url_for("view_rooms"))
 
         if usage == "edit":
-            values = (user_id, form.room_name.data, "null", '{}', form.map_url.data, form.dm_notes.data)
             app.logger.debug(f"User {current_user.username} has saved changes to the room named {form.room_name.data}")
             
             delete_from_db("room_object", f"WHERE row_id ='{room_id}'")
             add_to_db("room_object", values)
             return redirect(url_for("view_rooms"))
 
-    err_lis = readify_form_errors(form)
+    error_list = readify_form_errors(form)
     if usage == "create":
         app.logger.debug(f"The room {current_user.username} was attempting to create had some errors. Sending back to creation page to fix errors.")
-        return render_template("add_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_picture=current_user.profile_picture, username=current_user.username )
+        return render_template("add_room.html", errors=error_list, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_picture=current_user.profile_picture, username=current_user.username )
 
     if usage == "edit":
         app.logger.debug(f"The room {current_user.username} was attempting to edit had some errors. Sending back to edit page to fix errors.")
-        return render_template("edit_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_picture=current_user.profile_picture, username=current_user.username )
+        return render_template("edit_room.html", errors=error_list, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_picture=current_user.profile_picture, username=current_user.username )
         
 
-
 def determine_if_user_spamming(chats):
+    """
+    The determine_if_user_spamming function.
+    This function looks at a user's chat history
+    in a room to determing if they have been spamming
+    the chat. If so, they are muted for `spam_penalty`
+    seconds.
+
+    This function uses global variables `spam_penalty`,
+    `spam_timeout` and `spam_max_messages`
+
+    :param chats:
+        The chat history of the user for the room.
+    """
     max_messages = spam_max_messages
     timeframe = spam_timeout
-    now = datetime.datetime.now()
+    current_time = datetime.datetime.now()
     total_messages_user_sent= 0
     chats.reverse()
+    
     for message in chats:
         message_time = datetime.datetime.fromisoformat(message[1])
-        if ((now - message_time).total_seconds()) < timeframe:
+        if ((current_time - message_time).total_seconds()) < timeframe:
             total_messages_user_sent += 1
         else:
+            # TODO: Why is this here?
             break
     if total_messages_user_sent > max_messages:
         return True
@@ -220,6 +324,29 @@ def determine_if_user_spamming(chats):
 
 
 def character_icon_add_database(character_name, username, character_image, user_id, room_id):
+    """
+    The character_icon_add_database function.
+    This function takes a character's name, the
+    username of the owner of the character, the
+    character's token, the user's id and the room's
+    id. Using this information, a character's token
+    is added to the database.
+
+    :param character_name:
+        The name of the character whose token
+        is being stored.
+    :param username:
+        The username of the user who "owns" the
+        character.
+    :param character_image:
+        The url of the image being using the
+        character's token.
+    :param user_id:
+        The user_id of the owner of the character
+    :param room_id:
+        The id of the room that the character's token
+        is being added to.
+    """
     initial_height = "2em"
     initial_width = "2em"
     initial_top = "25px"
@@ -243,23 +370,66 @@ def character_icon_add_database(character_name, username, character_image, user_
     update_db("room_object", f"map_status = '{map_status_json}'", f"WHERE active_room_id = '{room_id}'")
 
     updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    # TODO: Does this actually do anything?
     emit('redraw_character_tokens_on_map', updated_character_icon_status, room=room_id)
 
 
-# COMMENTED UNTIL PRODUCTION 
-# #Clears Chat, Log, Active rooms 
-# def clean_dbs():
-#     current_time = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-#     benchmarktime = current_time - datetime.timedelta(hours=24)
-#     open_rooms_past_due = read_db("log", "DISTINCT room_id", f"WHERE timestamp > {benchmarktime} ORDER BY timestamp")
-#     for room_id in open_rooms_past_due:
-#         delete_from_db("active_room", f"WHERE room_id = '{room_id[0]}'")
-#         delete_from_db("chat", f"WHERE room_id = '{room_id[0]}'")
-#         delete_from_db("log", f"WHERE room_id = '{room_id[0]}'")
-#         update_db("room_object", "active_room_id = 'null'", f"WHERE active_room_id = '{room_id[0]}'")
+def clean_dbs():
+    """
+    The clean_dbs function. This function
+    goes through the active_room table and
+    removes any rooms that have not been updated
+    within 24 hours. Subsequently, it also removes
+    chats and logs from the table from the
+    rooms that are deleted
+    """
+    current_time = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
+    benchmarktime = current_time - datetime.timedelta(hours=24)
+    open_rooms_past_due = read_db("log", "DISTINCT room_id", f"WHERE timestamp > {benchmarktime} ORDER BY timestamp")
+    for room_id in open_rooms_past_due:
+        delete_from_db("active_room", f"WHERE room_id = '{room_id[0]}'")
+        delete_from_db("chat", f"WHERE room_id = '{room_id[0]}'")
+        delete_from_db("log", f"WHERE room_id = '{room_id[0]}'")
+        update_db("room_object", "active_room_id = 'null'", f"WHERE active_room_id = '{room_id[0]}'")
 
-# scheduler.add_job(func=clean_dbs, trigger="cron", hour=3, minute=59)
+scheduler.add_job(func=clean_dbs, trigger="cron", hour=3, minute=59)
 
+"""
+login_manager "Helper" functions:
+    The login_manager "helper" functions are
+    functions written to handle users connecting
+    to the appication. The are organized as follows:
+        1.  load_user
+        2.  sent_to_login
+
+"""
+@login_manager.user_loader
+def load_user(user_id):
+    """
+    The load_user function. This function is called
+    whenever a user loads a page. This function reads
+    the user table looking for a matching user_id. If it
+    finds a match, a User object is returned. Otherwise
+    None is returned and an AnonymousUser object is created.
+
+    :param user_id:
+        The user_id gotten from Google OAuth
+    """
+    db_response = read_db("users", "*", f"WHERE user_id = '{user_id}'")
+    if not db_response:
+        return None
+    return User(id_=db_response[0][0], email=db_response[0][1], profile_picture=db_response[0][2], username=db_response[0][3])
+
+
+@login_manager.unauthorized_handler
+def sent_to_login():
+    """
+    The sent_to_login function. This function
+    is called whenever a user who is not logged
+    in attempts to load a route that has the decorator
+    `login_required`.
+    """
+    return redirect(url_for("login_index"))
 
 
 ### ROUTING DIRECTIVES 

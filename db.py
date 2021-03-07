@@ -183,6 +183,7 @@ def create_dbs():
         cur.execute(f"""CREATE TABLE IF NOT EXISTS active_room 
                         (room_id TEXT, user_id TEXT, character_name TEXT, init_val INT, is_turn INT, char_token TEXT, PRIMARY KEY(room_id, user_id, character_name));""") 
 
+        # TODO: Why are we using an auto-incrementing primary key when we could just use the user_id and room_name rows?
         cur.execute(f"""CREATE TABLE IF NOT EXISTS room_object
                         (row_id INTEGER PRIMARY KEY, user_id TEXT, room_name TEXT, active_room_id TEXT, map_status TEXT, map_url TEXT, dm_notes TEXT);""")
         
