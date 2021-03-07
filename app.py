@@ -678,13 +678,13 @@ def send_chat(message):
 @socketio.on('start_combat', namespace='/combat')
 def start_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    user_id = current_user.get_user_id()
     room_id = message['room_id']
     characters = read_db("active_room", "user_key, chr_name, init_val", f"WHERE room_id = '{room_id}' ORDER BY init_val, chr_name DESC ")
     first_character = characters[-1]
     character_id = first_character[0]
     character_name = first_character[1]
     site_name = read_db("users", "site_name", f"WHERE user_id = '{first_character[0]}'")[0][0]
+    user_id = first_character[0]
     app.logger.debug(f"Battle update: Combat has started in room {room_id}")
 
     # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
@@ -699,6 +699,7 @@ def start_combat(message):
         del walla_walla[i]
 
     user_id_character_name = str(user_id) + '_' + str(character_name)
+    print(walla_walla)
     json_character_to_update = { user_id_character_name: {"site_name": site_name, "character_name": character_name, "room_id": room_id, "character_image": walla_walla[user_id_character_name]['character_image'], "height": walla_walla[user_id_character_name]['height'], "width": walla_walla[user_id_character_name]['width'], "top": walla_walla[user_id_character_name]['top'], "left": walla_walla[user_id_character_name]['left'], "is_turn": 1}}
     walla_walla[user_id_character_name] = json_character_to_update[user_id_character_name]
     characters_json = json.dumps(walla_walla)
@@ -714,12 +715,12 @@ def start_combat(message):
 @socketio.on('end_combat', namespace='/combat')
 def end_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    user_id = current_user.get_user_id()
     room_id = message['room_id']
     character = read_db("active_room","user_key, chr_name", f"WHERE room_id = '{room_id}' AND is_turn = '1'")[0]
     character_id = character[0]
     character_name = character[1]
     site_name = read_db("users", "site_name", f"WHERE user_id = '{character[0]}'")[0][0]
+    user_id = character[0]
     app.logger.debug(f"Battle update: Combat has ended in room {room_id}")
 
     # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
