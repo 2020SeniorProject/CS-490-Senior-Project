@@ -199,7 +199,6 @@ $(document).ready(function() {
       $('#add_npc_button').prop('disabled', true);
   
       if (site_name == msg.site_name) {
-        $('#end_turn_button').prop('disabled', false);
         $('#checklist_div').html(checklist);
       }
     });
@@ -256,7 +255,6 @@ $(document).ready(function() {
       let token_id_to_unhighlight = previous_character_name + "_" + msg.previous_site_name;
       $(`#${token_id_to_unhighlight}`).find("img").css( "border", "0px" ); // Try empty string instead of "0px"
   
-      $('#end_turn_button').prop('disabled', true);
     
     });
   

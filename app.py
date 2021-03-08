@@ -678,13 +678,13 @@ def send_chat(message):
 @socketio.on('start_combat', namespace='/combat')
 def start_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    user_id = current_user.get_user_id()
     room_id = message['room_id']
     characters = read_db("active_room", "user_key, chr_name, init_val", f"WHERE room_id = '{room_id}' ORDER BY init_val, chr_name DESC ")
     first_character = characters[-1]
     character_id = first_character[0]
     character_name = first_character[1]
     site_name = read_db("users", "site_name", f"WHERE user_id = '{first_character[0]}'")[0][0]
+    user_id = first_character[0]
     app.logger.debug(f"Battle update: Combat has started in room {room_id}")
 
     # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
@@ -714,13 +714,13 @@ def start_combat(message):
 @socketio.on('end_combat', namespace='/combat')
 def end_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    user_id = current_user.get_user_id()
     room_id = message['room_id']
     character = read_db("active_room","user_key, chr_name", f"WHERE room_id = '{room_id}' AND is_turn = '1'")[0]
     character_id = character[0]
     character_name = character[1]
     site_name = read_db("users", "site_name", f"WHERE user_id = '{character[0]}'")[0][0]
     app.logger.debug(f"Battle update: Combat has ended in room {room_id}")
+    user_id = character[0]
 
     # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
@@ -764,10 +764,10 @@ def end_session(message):
 @socketio.on('end_turn', namespace='/combat')
 def end_turn(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    previous_character_id = current_user.get_user_id()
     previous_character_name = message['previous_character_name']
     next_character_name = message['next_character_name']
     previous_site_name = message['previous_site_name']
+    previous_character_id = read_db("users", "user_id", f"WHERE site_name = '{previous_site_name}'")[0][0]
     next_site_name = message['next_site_name']
     room_id = message['room_id']
     next_character_id = read_db("users", "user_id", f"WHERE site_name = '{next_site_name}'")[0][0]
