@@ -49,7 +49,7 @@ $(document).ready(function() {
   
     var socket = io(namespace);
   
-  
+    
     // javascript events
     // TODO: Add room_id to all of the functions
     $('form#set_initiative').submit(function(event) {
@@ -57,6 +57,12 @@ $(document).ready(function() {
       $('#initiative_roll').val(''); 
       return false;
     });
+
+    function removeCharacter(characterRowElement) {
+        console.log("removed"+characterRowElement);
+
+
+    };
   
     $('form#send_chat').submit(function(event) {
       if ($('#chat_text').val().trim().length != 0) {
@@ -197,6 +203,7 @@ $(document).ready(function() {
       $('#end_battle_button').prop('disabled', false);
       $('#add_character_button').prop('disabled', true);
       $('#add_npc_button').prop('disabled', true);
+      $('#end_turn_button').prop('disabled', false);
   
       if (site_name == msg.site_name) {
         $('#checklist_div').html(checklist);
@@ -272,9 +279,10 @@ $(document).ready(function() {
       $('#end_battle_button').prop('disabled', false);
       $('#add_character_button').prop('disabled', true);
       $('#add_npc_button').prop('disabled', true);
-  
+      $('#end_turn_button').prop('disabled', false);
+     
+     
       if (site_name == msg.site_name) {
-        $('#end_turn_button').prop('disabled', false);
         $('#checklist_div').html(checklist);
       }
       setTimeout(() => $(`#${first_turn_name}-${msg.site_name}-row`).addClass("bg-warning"), 100);
@@ -330,8 +338,17 @@ $(document).ready(function() {
       code = "<tbody>";
       for (i = 0; i < initiatives.length; i++) {
         // TODO: Fix id to work when site_name has a space in it
+        let cbutt = document.createElement("button");
+        cbutt.setAttribute("class", "close");
+        cbutt.setAttribute("data-dismiss", "alert");
+        cbutt.setAttribute("aria-label", "close");
+        let close = document.createElement("span");
+        close.setAttribute("aria-hidden", "true");
+        close.innerHTML = "&times;"
         var id = initiatives[i][0].split(" ").join("_");
-        code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td></tr>`;
+        code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td>
+         <td>${initiatives[i][1]}</td>
+         <td><button class="close" data-dismiss="alert" onclick=removeCharacter(${id}-${initiatives[i][2]}-row) aria-label="close"><span "aria-hidden"="true">&times;</span></button></td></tr>`;
       }
     
       code += "</tbody>";
