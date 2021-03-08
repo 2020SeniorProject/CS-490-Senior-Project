@@ -5,70 +5,70 @@ title = "Application testing cases"
 
 [[character_creation]]
 
-fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","character_token"]
 inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
 expected = 'Yanko'
 
 [[character_creation]]
 
-fields = ["race", "subrace", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+fields = ["race", "subrace", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","character_token"]
 inputs = ["Lizardfolk","Lizardfolk", "20", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
 expected = 'Your character must have a name! Please insert a name.'
 
 [[character_creation]]
 
-fields = ["name", "race", "subrace", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+fields = ["name", "race", "subrace", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","character_token"]
 inputs = ["Yanko_and_Ibrov",  "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
 expected = 'Character name can only have letters and spaces. Please change your name to fit these requirements.'
 
 
 [[character_creation]]
 
-fields = ["name", "subrace", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+fields = ["name", "subrace", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","character_token"]
 inputs = ["Yanko", "Lizardfolk", "20", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
 expected = 'Your character must have a race! Please choose a race.'
 
 
 [[character_creation]]
 
-fields = ["name", "race", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+fields = ["name", "race", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","character_token"]
 inputs = ["Yanko", "Lizardfolk", "20", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
 expected = 'Your character must have a subrace! Please choose a subrace.'
 
 [[character_creation]]
 
-fields = ["name", "race", "subrace", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+fields = ["name", "race", "subrace", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","character_token"]
 inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
 expected = "Your character must have a speed! Please enter your character&#39;s speed."
 
 
 [[character_creation]]
 
-fields = ["name", "race", "subrace", "speed", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+fields = ["name", "race", "subrace", "speed", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","character_token"]
 inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
 expected = 'Your character must have a class! Please choose a class.'
 
 [[character_creation]]
 
-fields = ["name", "race", "subrace", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+fields = ["name", "race", "subrace", "speed", "classname", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","character_token"]
 inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
 expected = 'Your character must have a subclass! Please choose a subclass.'
 
 [[character_creation]]
 
-fields = ["name", "race", "subrace", "speed", "classname", "subclass", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","character_token"]
 inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
 expected = 'Your character must have a level! Please insert the level.'
 
 [[character_creation]]
 
-fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","character_token"]
 inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
 expected = 'Your character must have a strength score! Please enter your strength.'
 
 [[character_creation]]
 
-fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "intelligence", "wisdom", "charisma", "hitpoints","character_token"]
 inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "12", "18", "8", "77", "lizardboi.jpg"]
 expected = 'Your character must have a constitution score! Please enter your constitution.'
 
@@ -92,13 +92,13 @@ expected = 'Your character must have a wisdom score! Please enter your wisdom.'
 
 [[character_creation]]
 
-fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "hitpoints","char_token"]
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "hitpoints","character_token"]
 inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "77", "lizardboi.jpg"]
 expected = 'Your character must have a charisma score! Please enter your charisma.'
 
 [[character_creation]]
 
-fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","char_token"]
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","character_token"]
 inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "imgonnahackyou.com"]
 expected = "A character&#39;s token must be an image. Ensure that the URL you entered ends with .jpg, .gif, .png, .jpeg or .webp!"
 
