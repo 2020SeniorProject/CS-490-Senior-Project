@@ -58,11 +58,12 @@ $(document).ready(function() {
       return false;
     });
 
-    function removeCharacter(characterRowElement) {
-        console.log("removed"+characterRowElement);
+    $('form#remove_character').submit(function(event) {
+        console.log(this.name);
+        // socket.emit('remove_character', {character_name: "yat"  , room_id: room_id});
 
-
-    };
+      return false;
+    });
   
     $('form#send_chat').submit(function(event) {
       if ($('#chat_text').val().trim().length != 0) {
@@ -335,20 +336,14 @@ $(document).ready(function() {
   
     // "Helper" functions
     function update_init_table() {
-      code = "<tbody>";
+      code = `<tbody>`;
       for (i = 0; i < initiatives.length; i++) {
         // TODO: Fix id to work when site_name has a space in it
-        let cbutt = document.createElement("button");
-        cbutt.setAttribute("class", "close");
-        cbutt.setAttribute("data-dismiss", "alert");
-        cbutt.setAttribute("aria-label", "close");
-        let close = document.createElement("span");
-        close.setAttribute("aria-hidden", "true");
-        close.innerHTML = "&times;"
         var id = initiatives[i][0].split(" ").join("_");
         code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td>
          <td>${initiatives[i][1]}</td>
-         <td><button class="close" data-dismiss="alert" onclick=removeCharacter(${id}-${initiatives[i][2]}-row) aria-label="close"><span "aria-hidden"="true">&times;</span></button></td></tr>`;
+         <td><button type="submit" class="close" name=${id}-${initiatives[i][2]}-row aria-label="close"><span "aria-hidden"="true">&times;</span></button>
+         </td></tr>`;
       }
     
       code += "</tbody>";
