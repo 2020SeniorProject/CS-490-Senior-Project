@@ -983,7 +983,7 @@ def remove_character(message):
 
     delete_from_db("active_room", f"WHERE room_id = '{room_id}' and chr_name = '{character_name}' and user_key = '{user_id}'")
 
-    emit('removed_character', {"site_name":site_name, "character_name":character_name, "user_id":user_id}, room=room_id)
+    emit('removed_character', {"site_name":site_name, "character_name":character_name, "user_id":user_id, "init_val":message["init_val"]}, room=room_id)
     character_icon_del_database(character_name, site_name, user_id, room_id)
     app.logger.debug(f"User {site_name} has removed character {character_name} to the battle")
 

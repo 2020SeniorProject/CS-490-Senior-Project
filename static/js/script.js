@@ -49,6 +49,19 @@ $(document).ready(function() {
 
   var socket = io(namespace);
 
+  $('form#remove_character').submit(function(event) {
+    // character_info is formatted as  " character name- site name - initiative number "
+    // 
+    // Note this apparently only works on Chrome....
+    
+    var character_info = $(this).find("button[type=submit]:focus" ).val().split("-");
+    
+    
+    console.log(initiatives);
+    socket.emit('remove_character', {character_name: character_info[0],  site_name: character_info[1], init_val:character_info[2] , room_id: room_id});
+    return false;
+  });
+
 
   // javascript events
   // TODO: Add room_id to all of the functions
@@ -114,6 +127,33 @@ $(document).ready(function() {
   socket.on('joined', function(msg) {
     socket.emit('join_actions', {room_id: room_id, character_name: ""});
   });
+
+
+  socket.on('removed_character', function(msg) {
+    initiatives.splice(msg.init_val, 1);
+    let character_name = msg.character_name;
+    let old_character_name = character_name.split(" ").join(":") + "-init-update";
+    let option_character_name = character_name.split(" ").join("\\:") + "-add-row";
+    let token_id = character_name.split(" ").join("_") + "_" + msg.site_name
+    if ($('#character_placeholder')) {
+      $('#character_placeholder').remove();
+      $('#add_character_button').prop('disabled', false);
+    }
+    if (character_name.slice(0, 3) != "NPC" && msg.site_name == site_name) {
+      $('#character_name').append(`<option id=${option_character_name}>${character_name}</option>`);
+    }
+   
+    $(`#${old_character_name}`).remove();
+
+    if ($(`#player_name option`).length == 0){
+      $("#player_name").append(`<option id="init_placeholder"> Add a Character First! </option>`);
+    }
+    
+    $(`#${token_id}`).remove();
+    var html_code = update_init_table();
+    $('#initiative-table').html(html_code);
+  });
+
 
   socket.on('log_update', function(msg) {
     var log = $('<div/>').text(msg.desc);
@@ -296,7 +336,7 @@ $(document).ready(function() {
       $('#set_initiative_button').prop('disabled', false);
 
       if ($('#character_name option').length == 0) {
-        $('#character_name').append("<option>All Characters are in the Battle!</option>");
+        $(`#character_name').append("<option id="character_placeholder">All Characters are in the Battle!</option>`);
         $('#add_character_button').prop('disabled', true);
       }
     }

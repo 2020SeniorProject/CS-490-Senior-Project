@@ -63,8 +63,7 @@ $(document).ready(function() {
       // 
       // Note this apparently only works on Chrome....
       var character_info = $(this).find("button[type=submit]:focus" ).val().split("-");
-      initiatives.splice(character_info[2], 1 );  
-      socket.emit('remove_character', {character_name: character_info[0],  site_name: character_info[1], room_id: room_id});
+      socket.emit('remove_character', {character_name: character_info[0],  site_name: character_info[1], room_id: room_id, init_val: character_info[2]});
       return false;
     });
   
@@ -127,7 +126,8 @@ $(document).ready(function() {
 
 
     socket.on('removed_character', function(msg) {
-
+      
+      initiatives.splice(msg.init_val, 1 );  
       let character_name = msg.character_name;
       let old_character_name = character_name.split(" ").join(":") + "-init-update";
       let option_character_name = character_name.split(" ").join("\\:") + "-add-row";
@@ -136,12 +136,12 @@ $(document).ready(function() {
         $('#character_placeholder').remove();
         $('#add_character_button').prop('disabled', false);
       }
-      if (character_name.slice(0, 3) != "NPC") {
+      if (character_name.slice(0, 3) != "NPC" && msg.site_name == site_name) {
         $('#character_name').append(`<option id=${option_character_name}>${character_name}</option>`);
       }
      
       $(`#${old_character_name}`).remove();
-      
+
       if ($(`#player_name option`).length == 0){
         $("#player_name").append(`<option id="init_placeholder"> Add a Character First! </option>`);
       }
