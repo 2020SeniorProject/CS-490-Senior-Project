@@ -244,7 +244,7 @@ def character_icon_del_database(character_name, site_name, user_id, room_id ):
     update_db("room_object", f"map_status = '{map_status_json}'", f"WHERE active_room_id = '{room_id}'" )
 
     updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    emit("redraw_character_tokens_on_map", updated_character_icon_status, room_id)
+    emit("redraw_character_tokens_on_map", updated_character_icon_status, room=room_id)
 
     
 
@@ -981,8 +981,11 @@ def remove_character(message):
     character_name = message["character_name"]
     user_id = read_db("users", "user_id", f"WHERE site_name = '{site_name}'")[0][0]
 
+    delete_from_db("active_room", f"WHERE room_id = '{room_id}' and chr_name = '{character_name}' and user_key = '{user_id}'")
+
+    emit('removed_character', {"site_name":site_name, "character_name":character_name, "user_id":user_id}, room=room_id)
     character_icon_del_database(character_name, site_name, user_id, room_id)
-    
+    app.logger.debug(f"User {site_name} has removed character {character_name} to the battle")
 
 
 
