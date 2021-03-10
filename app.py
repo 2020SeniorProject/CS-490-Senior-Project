@@ -223,6 +223,31 @@ def character_icon_add_database(character_name, site_name, character_image, user
     emit('redraw_character_tokens_on_map', updated_character_icon_status, room=room_id)
 
 
+def character_icon_del_database(character_name, site_name, user_id, room_id ):
+    
+    # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    
+    # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
+    wrong_room = []
+    for i in walla_walla:
+        if walla_walla[i]['room_id'] != room_id:
+            wrong_room.append(i)
+    for i in wrong_room:
+        del walla_walla[i]
+
+    user_id_character_name = str(user_id) + '_' + str(character_name)
+
+    del walla_walla[user_id_character_name]
+    map_status_json = json.dumps(walla_walla)
+    
+    update_db("room_object", f"map_status = '{map_status_json}'", f"WHERE active_room_id = '{room_id}'" )
+
+    updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    emit("redraw_character_tokens_on_map", updated_character_icon_status, room_id)
+
+    
+
 # COMMENTED UNTIL PRODUCTION 
 # #Clears Chat, Log, Active rooms 
 # def clean_dbs():
@@ -946,6 +971,30 @@ def add_character(message):
     emit('initiative_update', {'character_name': character_name, 'init_val': init_val, 'site_name': site_name}, room=room_id)
     character_icon_add_database(character_name, site_name, character_image, user_id, room_id)
     app.logger.debug(f"User {site_name} has added character {character_name} to the battle")
+
+
+
+@socketio.on('remove_character', namespace="/combat")
+def remove_character(message):
+    room_id = message['room_id']
+    site_name = message['site_name']
+    character_name = message["character_name"]
+    user_id = read_db("users", "user_id", f"WHERE site_name = '{site_name}'")[0][0]
+
+    character_icon_del_database(character_name, site_name, user_id, room_id)
+    
+
+
+
+
+
+
+
+
+
+
+
+
 
 @socketio.on('add_npc', namespace='/combat')
 def add_npc(message):

@@ -59,9 +59,12 @@ $(document).ready(function() {
     });
 
     $('form#remove_character').submit(function(event) {
-        console.log(this.name);
-        // socket.emit('remove_character', {character_name: "yat"  , room_id: room_id});
-
+      // character_info is formatted as  " character name- site name - initiative number "
+      // 
+      // Note this apparently only works on Chrome....
+      var character_info = $(this).find("button[type=submit]:focus" ).val().split("-");
+      initiatives.splice(character_info[2], 1 );  
+      socket.emit('remove_character', {character_info: character_info[0],  site_name: character_info[1], room_id: room_id});
       return false;
     });
   
@@ -342,7 +345,7 @@ $(document).ready(function() {
         var id = initiatives[i][0].split(" ").join("_");
         code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td>
          <td>${initiatives[i][1]}</td>
-         <td><button type="submit" class="close" name=${id}-${initiatives[i][2]}-row aria-label="close"><span "aria-hidden"="true">&times;</span></button>
+         <td><button type="submit" class="close" value=${id}-${initiatives[i][2]}-${i} aria-label="close"><span "aria-hidden"="true">&times;</span></button>
          </td></tr>`;
       }
     
