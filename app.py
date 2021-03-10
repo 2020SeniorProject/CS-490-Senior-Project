@@ -111,7 +111,6 @@ Functions:
         7. clean_dbs
 """
 
-# Retrieves Google's provider configuration
 def get_google_provider_cfg():
     """
     The get_google_provider_cfg function. This
@@ -432,12 +431,57 @@ def sent_to_login():
     return redirect(url_for("login_index"))
 
 
-### ROUTING DIRECTIVES 
+"""
+Routing Directives:
+    All of the following functions are
+    the specific routing directives that
+    are on the app. All of these functions
+    have the @app.route decorate which specifies
+    the route and allowed methods.
 
-# Viewing characters page
+    Additionally, some may have the @login_required
+    decorator, which means that a user must be logged
+    in to access that route. They are organized
+    as follows (labeled as the routes rather than
+    the functions):
+        1.  /characters
+        2.  /characters/create
+        3.  /characters/edit/<name>
+        4.  /home
+        5.  /user/settings
+        6.  /rooms
+        7.  /rooms/create
+        8.  /rooms/<room_id>
+        9.  /generate_room
+        10. /play/<room_id>
+        11. /spectate/<room_id>
+        12. /
+        13. /login
+        14. /login/callback
+        15. /logout
+        16. /delete
+"""
+
 @app.route("/characters", methods=["GET", "POST"])
 @login_required
 def view_characters():
+    """
+    The /characters route. This route allows
+    users to see all of their characters. It has 
+    two main paths depending on the method used.
+    
+    If the method is GET, the route determines the 
+    user's id, and using that id, grabs all of the
+    characters owned by the id. It then uses that
+    character list and loads the view_characters.html 
+    template.
+
+    Otherwise, if the method is POST, the user is
+    deleting a character. The route does everything
+    the GET section does, as well as deleting the
+    character from both the `characters` table
+    and the `active_room` table.
+    """
     user_id = current_user.id
 
     if request.method == "POST":
@@ -450,10 +494,30 @@ def view_characters():
     return render_template("view_characters.html", items=items, profile_picture=current_user.profile_picture, username=current_user.username)
 
 
-# Character creation page
 @app.route("/characters/create", methods=["POST","GET"])
 @login_required
 def character_creation():
+    """
+    The /characters route. The route allows users
+    to create characters. First, it determines
+    the user's id and grabs the form route from the URL
+    (`route=` argument). Additionally, it grabs the form
+    even if the method is GET. From here, the route diverges
+    depending on the method.
+
+    If the method is GET, the form action is set to
+    this route, `/characters/create`, and the
+    add_character.html template is loaded.
+
+    Otherwise, the method is POST. The function calls
+    `process_character_form` and returns whatever is
+    returned from that function.
+
+    :param route:
+        The desired endpoint of the form character
+        creation form. Grabbed from the URL instead
+        embedded within the route definition.
+    """
     form = CharacterValidation()
     user_id = current_user.id
     route = request.args.get('route')
@@ -474,6 +538,28 @@ def character_creation():
 @app.route("/characters/edit/<name>", methods=["GET", "POST"])
 @login_required
 def edit_character(name):
+    """
+    The /characters/edit/<name> route. This
+    route allows users to edit characters
+    that they own. First, the route grabs the user's 
+    id and form regardless of the method used. From 
+    here, the method diverges depending on the method.
+
+    If the method is GET, the route attempts to load
+    the character specific by the `name` variable. If
+    it cannot load the character, it throws a BadRequest
+    error. Otherwise, if the character is loaded, the
+    edit_character.html template is loaded.
+
+    On the other hand, if the method is POST,
+    the route calls the `process_character_form`
+    function and returns whatever is returned
+    from the function call.
+
+    :param name:
+        The name of the character the user
+        is attempting to edit.
+    """
     user_id = current_user.id
     form = CharacterValidation()
 
@@ -492,11 +578,33 @@ def edit_character(name):
     raise BadRequest(description=f"You don't have a character named {name}!")
 
 
-# Post-Login Landing Page
 #TODO: Find way to cache guest users when they go onto the website
 #TODO: Create generalized function that can grab authorized users who skip the site name
 @app.route("/home", methods=["GET", "POST"])
 def home():
+    """
+    The /home route. This route displays
+    the home page to the user. First, it
+    determines if the user is logged in 
+    then diverges depending on the method.
+
+    If the method is GET and the user is
+    not logged in, the login.html template
+    is loaded. Otherwise, if the user is
+    logged in and they have a username,
+    the home.html page is loaded. Finally, if
+    the user is logged in but does not have
+    a username, the set_username.html page
+    is loaded
+
+    If the method is POST, the user is
+    setting their username. If their
+    form validates, they are redirected
+    to the /home route with a GET request.
+    Otherwise, the set_username.html template
+    is reloaded (with their information still
+    there) with an error message.
+    """
     authenticated = False
     if current_user.is_authenticated:
         app.logger.debug(f"User logged in")
@@ -568,6 +676,25 @@ def home():
 @app.route("/user/settings", methods=["GET", "POST"])
 @login_required
 def user_settings():
+    """
+    The user_settings route. This route
+    allows users to change their account
+    settings. First, itdetermines the user's 
+    id, grabs all of their characters and 
+    determines the user's email. From here, the 
+    route diverges depending on the method.
+
+    If the method is GET, the user_settings.html
+    template is loaded. That's it.
+
+    Otherwise, when the method is POST, the
+    route determines what has been changed
+    in the form and validates the form.
+    If the form validates, the user_settings.html
+    template is loaded with the updated information.
+    If the form fails to validate, the user_settings.html
+    template is loaded with an error message.
+    """
     user_id = current_user.id
     characters = read_db("characters", "character_name, char_token", f"WHERE user_id = '{user_id}'")
     user_email = current_user.email
@@ -598,6 +725,23 @@ def user_settings():
 @app.route("/rooms", methods=["GET", "POST"])
 @login_required
 def view_rooms():
+    """
+    The /rooms route. This route allows users
+    to see all rooms that they have created.
+    It is entirely dependent on the method used.
+
+    If the method is GET, the route loads
+    all of the rooms in the room_object that
+    are owned by the user and loads the view_rooms.html
+    template.
+
+    Otherwise, if the method is POST, the user
+    is attempting to delete a room. If the `room_id`
+    of the room is being used by an active room, the view_rooms.html
+    template is loaded with an error message. Else, the
+    room is deleted from the room_object table and the
+    user is redirected to the /rooms route with the GET method.
+    """
     if request.method == "POST":
         app.logger.debug(f"Attempting to delete room owned by {current_user.username} named {request.form['room_name']}.")
         
@@ -625,6 +769,21 @@ def view_rooms():
 @app.route("/rooms/create", methods=["GET", "POST"])
 @login_required
 def room_creation():
+    """
+    The /rooms/create route. This route
+    allows uses to create new room. First, 
+    it grabs the form and user's id regardless
+    of the method used. From here, the route
+    diverges depending on the method used.
+
+    If the method is GET, the add_room.html
+    template is loaded.
+
+    Otherwise, when the method is POST, the
+    `process_room_form` function is called and
+    whatever is returned by the `process_room_form`
+    function is returned.
+    """
     app.logger.debug(f"User {current_user.username} is creating a new room!")
     form = RoomValidation()
     user_id = current_user.id
@@ -639,6 +798,28 @@ def room_creation():
 @app.route("/rooms/<room_id>", methods=["GET", "POST"])
 @login_required
 def room_edit(room_id):
+    """
+    The /rooms/<room_id> route. This
+    route allows users to edit previously
+    created rooms. First, it determines the 
+    user's id and pulls the form regardless 
+    of the method used. From here, the route 
+    diverges depending on the method used.
+
+    If the method is GET, the route attempts
+    to load the room the specified `room_id`.
+    If the room does not exist, a BadRequest
+    error is thrown. Otherwise, the edit_room.html
+    template is loaded.
+
+    Else, when the method is POST, the route
+    calls the `process_room_form` function and
+    returns whatever is returned from that function.
+
+    :param room_id:
+        The id of the room the user is attempting
+        to access
+    """
     user_id = current_user.id
     form = RoomValidation()
 
@@ -659,6 +840,13 @@ def room_edit(room_id):
 @app.route("/generate_room", methods=["POST"])
 @login_required
 def generate_room_id():
+    """
+    The /generate_room route. This route generates
+    a new active room that the use can then use. 
+    This route takes the name of a room and the user's 
+    id to generate an active room. Once the room is generated, 
+    the user is redirected to the /play/<room_id> route.
+    """
     user_id = current_user.id
     room_name = request.form["room_name"]
     random_key = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
@@ -674,6 +862,26 @@ def generate_room_id():
 @app.route("/play/<room_id>", methods=["GET", "POST"])
 @login_required
 def enterRoom(room_id):
+    """
+    The /play/<room_id> route. This route
+    allows a user to enter an active room.
+
+    The method determines the user's id, the
+    battle map and the owner of the room. If the
+    specified room does not exist, a BadRequest error
+    is thrown.
+
+    Assuming the room exists, all of the user's characters
+    are loaded. If the user does not have any characters, they
+    are redirected to the /characters/create route.
+
+    If the user is the owner of the map, the play_dm.html template
+    is loaded. Otherwise, the play.html template is loaded.
+
+    :param room_id:
+        The public id of the room the user to 
+        which the user is attempting to connect.
+    """
     user_id = current_user.id
     try:
         image_url, map_owner = read_db("room_object", "map_url, user_id", f"WHERE active_room_id = '{room_id}'")[0]
@@ -695,6 +903,20 @@ def enterRoom(room_id):
 
 @app.route("/spectate/<room_id>", methods=["GET", "POST"])
 def spectateRoom(room_id):
+    """
+    The /spectate/<room_id> route. This route
+    allows a user to spectate the specified room.
+
+    Should the room not exist, a BadRequest error
+    is thrown. If the room does exist, the battle
+    map is loaded. If the user is logged in, the
+    watch.html template is loaded. Otherwise, the
+    unlogged_watch.html template is laoded.
+
+    :param room_id:
+        The id of the room the user is 
+        attempting to spectate.
+    """
     try:
         image_url = read_db("room_object", "map_url", f"WHERE active_room_id = '{room_id}'")[0][0]
 
@@ -709,16 +931,24 @@ def spectateRoom(room_id):
         raise BadRequest(description=f"A room with room id {room_id} does not exist!")
 
 
-
-# Landing Login Page
 @app.route("/")
 def login_index():
+    """
+    The / route. This is the most basic route,
+    and just redirectes the user to the /home
+    route.
+    """
     return redirect(url_for('home'))
 
 
-# Login Process
 @app.route("/login")
 def login():
+    """
+    The /login route. This route ensures
+    that the application is authorized
+    to use Google OAuth. When authorized,
+    the user is redirected to the /login/callback route.
+    """
     # Get the authorization endpoint for Google login
     authorization_endpoint = get_google_provider_cfg()["authorization_endpoint"]
     # Use client.prepare_request_uri to build the request to send to Google, and specify the information we want from the user
@@ -730,9 +960,20 @@ def login():
     return redirect(request_uri)
 
 
-# Login Callback
 @app.route("/login/callback")
 def callback():
+    """
+    The /login/callback route. This route
+    sends login information to Google. When 
+    the user is logged into Google, Google
+    sends the user's Google ID, email and
+    URL to their profile picture.
+
+    The user is then added to the user table
+    if they are not already present, and they
+    are then logged in. From here, they are
+    redirected to the / route.
+    """
     # Get authorization code Google returns
     code = request.args.get("code")
     # Find out what URL to hit to get access tokens from Google
@@ -775,6 +1016,10 @@ def callback():
 @app.route("/logout")
 @login_required
 def logout():
+    """
+    The /logout route. This route determines
+    the user accessing it and logs them out.
+    """
     app.logger.debug(f"User {current_user.username} just logged out")
     logout_user()
     return redirect(url_for("login_index"))
@@ -784,6 +1029,15 @@ def logout():
 @app.route("/delete")
 @login_required
 def delete_account():
+    """
+    The /delete route. This route determines
+    the user accessing this route and then deletes
+    anything related to their account, including
+    the account itself from the database. They are then
+    redirected to the / route.
+
+    This cannot be undone.
+    """
     user_id = current_user.id
     app.logger.debug(f"User {current_user.username} is deleting their account. Deleting all associated information")
     delete_from_db("log", f"WHERE user_id = '{user_id}'")
@@ -795,23 +1049,42 @@ def delete_account():
     return redirect(url_for("login_index"))
 
 
-
-
-### API ROUTES
+"""
+API Routing Directives:
+    The following functions are the routing
+    directives for the API. All of the routes
+    in this section all start with `/api/`. The
+    API is meant for internal use, and as such,
+    only functions as needed by the application.
+    The routes are organized as follows:
+        1.  /api/races
+        2.  /api/classes
+"""
 @app.route("/api/races")
 @login_required
 def get_races():
+    """
+    The /api/races route. This route
+    returns a jsonified representation
+    of all the races and subraces used
+    by the edit_character.html and
+    add_charater.html templates
+    """
     races, subraces = get_api_info("race", "race")
     return jsonify(races=list(races), subraces=subraces)
 
 @app.route("/api/classes")
 @login_required
 def get_classes():
+    """
+    The /api/classes route. This route
+    returns a jsonified representation
+    of all the classes and subclasses 
+    used by the edit_character.html and
+    add_character.html templates.
+    """
     classes, subclasses = get_api_info("class", "class")
     return jsonify(classes=list(classes), subclasses=subclasses)
-
-
-
 
 
 ### SOCKETIO EVENT HANDLERS
