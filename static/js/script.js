@@ -112,6 +112,7 @@ $(document).ready(function() {
   });
 
   socket.on('joined', function(msg) {
+    // TODO: remove character_name. Doesn't look like it does anything
     socket.emit('join_actions', {room_id: room_id, character_name: ""});
   });
 
@@ -448,8 +449,10 @@ function reloadResizable(socket, room_id) {
       let username = ui.originalElement[0].offsetParent.id.split("_")[1];
       let character_name = ui.originalElement[0].offsetParent.id.split("_")[0].split(":").join(" ");
       let character_image = ui.originalElement[0].src;
+      // TODO: Simplify this logic
       if (ui.originalElement[0].outerHTML.substring(ui.originalElement[0].outerHTML.indexOf("border:"), ui.originalElement[0].outerHTML.indexOf("border:") + 21) == "border: 3px solid red") {
         var is_turn = 1;
+        // TODO: What about when the character is resize to the left and/or up? The new_top and new_left variables should not be "Null"
         socket.emit('character_icon_update_database', {desc: "Resize", character_image: character_image, username: username, character_name: character_name, new_top: "Null", new_left: "Null", new_width: new_width, new_height: new_height, is_turn: is_turn, room_id: room_id});
       }
       else {

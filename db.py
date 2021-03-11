@@ -1,16 +1,49 @@
+"""
+Imported Libraries:
+    This is a list of all libraries imported.
+    They are in alphabetical order
+"""
+
+
 import sqlite3
 import csv
 
 
-# Global variable declarations
-# These variables point towards the
-# names of the database files.
+"""
+Global Variables:
+    These variables point towards the
+    names of the database files.
+"""
 global battle_sesh_db
 global api_db
 global error_db
 battle_sesh_db = "battle_sesh.db"
 api_db = "api.db"
 error_db = "error.db"
+
+
+"""
+Basic Database Functions:
+    The following functions are used to access 
+    the data for their specified purposes. 
+
+    The error db specific functions can honestly
+    be removed once the error route is removed.
+    
+    They are ordered as follows:
+        1.  create_connection
+        2.  create_dbs
+        3.  add_to_db
+        4.  read_db
+        5.  delete_from_db
+        6.  reset_db
+        7.  update_db
+        8.  build_api_db
+        9.  get_api_info
+        10. build_error_db
+        11. add_to_error_db
+        12. read_error_db
+"""
 
 
 def create_connection(db_file):
@@ -27,12 +60,6 @@ def create_connection(db_file):
     conn = sqlite3.connect(db_file)
     return conn
 
-
-# characters table
-# user_id = used to connect players to their created characters
-# room_id = used to connect room_id to the room in which the character is playing
-# character_name, race, subclass, hitpoints = tracks character details and stats
-# user_id and character_name = primary keys to allow a character to be tracked across rooms and to allow repeats of character names across 
 
 def create_dbs():
     """
@@ -277,6 +304,7 @@ def delete_from_db(table_name, extra_clause = ""):
         cur.execute(f"DELETE FROM {table_name} {extra_clause};")
         conn.commit()
 
+
 def reset_db(table_name):
     """
     The reset_db function. This function drops a
@@ -293,6 +321,7 @@ def reset_db(table_name):
         conn.commit()
 
         create_dbs()
+
 
 def update_db(table_name, columns_values, extra_clause):
     """
@@ -402,6 +431,7 @@ def build_error_db():
         cur.execute(f"""CREATE TABLE IF NOT EXISTS error 
                         (row_id INT PRIMARY KEY, error_desc TEXT); """)
 
+
 def add_to_error_db(values):
     """
     The add_to_error_db. This function adds
@@ -418,6 +448,7 @@ def add_to_error_db(values):
         cur.execute("INSERT INTO error(error_desc) VALUES(?)", (values,))
         conn.commit()
     
+
 def read_error_db():
     """
     The read_error_db function. This function

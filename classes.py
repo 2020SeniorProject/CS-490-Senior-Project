@@ -1,10 +1,36 @@
-from flask_login import UserMixin, AnonymousUserMixin
-from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, SubmitField, validators, Form, FileField
-from wtforms.validators import Length, NumberRange, DataRequired, ValidationError, Regexp, URL, Optional
-from wtforms_validators import AlphaNumeric, AlphaSpace
+"""
+Imported Libraries:
+    This is a list of all libraries
+    imported. They are organized alphabetically
+    in the following sections:
+        1. Python standard libraries
+        2. Third-party libraries
+"""
+
+
+# Python standard libraries
 import random
 import string
+
+# Third-party libraries
+from flask_login import AnonymousUserMixin, UserMixin
+from flask_wtf import FlaskForm
+from wtforms import FileField, Form, IntegerField, StringField, SubmitField, validators
+from wtforms.validators import DataRequired, Length, NumberRange, Optional, Regexp, URL, ValidationError
+from wtforms_validators import AlphaNumeric, AlphaSpace
+
+
+"""
+Form Validation Classes:
+    All of these classes are used to
+    validate input from users for specific
+    forms. 
+
+    They are organized as follows:
+        1. CharacterValidation
+        2. RoomValidation
+        3. Username Validation
+"""
 
 
 class CharacterValidation(FlaskForm):
@@ -58,6 +84,17 @@ class UsernameValidation(FlaskForm):
     """
     username = StringField('Username', [DataRequired(message="You must enter something for your username. Please type your username, then resubmit the form."), AlphaNumeric(message="Usernames must be alphanumeric. Please ensure that your username only uses letters and numbers.")])
     
+
+"""
+User Classes:
+    These classes are the different
+    types of users that are on the site.
+
+    They are organized as follows:
+        1. User
+        2. AnonymousUser
+"""
+
 
 class User(UserMixin):
     """

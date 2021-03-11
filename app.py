@@ -1,11 +1,13 @@
 """
 Imported Libraries:
-    This is a list of all imported libraries. They
-    are organized as follows in alphabetical order:
+    This is a list of all imported libraries. 
+    
+    They are organized as follows in alphabetical order:
         1. Python standard libraries
         2. Third-party libaries
         3. Internal imports
 """
+
 # Python standard libraries
 import datetime
 import json
@@ -28,11 +30,14 @@ from werkzeug.exceptions import BadRequest, HTTPException
 from classes import AnonymousUser, CharacterValidation, RoomValidation, User, UsernameValidation
 from db import add_to_db, add_to_error_db, build_api_db, build_error_db, create_dbs, delete_from_db, get_api_info, read_db, read_error_db, update_db
 
+
 """
 Initialization and Setup:
     All of these function calls and variable
     definitions are used in the initialization
-    of the application. It is organized as follows:
+    of the application. 
+    
+    It is organized as follows:
         1.  Flask application initialization and
             variable setting
         2.  SocketIO application initialization and
@@ -101,7 +106,9 @@ Functions:
     All of the following functions are "helper functions".
     All of them except clean_dbs are called by at least one 
     Flask route. In the case of clean_dbs, it is called every 
-    4 hours. They are organized as follows:
+    4 hours. 
+    
+    They are organized as follows:
         1. get_google_provider_cfg
         2. readify_form_errors
         3. process_character_form
@@ -397,7 +404,9 @@ scheduler.add_job(func=clean_dbs, trigger="cron", hour=3, minute=59)
 login_manager "Helper" functions:
     The login_manager "helper" functions are
     functions written to handle users connecting
-    to the appication. The are organized as follows:
+    to the appication. 
+    
+    They are organized as follows:
         1.  load_user
         2.  sent_to_login
 
@@ -441,9 +450,10 @@ Routing Directives:
 
     Additionally, some may have the @login_required
     decorator, which means that a user must be logged
-    in to access that route. They are organized
-    as follows (labeled as the routes rather than
-    the functions):
+    in to access that route. 
+    
+    They are organized as follows (labeled as the 
+    routes rather than the functions):
         1.  /characters
         2.  /characters/create
         3.  /characters/edit/<name>
@@ -1056,6 +1066,7 @@ API Routing Directives:
     in this section all start with `/api/`. The
     API is meant for internal use, and as such,
     only functions as needed by the application.
+    
     The routes are organized as follows:
         1.  /api/races
         2.  /api/classes
@@ -1087,10 +1098,49 @@ def get_classes():
     return jsonify(classes=list(classes), subclasses=subclasses)
 
 
-### SOCKETIO EVENT HANDLERS
+"""
+SocketIO Handlers:
+    The following functions are all SocketIO
+    event handlers. All of them are decorated
+    with `@socketio.on('event_name', namespace='/combat')`.
+    
+    All of these functions have one parameter, message,
+    which is a dictionary received from the frontend.
+    
+    The functions are ordered as follows:
+        1.  set_initiative
+        2.  send_chat
+        3.  start_combat
+        4.  end_combat
+        5.  end_room
+        6.  end_turn
+        7.  on_join
+        8.  join_actions
+        9.  character_icon_update_database
+        10. add_character
+        11. add_npc
+"""
+
 
 @socketio.on('set_initiative', namespace='/combat')
 def set_initiative(message):
+    """
+    The set_initiative event handler. This
+    function set or update a character's initiative 
+    in the given room. It then sends out the initiative
+    update to all clients in the room.
+
+    :message:
+        A dictionary with the following keys:
+            character_name: Name of the character
+                            whose initiative is being
+                            updated.
+            init_val:       New initiative value
+            username:       Username of the owner
+                            of the character.
+            room_id:        The room id of the
+                            active battle
+    """
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     character_name = message['character_name'] or None
     init_val = message['init_val']
@@ -1117,6 +1167,23 @@ def set_initiative(message):
 
 @socketio.on('send_chat', namespace='/combat')
 def send_chat(message):
+    """
+    The send_chat event handler. This
+    function receives a request from a
+    client to send a chat in the given room.
+    If they have not been spamming the chat, 
+    they chat is sent to all connected clients
+    in the room. Otherwise, the original client
+    is notified that they were spamming the chat.
+
+    :message keys:
+        chat:       The message the user is 
+                    attempting to send to the room
+        username:   The username of the user
+                    sending the chat
+        room_id:    The id of the room the
+                    client is in
+    """
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.id
     username = message['username']
@@ -1142,6 +1209,19 @@ def send_chat(message):
 # TODO: Button to hide or show character icon on map
 @socketio.on('start_combat', namespace='/combat')
 def start_combat(message):
+    """
+    The start_combat event handler. This function
+    starts combat in the given room. The character
+    with the highest initiative has their is_turn
+    variable set to true (literally all that needs
+    to happen on the backend). It then sends out
+    the `combat_started` to all clients in the room.
+
+    :message keys:
+        desc:       A two-word description of the event
+        room_id:    The id of the room where combat
+                    is starting
+    """
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.id
     room_id = message['room_id']
@@ -1178,6 +1258,17 @@ def start_combat(message):
 
 @socketio.on('end_combat', namespace='/combat')
 def end_combat(message):
+    """
+    The end_combat event handler. This function
+    ends combat in a given room. The character whose
+    turn it is has their is_turn variable set to false
+    and the update is sent to all connected clients.
+
+    :message keys:
+        desc:       A two-word description of the event
+        room_id:    The id of the room where combat
+                    is ending
+    """
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.id
     room_id = message['room_id']
@@ -1213,11 +1304,24 @@ def end_combat(message):
 
 @socketio.on('end_room', namespace='/combat')
 def end_session(message):
+    """
+    The end_room event handler. This function
+    completely removes an active room from the 
+    database. The update is then pushed out to the
+    connected users.
+
+    :message keys:
+        desc:       A two-word description of the event
+        room_id:    The id of the room where the room
+                    is closing
+    """
     room_id = message['room_id']
     delete_from_db("active_room", f"WHERE room_id = '{room_id}'")
     delete_from_db("chat", f"WHERE room_id = '{room_id}'")
     delete_from_db("log", f"WHERE room_id = '{room_id}'")
     update_db("room_object", "map_status = '{}'", f"WHERE active_room_id = '{room_id}'")
+    # TODO: Update this so it works with multiple rooms. It will scrub the connected between
+    #       all rooms should one room_object have multiple active rooms.
     update_db("room_object", "active_room_id = 'null'", f"WHERE active_room_id = '{room_id}'")
 
     app.logger.debug(f"The room {room_id} owned by {current_user.username} has closed")
@@ -1228,6 +1332,23 @@ def end_session(message):
 
 @socketio.on('end_turn', namespace='/combat')
 def end_turn(message):
+    """
+    The end_turn event handler. This function
+    ends a character's turn and moves to the next
+    character in the initative order. The update 
+    is the pushed out to all connected clients.
+
+    :message keys:
+        desc:                       A description of what occurred
+        previous_character_name:    The name of the character whose
+                                    turn just ended
+        next_character_name:        The name of the character whose
+                                    turn just begun
+        previous_username:          The username of the owner of the
+                                    character whose turn just ended
+        next_username:              The username of the owner of the
+                                    character whose turn just begun
+    """
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     previous_character_id = current_user.id
     previous_character_name = message['previous_character_name']
@@ -1268,6 +1389,17 @@ def end_turn(message):
 
 @socketio.on('on_join', namespace='/combat')
 def on_join(message):
+    """
+    The on_join event handler. This function
+    has a client connect to the SocketIO room
+    when they first join a room. Preps the client
+    and backend to "catch up" the client to what
+    is occurring in the room.
+
+    :message keys:
+        room_id:    The id of the room which
+                    they just joined.
+    """
     app.logger.debug(f"Battle update: User {current_user.username} has entered room {message['room_id']}")
     join_room(message['room_id'])
     emit('joined', {'desc': 'Joined room'})
@@ -1275,7 +1407,20 @@ def on_join(message):
 
 @socketio.on('join_actions', namespace='/combat')
 def connect(message):
-    # Sends upon a new connection
+    """
+    The join_actions event handler. This function
+    "catches a user who just joined the room up" with
+    what has occurred. All of their characters that already
+    are in the room are removed from their "Add character" select
+    and added to their "update initiative" select. Likewise, they
+    recieve all characters in the room and their initiatives. Then,
+    they receive the entire chat history and character token locations.
+
+    :message keys:
+        room_id:        The id of the room which the client
+                        is in.
+        character_name: Doesn't actually do anything. Should be removed.
+    """
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.id
     username = current_user.username
@@ -1334,6 +1479,24 @@ def connect(message):
 
 @socketio.on('character_icon_update_database', namespace='/combat')
 def character_icon_update_database(message):
+    """
+    The character_icon_update_database event handler. This function
+    updates the information related to the specified character
+    token. From here, the update is then pushed out to all connected
+    clients.
+
+    :message keys:
+        desc:               Either "Change Location" or "Resize"
+        character_image:    The URL to the character's picture
+        username:           The username of the owner of the character
+        character_name:     The name of the character
+        new_top:            The new y coordinate of the top left pixel
+        new_left:           The new x coordinate of the top left pixel
+        new_width:          The new width of the token in pixels
+        new_height:         The new height of the token in pixels
+        is_turn:            Boolean stating if it is the character's turn
+        room_id:            The id of the room which the token belongs
+    """
     username = message['username']
     room_id = message['room_id']
     temp_read_for_user_id = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
@@ -1388,6 +1551,18 @@ def character_icon_update_database(message):
 
 @socketio.on('add_character', namespace='/combat')
 def add_character(message):
+    """
+    The add_character event handler. This function
+    adds a specific character to the given room. It
+    removes the character from the user's "Add character" select,
+    adds it to their "Update initiative" select and initializes
+    the character's initiative to 0.
+
+    :message keys:
+        char_name:  The name of the character being added
+        username:   The username of the player who owns the character
+        room_id:    The id of the room the user is in
+    """
     character_name = message['char_name']
     room_id = message['room_id']
     user_id = current_user.id
@@ -1412,8 +1587,21 @@ def add_character(message):
     character_icon_add_database(character_name, username, character_image, user_id, room_id)
     app.logger.debug(f"User {username} has added character {character_name} to the battle")
 
+
 @socketio.on('add_npc', namespace='/combat')
 def add_npc(message):
+    """
+    The add_npc event handler. This function
+    adds a randomized npc to the room. The npc
+    is added to the client's "Update initiative"
+    select and their initiative is set to 0.
+
+    :message keys:
+        username:   The username of the user who 
+                    created the npc
+        room_id:    The id of the room in which the
+                    npc was created
+    """
     room_id = message['room_id']
     user_id = current_user.id
     random_key = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
@@ -1434,41 +1622,101 @@ def add_npc(message):
     app.logger.debug(f"User {username} has added character {character_name} to the battle")
 
 
-### ERROR HANDLING 
+"""
+Error Handlers:
+    These functions handle all errors that the 
+    user creates. They are all have the `@app.errorhandler`
+    decorator and handle their designated errors.
+
+    All of the functions also have one parameter: `e`.
+    `e` is the error object.
+
+    The functions are as follows (list as the errors
+    they handle):
+        1.  CSRFError
+        2.  HTTPException
+        3.  Exception
+"""
+
 
 @app.errorhandler(CSRFError)
 def handle_csrf_error(e):
+    """
+    The CSRFError handler. This function
+    grabs all of the errors related to CSRF tokens
+    and loads the information into the error.html 
+    template. 
+    
+    For the most part, this happens with 
+    entering fors when the user is not logged in
+    or the user somehow is able to stay in a room
+    after it has been closed.
+    """
     app.logger.warning(f"A CSRFError has occurred. How did this happen?")
     return render_template("error.html", error_name="Error Code 400" ,error_desc = "The room you were in has closed!", username=current_user.username), 400
 
+
 @app.errorhandler(HTTPException)
 def generic_error(e):
-    # Generic HTTP Exception handler
+    """
+    The HTTPException handler. This function handles
+    all HTTP errors that are not 5xx. This handler
+    deals with all user errors, such as attempting to
+    connect to a route on the site that does not exist.
+    """
         app.logger.warning(f"A HTTP error with code {e.code} has occurred. Handling the error.")
         return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description, username=current_user.username, profile_picture=current_user.profile_picture), e.code
 
+
 @app.errorhandler(Exception)
 def five_hundred_error(e):
+    """
+    The generic error handler. Technically, this handler
+    deals with all errors that are not CSRFErrors or 
+    HTTPExceptions. Because app.errorhandler works with more
+    specific errors first, this handler will only be called
+    when the error is not a CSRFError or an HTTPException.
+
+    Because of that, this will handle any sort of server error,
+    or in IP terms, 5xx errors. In terms related to use developers,
+    errors that we should fix.
+    """
     app.logger.warning(f"A server error occurred. Handling it, but you probably should fix the bug...")
     app.logger.error(f"Here it is: {e}")
     desc = "Internal Server Error. Congrats! You found an unexpected feature!"
     return render_template("error.html", error_name="Error Code 500", error_desc=desc, username=current_user.username, profile_picture=current_user.profile_picture), 500
 
+
 @app.route("/process_error", methods=["POST"])
 @login_required
 def process_error():
+    """
+    The /process error route. This route is made for
+    processing user input for errors. But lets be honest,
+    who actually fills out those forms?
+
+    Should be removed.
+    """
     if 'error_desc' in request.form:
         add_to_error_db(request.form['error_desc'])
     
     return redirect(url_for("home"))
 
 
+"""
+App Running:
+    This if statement determines how the application
+    is run. If this file is run directly or through
+    `flask run`, the "if" part of the application will
+    run. Otherwise, when run through something else like
+    nginx or gunicorn, the else block will run
+"""
 
-### APP RUNNING
+
 if __name__ == "__main__":
     app.run(ssl_context="adhoc", port=33507, debug=True)
 
-if __name__ != "__main__":
+else:
     # logging levels: info, debug, warning, critical, error
     
     gunicorn_logger = logging.getLogger('gunicorn.error')
