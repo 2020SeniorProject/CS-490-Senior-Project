@@ -128,21 +128,29 @@ $(document).ready(function() {
     socket.on('removed_character', function(msg) {
       
       initiatives.splice(msg.init_val, 1 );  
+      console.log(initiatives);
       let character_name = msg.character_name;
-      let old_character_name = character_name.split(" ").join(":") + "-init-update";
-      let option_character_name = character_name.split(" ").join("\\:") + "-add-row";
-      let token_id = character_name.split(" ").join("_") + "_" + msg.site_name
+      let old_character_name = character_name + "-init-update";
+      let option_character_name = character_name + "-add-row";
+      let token_id = character_name + "_" + msg.site_name
+      console.log(token_id);
+      console.log(old_character_name);
+      console.log(option_character_name);
+
+      
+
       if ($('#character_placeholder')) {
         $('#character_placeholder').remove();
         $('#add_character_button').prop('disabled', false);
       }
       if (character_name.slice(0, 3) != "NPC" && msg.site_name == site_name) {
-        $('#character_name').append(`<option id=${option_character_name}>${character_name}</option>`);
+        $('#character_name').append(`<option id=${option_character_name}>${character_name.split(":").join(" ")}</option>`);
       }
-     
-      $(`#${old_character_name}`).remove();
+    
+      $(`#${old_character_name}`).remove(); 
 
       if ($(`#player_name option`).length == 0){
+        console.log("we got no players ")
         $("#player_name").append(`<option id="init_placeholder"> Add a Character First! </option>`);
       }
       

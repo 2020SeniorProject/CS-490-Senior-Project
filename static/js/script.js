@@ -132,7 +132,8 @@ $(document).ready(function() {
   socket.on('removed_character', function(msg) {
     initiatives.splice(msg.init_val, 1);
     let character_name = msg.character_name;
-    let old_character_name = character_name.split(" ").join(":") + "-init-update";
+    let old_character_name = character_name.split(" ").join("\\:") + "-init-update";
+    console.log(old_character_name)
     let option_character_name = character_name.split(" ").join("\\:") + "-add-row";
     let token_id = character_name.split(" ").join("_") + "_" + msg.site_name
     if ($('#character_placeholder')) {
