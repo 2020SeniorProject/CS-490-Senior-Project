@@ -336,7 +336,7 @@ $(document).ready(function() {
       $('#set_initiative_button').prop('disabled', false);
 
       if ($('#character_name option').length == 0) {
-        $(`#character_name').append("<option id="character_placeholder">All Characters are in the Battle!</option>`);
+        $(`#character_name`).append(`<option id="character_placeholder">All Characters are in the Battle!</option>`);
         $('#add_character_button').prop('disabled', true);
       }
     }
@@ -374,9 +374,16 @@ $(document).ready(function() {
   function update_init_table() {
     code = "<tbody>";
     for (i = 0; i < initiatives.length; i++) {
-      // TODO: Fix id to work when site_name has a space in it
       var id = initiatives[i][0].split(" ").join("_");
-      code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td></tr>`;
+      if (initiatives[i][2] == site_name) {
+        code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td>
+         <td>${initiatives[i][1]}</td>
+         <td><button type="submit" class="close" value=${id}-${initiatives[i][2]}-${i} aria-label="close"><span "aria-hidden"="true">&times;</span></button>
+         </td></tr>`;
+      }
+      // TODO: Fix id to work when site_name has a space in it
+      else {
+      code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td></tr>`; }
     }
   
     code += "</tbody>";
