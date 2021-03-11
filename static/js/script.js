@@ -383,7 +383,7 @@ $(document).ready(function() {
       }
       // TODO: Fix id to work when site_name has a space in it
       else {
-      code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td></tr>`; }
+      code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td><td></td></tr>`; }
     }
   
     code += "</tbody>";
