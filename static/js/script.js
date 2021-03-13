@@ -56,9 +56,7 @@ $(document).ready(function() {
     
     var character_info = $(this).find("button[type=submit]:focus" ).val().split("-");
     
-    
-    console.log(initiatives);
-    socket.emit('remove_character', {character_name: character_info[0],  site_name: character_info[1], init_val:character_info[2] , room_id: room_id});
+    socket.emit('remove_character', {character_name: character_info[0].split("_").join(" "),  site_name: character_info[1], init_val:character_info[2] , room_id: room_id});
     return false;
   });
 
@@ -133,9 +131,8 @@ $(document).ready(function() {
     initiatives.splice(msg.init_val, 1);
     let character_name = msg.character_name;
     let old_character_name = character_name.split(" ").join("\\:") + "-init-update";
-    console.log(old_character_name)
-    let option_character_name = character_name.split(" ").join("\\:") + "-add-row";
-    let token_id = character_name.split(" ").join("_") + "_" + msg.site_name
+    let option_character_name = character_name.split(" ").join(":") + "-add-row";
+    let token_id = character_name.split(" ").join("\\:") + "_" + msg.site_name
     if ($('#character_placeholder')) {
       $('#character_placeholder').remove();
       $('#add_character_button').prop('disabled', false);

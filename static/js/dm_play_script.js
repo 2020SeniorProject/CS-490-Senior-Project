@@ -63,7 +63,7 @@ $(document).ready(function() {
       // 
       // Note this apparently only works on Chrome....
       var character_info = $(this).find("button[type=submit]:focus" ).val().split("-");
-      socket.emit('remove_character', {character_name: character_info[0],  site_name: character_info[1], room_id: room_id, init_val: character_info[2]});
+      socket.emit('remove_character', {character_name: character_info[0].split("_").join(" "),  site_name: character_info[1], room_id: room_id, init_val: character_info[2]});
       return false;
     });
   
@@ -128,14 +128,10 @@ $(document).ready(function() {
     socket.on('removed_character', function(msg) {
       
       initiatives.splice(msg.init_val, 1 );  
-      console.log(initiatives);
       let character_name = msg.character_name;
-      let old_character_name = character_name + "-init-update";
-      let option_character_name = character_name + "-add-row";
-      let token_id = character_name + "_" + msg.site_name
-      console.log(token_id);
-      console.log(old_character_name);
-      console.log(option_character_name);
+      let old_character_name = character_name.split(" ").join("\\:") + "-init-update";
+      let option_character_name = character_name.split(" ").join(":") + "-add-row";
+      let token_id = character_name.split(" ").join("\\:") + "_" + msg.site_name
 
       
 
@@ -144,13 +140,12 @@ $(document).ready(function() {
         $('#add_character_button').prop('disabled', false);
       }
       if (character_name.slice(0, 3) != "NPC" && msg.site_name == site_name) {
-        $('#character_name').append(`<option id=${option_character_name}>${character_name.split(":").join(" ")}</option>`);
+        $('#character_name').append(`<option id=${option_character_name}>${character_name}</option>`);
       }
     
       $(`#${old_character_name}`).remove(); 
 
       if ($(`#player_name option`).length == 0){
-        console.log("we got no players ")
         $("#player_name").append(`<option id="init_placeholder"> Add a Character First! </option>`);
       }
       
