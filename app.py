@@ -236,6 +236,9 @@ def character_icon_del_database(character_name, site_name, user_id, room_id ):
     for i in wrong_room:
         del walla_walla[i]
 
+
+    character_name = " ".join(character_name.split("_"))
+    
     user_id_character_name = str(user_id) + '_' + str(character_name)
 
     del walla_walla[user_id_character_name]
@@ -976,22 +979,49 @@ def add_character(message):
 
 @socketio.on('remove_character', namespace="/combat")
 def remove_character(message):
-    room_id = message['room_id']
+    room_id = message['room_id']    
     site_name = message['site_name']
     character_name = message["character_name"]
-    user_id = read_db("users", "user_id", f"WHERE site_name = '{site_name}'")[0][0]
+    user_id = read_db("users", "user_id", f"WHERE site_name = '{site_name}'")[0][0]     # Required for the removal from the room's JSON
+    
+
+
+    if message["next_character_name"]:
+        next_site_name = message["next_site_name"]
+        next_character_name = message["next_character_name"]
+        next_character_id = read_db("users", "user_id", f"WHERE site_name = '{next_site_name}'")[0][0]
+
+        # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+        walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+        
+        # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
+        wrong_room = []
+        for i in walla_walla:
+            if walla_walla[i]['room_id'] != room_id:
+                wrong_room.append(i)
+        for i in wrong_room:
+            del walla_walla[i]
+        previous_user_id_character_name = str(user_id) + '_' + str(character_name)
+        next_user_id_character_name = str(next_character_id) + '_' + str(next_character_name)
+        previous_json_character_to_update = { previous_user_id_character_name: {"site_name": site_name, "character_name": character_name, "room_id": room_id, "character_image": walla_walla[previous_user_id_character_name]['character_image'], "height": walla_walla[previous_user_id_character_name]['height'], "width": walla_walla[previous_user_id_character_name]['width'], "top": walla_walla[previous_user_id_character_name]['top'], "left": walla_walla[previous_user_id_character_name]['left'], "is_turn": 0}}
+        next_json_character_to_update = { next_user_id_character_name: {"site_name": next_site_name, "character_name": next_character_name, "room_id": room_id, "character_image": walla_walla[next_user_id_character_name]['character_image'], "height": walla_walla[next_user_id_character_name]['height'], "width": walla_walla[next_user_id_character_name]['width'], "top": walla_walla[next_user_id_character_name]['top'], "left": walla_walla[next_user_id_character_name]['left'], "is_turn": 1}}
+        walla_walla[previous_user_id_character_name] = previous_json_character_to_update[previous_user_id_character_name]
+        walla_walla[next_user_id_character_name] = next_json_character_to_update[next_user_id_character_name]
+        characters_json = json.dumps(walla_walla)
+        update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
+
+        update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_key = '{next_character_id}' AND chr_name = '{next_character_name}'")    
+
+
+    
+    character_icon_del_database(character_name, site_name, user_id, room_id)
 
     delete_from_db("active_room", f"WHERE room_id = '{room_id}' and chr_name = '{character_name}' and user_key = '{user_id}'")
 
-    emit('removed_character', {"site_name":site_name, "character_name":character_name, "user_id":user_id, "init_val":message["init_val"]}, room=room_id)
-    character_icon_del_database(character_name, site_name, user_id, room_id)
-    app.logger.debug(f"User {site_name} has removed character {character_name} to the battle")
 
+    emit('removed_character', {"site_name":site_name, "character_name": ":".join(character_name.split("_")), "user_id":user_id, "init_val":message["init_val"]}, room=room_id)
 
-
-
-
-
+    app.logger.debug(f"User {site_name} has removed character {character_name} from the battle")
 
 
 
