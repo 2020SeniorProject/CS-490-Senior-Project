@@ -375,8 +375,8 @@ def character_icon_add_database(character_name, username, character_image, user_
     map_status_json = json.dumps(walla_walla)
     update_db("room_object", f"map_status = '{map_status_json}'", f"WHERE active_room_id = '{room_id}'")
 
+    # TODO: Is this not just `walla_walla`?
     updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    # TODO: Does this actually do anything?
     emit('redraw_character_tokens_on_map', updated_character_icon_status, room=room_id)
 
 
@@ -499,9 +499,9 @@ def view_characters():
         delete_from_db("characters", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['character_name']}'")
         delete_from_db("active_room", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['character_name']}'")
                         
-    items = read_db("characters", "*", f"WHERE user_id = '{user_id}'")
-    app.logger.debug(f"User {current_user.username} has gone to view their characters. They have {len(items)} characters.")
-    return render_template("view_characters.html", items=items, profile_picture=current_user.profile_picture, username=current_user.username)
+    characters = read_db("characters", "*", f"WHERE user_id = '{user_id}'")
+    app.logger.debug(f"User {current_user.username} has gone to view their characters. They have {len(characters)} characters.")
+    return render_template("view_characters.html", items=characters, profile_picture=current_user.profile_picture, username=current_user.username)
 
 
 @app.route("/characters/create", methods=["POST","GET"])
@@ -528,10 +528,12 @@ def character_creation():
         creation form. Grabbed from the URL instead
         embedded within the route definition.
     """
-    form = CharacterValidation()
-    user_id = current_user.id
     route = request.args.get('route')
+
     if request.method == "POST":
+        form = CharacterValidation()
+        user_id = current_user.id
+
         app.logger.debug(f"User {current_user.username} is attempting to register a character with name {form.name.data}.")
         if route:
             return process_character_form(form, user_id, "play", route)
@@ -570,10 +572,10 @@ def edit_character(name):
         The name of the character the user
         is attempting to edit.
     """
-    user_id = current_user.id
-    form = CharacterValidation()
-
     if request.method == "POST":
+        user_id = current_user.id
+        form = CharacterValidation()
+
         app.logger.warning(f"User {current_user.username} is attempting to update a character with name {request.form['old_name']}.")
         return process_character_form(form, user_id, "edit")
 
@@ -629,9 +631,9 @@ def home():
             form = UsernameValidation()
 
             if not form.validate():
-                err_lis = readify_form_errors(form)
+                error_list = readify_form_errors(form)
                 app.logger.warning(f"There were errors in the chosen site name. Reloading the page")
-                return render_template("set_username.html", errors=err_lis, error_username=username, profile_picture=current_user.profile_picture, username=current_user.username)
+                return render_template("set_username.html", errors=error_list, error_username=username, profile_picture=current_user.profile_picture, username=current_user.username)
 
             app.logger.debug(f"User is attempting to set their site name as {username}")
             if read_db("users", "*", f"WHERE username = '{username}'"):
@@ -716,9 +718,9 @@ def user_settings():
             form = UsernameValidation()
 
             if not form.validate():
-                err_lis = readify_form_errors(form)
+                error_list = readify_form_errors(form)
                 app.logger.warning(f"There are issues in the renaming form. Allowing the user to change it")
-                return render_template("user_settings.html", characters=characters, username_errors=err_lis, new_username=new_username, profile_picture=current_user.profile_picture, username=current_user.username, user_email=user_email)
+                return render_template("user_settings.html", characters=characters, username_errors=error_list, new_username=new_username, profile_picture=current_user.profile_picture, username=current_user.username, user_email=user_email)
 
             if read_db("users", "*", f"WHERE username = '{new_username}'"):
                 app.logger.warning(f"Site name {new_username} already has been used. Reloading the user settings page with warning message.")
@@ -1135,34 +1137,33 @@ def set_initiative(message):
             character_name: Name of the character
                             whose initiative is being
                             updated.
-            init_val:       New initiative value
+            initiative:     New initiative value
             username:       Username of the owner
                             of the character.
             room_id:        The room id of the
                             active battle
     """
-    time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
+    time_received = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     character_name = message['character_name'] or None
-    init_val = message['init_val']
+    initiative = message['init_val']
     username = message['username']
     room_id = message['room_id']
     user_id = current_user.id
 
-    if not character_name and not init_val:
+    if not character_name and not initiative:
         return
 
-    desc = f"{character_name}'s initiative updated in room {room_id}"
-    app.logger.debug(f"Battle update: {desc}.")
+    description = f"{character_name}'s initiative updated in room {room_id}"
+    app.logger.debug(f"Battle update: {description}.")
 
-    if not init_val:
-        a = read_db("active_room", "init_val", f"WHERE room_id = '{room_id}' AND user_id = '{user_id}' AND character_name = '{character_name}'")
-        init_val = read_db("active_room", "init_val", f"WHERE room_id = '{room_id}' AND user_id = '{user_id}' AND character_name = '{character_name}'")[0][0]
+    if not initiative:
+        initiative = read_db("active_room", "init_val", f"WHERE room_id = '{room_id}' AND user_id = '{user_id}' AND character_name = '{character_name}'")[0][0]
 
-    update_db("active_room", f"init_val = '{init_val}'", f"WHERE room_id = '{room_id}' AND user_id = '{user_id}' AND character_name = '{character_name}'")
-    add_to_db("log", (room_id, user_id, "Init", desc, time_rcvd))
+    update_db("active_room", f"init_val = '{initiative}'", f"WHERE room_id = '{room_id}' AND user_id = '{user_id}' AND character_name = '{character_name}'")
+    add_to_db("log", (room_id, user_id, "Init", description, time_received))
 
-    emit('initiative_update', {'character_name': character_name, 'init_val': init_val, 'username': username}, room=room_id)
-    emit('log_update', {'desc': desc}, room=room_id)
+    emit('initiative_update', {'character_name': character_name, 'init_val': initiative, 'username': username}, room=room_id)
+    emit('log_update', {'desc': description}, room=room_id)
 
 
 @socketio.on('send_chat', namespace='/combat')
@@ -1184,7 +1185,7 @@ def send_chat(message):
         room_id:    The id of the room the
                     client is in
     """
-    time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
+    time_received = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.id
     username = message['username']
     room_id = message['room_id']
@@ -1194,14 +1195,14 @@ def send_chat(message):
     chats = read_db("chat", "user_id, timestamp", f"WHERE room_id = '{room_id}' and user_id = '{user_id}'")
 
     if determine_if_user_spamming(chats):
-        add_to_db("log", (room_id, user_id, "Spam", f"{username} was spamming the chat. They have been disabled for {spam_penalty} seconds", time_rcvd))
+        add_to_db("log", (room_id, user_id, "Spam", f"{username} was spamming the chat. They have been disabled for {spam_penalty} seconds", time_received))
         emit("lockout_spammer", {'message': f"Sorry, you can only send {spam_max_messages} messages per {spam_timeout} seconds. Try again in {spam_penalty} seconds.", 'spam_penalty': spam_penalty})
         emit('log_update', {'desc': f"{username} was spamming the chat. They have been disabled for {spam_penalty} seconds"}, room=room_id)
         app.logger.debug(f"{username} was spamming the chat. They have been disabled for {spam_penalty} seconds")
 
     else:
-        add_to_db("chat",(room_id, user_id, username, chat, time_rcvd))
-        add_to_db("log", (room_id, user_id, "Chat", username, time_rcvd))
+        add_to_db("chat",(room_id, user_id, username, chat, time_received))
+        add_to_db("log", (room_id, user_id, "Chat", username, time_received))
         emit('chat_update', {'chat': chat, 'character_name': username}, room=room_id)
         app.logger.debug(f"Battle update: {username} has sent chat `{chat}` in room {room_id}")
 
@@ -1222,7 +1223,7 @@ def start_combat(message):
         room_id:    The id of the room where combat
                     is starting
     """
-    time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
+    time_received = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.id
     room_id = message['room_id']
     characters = read_db("active_room", "user_id, character_name, init_val", f"WHERE room_id = '{room_id}' ORDER BY init_val, character_name DESC ")
@@ -1250,7 +1251,7 @@ def start_combat(message):
     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
     update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_id = '{first_character[0]}' AND character_name = '{first_character[1]}' AND init_val = '{first_character[2]}'")
-    add_to_db("log", (room_id, user_id, "Combat", "Started Combat", time_rcvd))
+    add_to_db("log", (room_id, user_id, "Combat", "Started Combat", time_received))
 
     emit('log_update', {'desc': "Started Combat"}, room=room_id)
     emit('combat_started', {'desc': 'Started Combat', 'first_turn_name': first_character[1], 'username': username}, room=room_id)
@@ -1269,7 +1270,7 @@ def end_combat(message):
         room_id:    The id of the room where combat
                     is ending
     """
-    time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
+    time_received = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.id
     room_id = message['room_id']
     character = read_db("active_room","user_id, character_name", f"WHERE room_id = '{room_id}' AND is_turn = '1'")[0]
@@ -1296,7 +1297,7 @@ def end_combat(message):
     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
     update_db("active_room", f"is_turn = '{0}'", f"WHERE room_id = '{room_id}'")
-    add_to_db("log", (room_id, user_id, "Combat", "Ended Combat", time_rcvd))
+    add_to_db("log", (room_id, user_id, "Combat", "Ended Combat", time_received))
 
     emit('log_update', {'desc': "Ended Combat"}, room=room_id)
     emit('combat_ended', {'desc':'Ended Combat', 'current_turn_name': character[1], 'username': username}, room=room_id)
@@ -1349,7 +1350,7 @@ def end_turn(message):
         next_username:              The username of the owner of the
                                     character whose turn just begun
     """
-    time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
+    time_received = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     previous_character_id = current_user.id
     previous_character_name = message['previous_character_name']
     next_character_name = message['next_character_name']
@@ -1381,7 +1382,7 @@ def end_turn(message):
 
     update_db("active_room", f"is_turn = '{0}'", f"WHERE room_id = '{room_id}'AND user_id = '{previous_character_id}' AND character_name = '{previous_character_name}'")
     update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_id = '{next_character_id}' AND character_name = '{next_character_name}'")
-    add_to_db("log", (room_id, previous_character_id, "Combat", f"{previous_character_name}'s Turn Ended", time_rcvd))
+    add_to_db("log", (room_id, previous_character_id, "Combat", f"{previous_character_name}'s Turn Ended", time_received))
 
     emit('log_update', {'desc': message['desc']}, room=room_id)
     emit("turn_ended", {'desc': message['desc'], 'previous_username': previous_username, 'next_username': next_username}, room=room_id)
@@ -1421,7 +1422,7 @@ def connect(message):
                         is in.
         character_name: Doesn't actually do anything. Should be removed.
     """
-    time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
+    time_received = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.id
     username = current_user.username
     room_id = message['room_id']
@@ -1438,20 +1439,20 @@ def connect(message):
     for i in wrong_room:
         del walla_walla[i]
 
-    add_to_db("log", (room_id, user_id, "Connection", f"User with id {user_id} connected", time_rcvd))
+    add_to_db("log", (room_id, user_id, "Connection", f"User with id {user_id} connected", time_received))
     app.logger.debug(f"Battle update: User {current_user.username} has connected to room {room_id}")
 
     emit('log_update', {'desc': f"{username} Connected"}, room=room_id)
 
-    your_chars = []
+    your_characters = []
     character_names_read_from_db = read_db("active_room", "character_name", f"WHERE user_id='{user_id}' AND room_id='{room_id}'")
     for name in character_names_read_from_db:
-        your_chars.append(name[0])
+        your_characters.append(name[0])
     for player_id in walla_walla:
-        if player_id == user_id and walla_walla[player_id]['character_name'] not in your_chars:
-            your_chars.append(walla_walla[player_id]['character_name'])
-    for char in your_chars:
-        emit('populate_select_with_character_names', {'character_name': char, 'username': current_user.username})
+        if player_id == user_id and walla_walla[player_id]['character_name'] not in your_characters:
+            your_characters.append(walla_walla[player_id]['character_name'])
+    for character in your_characters:
+        emit('populate_select_with_character_names', {'character_name': character, 'username': current_user.username})
 
     for item in initiatives:
         username = read_db("users", "username", f"WHERE user_id = '{item[2]}'")[0][0]
@@ -1568,7 +1569,7 @@ def add_character(message):
     user_id = current_user.id
     username = message['username']
     temp_db_read_character_token = read_db("characters", "char_token", f"WHERE user_id = '{user_id}' AND character_name = '{character_name}'")
-    init_val = 0
+    initiative = 0
 
     if temp_db_read_character_token:
         character_image = temp_db_read_character_token[0][0]
@@ -1578,12 +1579,12 @@ def add_character(message):
 
     temp_db_read_init_value = read_db("active_room", "init_val", f"WHERE room_id='{room_id}' AND user_id = '{user_id}' AND character_name = '{character_name}'")
     if temp_db_read_init_value:
-        init_val = temp_db_read_init_value[0][0]
+        initiative = temp_db_read_init_value[0][0]
     else:
         add_to_db("active_room", (room_id, user_id, character_name, 0, 0, character_image))
 
     emit('populate_select_with_character_names', {'character_name': character_name, 'username': username}, room=room_id)
-    emit('initiative_update', {'character_name': character_name, 'init_val': init_val, 'username': username}, room=room_id)
+    emit('initiative_update', {'character_name': character_name, 'init_val': initiative, 'username': username}, room=room_id)
     character_icon_add_database(character_name, username, character_image, user_id, room_id)
     app.logger.debug(f"User {username} has added character {character_name} to the battle")
 
@@ -1607,7 +1608,7 @@ def add_npc(message):
     random_key = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
     character_name = "NPC" + random_key
     username = message['username']
-    init_val = 0
+    initiative = 0
     character_image = random.choice(npc_images)
 
     temp_db_read_init_value = read_db("active_room", "init_val", f"WHERE room_id='{room_id}' AND user_id = '{user_id}' AND character_name = '{character_name}'")
@@ -1617,7 +1618,7 @@ def add_npc(message):
         add_to_db("active_room", (room_id, user_id, character_name, 0, 0, character_image))
 
     emit('populate_select_with_character_names', {'character_name': character_name, 'username': username}, room=room_id)
-    emit('initiative_update', {'character_name': character_name, 'init_val': init_val, 'username': username}, room=room_id)
+    emit('initiative_update', {'character_name': character_name, 'init_val': initiative, 'username': username}, room=room_id)
     character_icon_add_database(character_name, username, character_image, user_id, room_id)
     app.logger.debug(f"User {username} has added character {character_name} to the battle")
 
