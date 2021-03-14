@@ -55,8 +55,30 @@ $(document).ready(function() {
     // Note this apparently only works on Chrome....
     
     var character_info = $(this).find("button[type=submit]:focus" ).val().split("-");
-    
-    socket.emit('remove_character', {character_name: character_info[0].split("_").join(" "),  site_name: character_info[1], init_val:character_info[2] , room_id: room_id});
+    if(window.confirm("Are you sure you want to remove this character from the initiative list?") ) {
+      if (!turn_index) {
+      socket.emit('remove_character', {character_name: character_info[0].split("_").join(" "), 
+                                       site_name: character_info[1],
+                                      init_val:character_info[2], 
+                                       next_character_name: null, 
+                                       next_site_name: null,
+                                        room_id: room_id});
+      return false; 
+      }
+      else {
+        socket.emit('remove_character', {character_name: character_info[0].split("_").join(" "), 
+                                       site_name: character_info[1],
+                                      init_val:character_info[2], 
+                                       next_character_name:initiatives[turn_index][0], 
+                                       next_site_name:initiatives[turn_index][2],
+                                        room_id: room_id});
+
+        
+      }
+
+    }
+
+
     return false;
   });
 
@@ -133,14 +155,20 @@ $(document).ready(function() {
     let old_character_name = character_name.split(" ").join("\\:") + "-init-update";
     let option_character_name = character_name.split(" ").join(":") + "-add-row";
     let token_id = character_name.split(" ").join("\\:") + "_" + msg.site_name
-    if ($('#character_placeholder')) {
-      $('#character_placeholder').remove();
-      $('#add_character_button').prop('disabled', false);
-    }
+    let character_init_list_id = character_name.split(" ").join("_") + "-" + msg.site_name + "-row";
+  
+
     if (character_name.slice(0, 3) != "NPC" && msg.site_name == site_name) {
+      if ($('#character_placeholder')) {
+        $('#character_placeholder').remove();
+        if (!turn_index)  {
+        $('#add_character_button').prop('disabled', false); }
+      }
+      
       $('#character_name').append(`<option id=${option_character_name}>${character_name}</option>`);
     }
    
+    $(`#${character_init_list_id}`).remove();
     $(`#${old_character_name}`).remove();
 
     if ($(`#player_name option`).length == 0){
@@ -148,8 +176,34 @@ $(document).ready(function() {
     }
     
     $(`#${token_id}`).remove();
-    var html_code = update_init_table();
-    $('#initiative-table').html(html_code);
+
+    
+    if (turn_index == msg.init_val && turn_index > initiatives.length) {
+      let new_char_info = initiatives[0];
+      turn_index = 0
+      $(`#${new_char_info[0]}-${new_char_info[2]}-row`).addClass("bg-warning");
+
+      let token_id_to_highlight = new_char_info[0] + "_" + new_char_info[2];
+      $(`#${token_id_to_highlight}`).find("img").css( "border", "3px solid red" );
+
+    }
+    else if (turn_index == msg.init_val){
+      let new_char_info = initiatives[turn_index];
+      $(`#${new_char_info[0]}-${new_char_info[2]}-row`).addClass("bg-warning");
+
+      let token_id_to_highlight = new_char_info[0] + "_" + new_char_info[2];
+      $(`#${token_id_to_highlight}`).find("img").css( "border", "3px solid red" );
+
+    }
+
+    if (!initiatives.length) {
+      $('#start_battle_button').prop('disabled', false);
+      $('#end_battle_button').prop('disabled', true);
+      $('#add_character_button').prop('disabled', false);
+
+     }
+
+
   });
 
 
