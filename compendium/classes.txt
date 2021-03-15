@@ -1,0 +1,36 @@
+CharacterValidation class:
+    name: the character's name
+    race: the character's race
+    subrace: the character's subrace based upon their race
+    speed: the character's base speed in ft/round
+    classname: the character's class
+    subclass: the character's subclass based upon their class
+    level: the character's level
+    strength: the character's strength stat
+    dexterity: the character's dexterity stat
+    constitution: the character's constitution stat
+    intelligence: the character's intelligence stat
+    wisdom: the character's wisdom stat
+    charisma: the character's charisma stat
+    hitpoints: the character's hitpoint maximum
+    character_token: the URL to the character's battlefield icon
+
+RoomValidation class:
+    room_name: the name of the room
+    map_url: the URL that the room uses as it's background
+    dm_notes: the description that the user inputs for a room
+
+UsernameValidation class:
+    username: the username entered by the user
+
+User class:
+    id: the current user's Google id
+    email: the current user's Google email
+    profile_picture: the URL to the current user's Google profile picture
+    username: the current user's username as seen by all users
+
+AnonymousUser class:
+    id: the current user's "fake id" - a randomized 4 digit number
+    email: the current user's "fake email" - always 'None'
+    profile_picture: the URL to the current user's profile picture - always the Google "no profile picture" image
+    username: the current user's "fake username" - always guest + id
