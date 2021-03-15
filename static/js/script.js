@@ -49,6 +49,39 @@ $(document).ready(function() {
 
   var socket = io(namespace);
 
+  $('form#remove_character').submit(function(event) {
+    // character_info is formatted as  " character name- site name - initiative number "
+    // 
+    // Note this apparently only works on Chrome....
+    
+    var character_info = $(this).find("button[type=submit]:focus" ).val().split("-");
+    if(window.confirm("Are you sure you want to remove this character from the initiative list?") ) {
+      if (!turn_index) {
+      socket.emit('remove_character', {character_name: character_info[0].split("_").join(" "), 
+                                       site_name: character_info[1],
+                                      init_val:character_info[2], 
+                                       next_character_name: null, 
+                                       next_site_name: null,
+                                        room_id: room_id});
+      return false; 
+      }
+      else {
+        socket.emit('remove_character', {character_name: character_info[0].split("_").join(" "), 
+                                       site_name: character_info[1],
+                                      init_val:character_info[2], 
+                                       next_character_name:initiatives[turn_index + 1][0], 
+                                       next_site_name:initiatives[turn_index + 1][2],
+                                        room_id: room_id});
+
+        
+      }
+
+    }
+
+
+    return false;
+  });
+
 
   // javascript events
   // TODO: Add room_id to all of the functions
@@ -115,6 +148,65 @@ $(document).ready(function() {
     // TODO: remove character_name. Doesn't look like it does anything
     socket.emit('join_actions', {room_id: room_id, character_name: ""});
   });
+
+
+  socket.on('removed_character', function(msg) {
+    initiatives.splice(msg.init_val, 1);
+    let character_name = msg.character_name;
+    let old_character_name = character_name.split(" ").join("\\:") + "-init-update";
+    let option_character_name = character_name.split(" ").join(":") + "-add-row";
+    let token_id = character_name.split(" ").join("\\:") + "_" + msg.site_name
+    let character_init_list_id = character_name.split(" ").join("_") + "-" + msg.site_name + "-row";
+  
+
+    if (character_name.slice(0, 3) != "NPC" && msg.site_name == site_name) {
+      if ($('#character_placeholder')) {
+        $('#character_placeholder').remove();
+        if (!turn_index)  {
+        $('#add_character_button').prop('disabled', false); }
+      }
+      
+      $('#character_name').append(`<option id=${option_character_name}>${character_name}</option>`);
+    }
+   
+    $(`#${character_init_list_id}`).remove();
+    $(`#${old_character_name}`).remove();
+
+    if ($(`#player_name option`).length == 0){
+      $("#player_name").append(`<option id="init_placeholder"> Add a Character First! </option>`);
+    }
+    
+    $(`#${token_id}`).remove();
+
+    
+    if (turn_index == msg.init_val && turn_index > initiatives.length) {
+      let new_char_info = initiatives[0];
+      turn_index = 0
+      $(`#${new_char_info[0]}-${new_char_info[2]}-row`).addClass("bg-warning");
+
+      let token_id_to_highlight = new_char_info[0] + "_" + new_char_info[2];
+      $(`#${token_id_to_highlight}`).find("img").css( "border", "3px solid red" );
+
+    }
+    else if (turn_index == msg.init_val){
+      let new_char_info = initiatives[turn_index];
+      $(`#${new_char_info[0]}-${new_char_info[2]}-row`).addClass("bg-warning");
+
+      let token_id_to_highlight = new_char_info[0] + "_" + new_char_info[2];
+      $(`#${token_id_to_highlight}`).find("img").css( "border", "3px solid red" );
+
+    }
+
+    if (!initiatives.length) {
+      $('#start_battle_button').prop('disabled', false);
+      $('#end_battle_button').prop('disabled', true);
+      $('#add_character_button').prop('disabled', false);
+
+     }
+
+
+  });
+
 
   socket.on('log_update', function(msg) {
     var log = $('<div/>').text(msg.desc);
@@ -297,7 +389,7 @@ $(document).ready(function() {
       $('#set_initiative_button').prop('disabled', false);
 
       if ($('#character_name option').length == 0) {
-        $('#character_name').append("<option>All Characters are in the Battle!</option>");
+        $(`#character_name`).append(`<option id="character_placeholder">All Characters are in the Battle!</option>`);
         $('#add_character_button').prop('disabled', true);
       }
     }
@@ -335,9 +427,16 @@ $(document).ready(function() {
   function update_init_table() {
     code = "<tbody>";
     for (i = 0; i < initiatives.length; i++) {
-      // TODO: Fix id to work when username has a space in it
       var id = initiatives[i][0].split(" ").join("_");
-      code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td></tr>`;
+      if (initiatives[i][2] == site_name) {
+        code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td>
+         <td>${initiatives[i][1]}</td>
+         <td><button type="submit" class="close" value=${id}-${initiatives[i][2]}-${i} aria-label="close"><span "aria-hidden"="true">&times;</span></button>
+         </td></tr>`;
+      }
+      // TODO: Fix id to work when site_name has a space in it
+      else {
+      code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td><td></td></tr>`; }
     }
   
     code += "</tbody>";
