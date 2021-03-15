@@ -2,17 +2,18 @@
 
 {% block content %}
 <script src="/static/js/page_resize.js"></script>
-<script src="/static/js/script.js"></script>
+<script src="/static/js/dm_play_script.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js" integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ==" crossorigin="anonymous"></script>
 
 <div class="row border-top border-dark" style="height:75%;">
     <div class="col-2 h-100" style="overflow:scroll;">
         <h4 class="text-center">Initiative Order</h4>
-
+        <form class="form" id=remove_character>
         <table id="initiative-table" class="table table-sm text-center">
             <tbody>
             </tbody>
         </table>
+        </form>
     </div>
     <div class="col-8 px-0 mx-0">
         <div id="battle_map_container" class="text-center droppable ui-droppable" style="width:100%">	
