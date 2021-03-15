@@ -1,0 +1,79 @@
+Global variables:
+    battle_sesh_db: The string representation of the name of the battle_sesh db
+    api_db: The string representation of the name of the api db
+    error_db: The string representation of the name of the error db
+
+create_connection:
+    db_file: The name of the db being accessed. Either battle_sesh_db, api_db or error_db
+    conn: The db connection object
+
+create_dbs:
+    NOTE: Looks at the long comment in the create_dbs function for a description of the tables
+    conn: The db connection object
+    cur: The cursor of conn. Use this for changing db information
+
+add_to_db:
+    table_name: The name of the table being accessed
+    conn: The db connection object
+    cur: The cursor of conn. Use this for changing db information.
+
+read_db:
+    table_name: The name of the table being accessed
+    rows: The names of the rows being accessed. Defaults to all rows
+    extra_clause: The filter part of the SQL query. E.G "WHERE user_id = '309423'"
+    read_api_db: A Boolean variable stating if the api db is being accessed
+    db_to_read_from: Either battle_sesh_db or api_db depending on the value of read_api_db
+    conn: The db connection object
+    cur: The cursor of conn. Use this for changing db information.
+    return_list: The list of tuples that gets returned. Can return []
+
+delete_from_db:
+    table_name: The name of the table being accessed
+    extra_clause: The filter part of the SQL query. E.G "WHERE user_id = '309423'"
+    conn: The db connection object
+    cur: The cursor of conn. Use this for changing db information.
+
+reset_db:
+    table_name: The name of the table being accessed
+    conn: The db connection object
+    cur: The cursor of conn. Use this for changing db information.
+
+update_db:
+    table_name: The name of the table being accessed
+    columns_values: The rows being updated and their new values. E.G. "init_val = '0'"
+    extra_clause: The filter part of the SQL query. E.G "WHERE user_id = '309423'"
+    conn: The db connection object
+    cur: The cursor of conn. Use this for changing db information.
+
+build_api_db:
+    decomment:
+        csvfile: The specific csv file being accessed
+        row: The specific row in the file being accessed
+        raw: The row in the specific csv file stripped of its comments
+    files: A list of the csv files from which the api db is built
+    conn: The db connection object
+    cur: The cursor of conn. Use this for changing db information
+    file: The specific file from files that is being accessed
+    reader: The csv file reader object
+
+get_api_info:
+    table: The name of the api table being accessed
+    row: The name of the specific main row that gets accessed (race or class)
+    rows: A complete reading of the specified api table
+    main_column: A complete reading of the specified api table only with the specified column ("WHERE row = '{row}'")
+    main_column_set: The main_column variable represented as a set
+    column_subsets: A dictionary mapping all of the classes or races to the list of their subclasses/subraces
+
+build_error_db:
+    conn: The db connection object
+    cur: The cursor of conn. Use this for changing db information
+
+add_to_error_db:
+    values: A Tuple of the values being added to the error db
+    conn: The db connection object
+    cur: The cursor of conn. Use this for changing db information
+
+read_error_db:
+    conn: The db connection object
+    cur: The cursor of conn. Use this for changing db information
+    return_list: A list of Tuples from the error table that are read

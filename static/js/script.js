@@ -15,7 +15,7 @@ $(document).ready(function() {
 
   var initiatives = [];
   var turn_index = null;
-  var site_name = $('#site_name').text();
+  var username = $('#username').text();
   var room_id = $('#room_id').text();
 
   // TODO: Replacing the form does not work
@@ -49,18 +49,51 @@ $(document).ready(function() {
 
   var socket = io(namespace);
 
+  $('form#remove_character').submit(function(event) {
+    // character_info is formatted as  " character name- site name - initiative number "
+    // 
+    // Note this apparently only works on Chrome....
+    
+    var character_info = $(this).find("button[type=submit]:focus" ).val().split("-");
+    if(window.confirm("Are you sure you want to remove this character from the initiative list?") ) {
+      if (!turn_index) {
+      socket.emit('remove_character', {character_name: character_info[0].split("_").join(" "), 
+                                       site_name: character_info[1],
+                                      init_val:character_info[2], 
+                                       next_character_name: null, 
+                                       next_site_name: null,
+                                        room_id: room_id});
+      return false; 
+      }
+      else {
+        socket.emit('remove_character', {character_name: character_info[0].split("_").join(" "), 
+                                       site_name: character_info[1],
+                                      init_val:character_info[2], 
+                                       next_character_name:initiatives[turn_index + 1][0], 
+                                       next_site_name:initiatives[turn_index + 1][2],
+                                        room_id: room_id});
+
+        
+      }
+
+    }
+
+
+    return false;
+  });
+
 
   // javascript events
   // TODO: Add room_id to all of the functions
   $('form#set_initiative').submit(function(event) {
-    socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), site_name: site_name, room_id: room_id});
+    socket.emit('set_initiative', {character_name: $('#player_name').val(), init_val: $('#initiative_roll').val(), username: username, room_id: room_id});
     $('#initiative_roll').val(''); 
     return false;
   });
 
   $('form#send_chat').submit(function(event) {
     if ($('#chat_text').val().trim().length != 0) {
-      socket.emit('send_chat', {chat: $('#chat_text').val(), character_name: site_name, room_id: room_id});
+      socket.emit('send_chat', {chat: $('#chat_text').val(), username: username, room_id: room_id});
       $('#chat_text').val(''); 
     }
     return false;
@@ -92,17 +125,17 @@ $(document).ready(function() {
     else {
       next_index = turn_index + 1;
     }
-    socket.emit('end_turn', {desc: `${initiatives[turn_index][0]}'s Turn Ended`, previous_character_name: initiatives[turn_index][0], next_character_name: initiatives[next_index][0], previous_site_name: initiatives[turn_index][2], next_site_name: initiatives[next_index][2], room_id: room_id});
+    socket.emit('end_turn', {desc: `${initiatives[turn_index][0]}'s Turn Ended`, previous_character_name: initiatives[turn_index][0], next_character_name: initiatives[next_index][0], previous_username: initiatives[turn_index][2], next_username: initiatives[next_index][2], room_id: room_id});
     return false;
   });
 
   $('form#add_character').submit(function(event) {
-    socket.emit('add_character', {char_name: $('#character_name').val(), site_name: site_name, room_id: room_id});
+    socket.emit('add_character', {char_name: $('#character_name').val(), username: username, room_id: room_id});
     return false;
   });
 
   $('form#add_npc').submit(function(event) {
-    socket.emit('add_npc', {site_name: site_name, room_id: room_id});
+    socket.emit('add_npc', {username: username, room_id: room_id});
     return false;
   });
 
@@ -112,8 +145,68 @@ $(document).ready(function() {
   });
 
   socket.on('joined', function(msg) {
+    // TODO: remove character_name. Doesn't look like it does anything
     socket.emit('join_actions', {room_id: room_id, character_name: ""});
   });
+
+
+  socket.on('removed_character', function(msg) {
+    initiatives.splice(msg.init_val, 1);
+    let character_name = msg.character_name;
+    let old_character_name = character_name.split(" ").join("\\:") + "-init-update";
+    let option_character_name = character_name.split(" ").join(":") + "-add-row";
+    let token_id = character_name.split(" ").join("\\:") + "_" + msg.site_name
+    let character_init_list_id = character_name.split(" ").join("_") + "-" + msg.site_name + "-row";
+  
+
+    if (character_name.slice(0, 3) != "NPC" && msg.site_name == site_name) {
+      if ($('#character_placeholder')) {
+        $('#character_placeholder').remove();
+        if (!turn_index)  {
+        $('#add_character_button').prop('disabled', false); }
+      }
+      
+      $('#character_name').append(`<option id=${option_character_name}>${character_name}</option>`);
+    }
+   
+    $(`#${character_init_list_id}`).remove();
+    $(`#${old_character_name}`).remove();
+
+    if ($(`#player_name option`).length == 0){
+      $("#player_name").append(`<option id="init_placeholder"> Add a Character First! </option>`);
+    }
+    
+    $(`#${token_id}`).remove();
+
+    
+    if (turn_index == msg.init_val && turn_index > initiatives.length) {
+      let new_char_info = initiatives[0];
+      turn_index = 0
+      $(`#${new_char_info[0]}-${new_char_info[2]}-row`).addClass("bg-warning");
+
+      let token_id_to_highlight = new_char_info[0] + "_" + new_char_info[2];
+      $(`#${token_id_to_highlight}`).find("img").css( "border", "3px solid red" );
+
+    }
+    else if (turn_index == msg.init_val){
+      let new_char_info = initiatives[turn_index];
+      $(`#${new_char_info[0]}-${new_char_info[2]}-row`).addClass("bg-warning");
+
+      let token_id_to_highlight = new_char_info[0] + "_" + new_char_info[2];
+      $(`#${token_id_to_highlight}`).find("img").css( "border", "3px solid red" );
+
+    }
+
+    if (!initiatives.length) {
+      $('#start_battle_button').prop('disabled', false);
+      $('#end_battle_button').prop('disabled', true);
+      $('#add_character_button').prop('disabled', false);
+
+     }
+
+
+  });
+
 
   socket.on('log_update', function(msg) {
     var log = $('<div/>').text(msg.desc);
@@ -130,14 +223,14 @@ $(document).ready(function() {
     var updated = false;
 
     for (i = 0; i < initiatives.length; i++) {
-      if (initiatives[i][0] == msg.character_name && initiatives[i][2] == msg.site_name) {
+      if (initiatives[i][0] == msg.character_name && initiatives[i][2] == msg.username) {
         initiatives[i][1] = msg.init_val;
         updated = true;
       }
     }
 
     if (!updated) {
-      initiatives.push([msg.character_name, msg.init_val, msg.site_name]);
+      initiatives.push([msg.character_name, msg.init_val, msg.username]);
     }
 
     initiatives.sort(function(a, b) { 
@@ -187,9 +280,9 @@ $(document).ready(function() {
 
     // $('#initiative-wrapper').html(checklist);
 
-    $(`#${first_turn_name}-${msg.site_name}-row`).addClass("bg-warning");
+    $(`#${first_turn_name}-${msg.username}-row`).addClass("bg-warning");
 
-    let token_id_to_highlight = first_turn_name + "_" + msg.site_name;
+    let token_id_to_highlight = first_turn_name + "_" + msg.username;
     $(`#${token_id_to_highlight}`).find("img").css( "border", "3px solid red" );
 
     $('#set_initiative_button').prop('disabled', true);
@@ -198,7 +291,7 @@ $(document).ready(function() {
     $('#add_character_button').prop('disabled', true);
     $('#add_npc_button').prop('disabled', true);
 
-    if (site_name == msg.site_name) {
+    if (username == msg.username) {
       $('#end_turn_button').prop('disabled', false);
       $('#checklist_div').html(checklist);
     }
@@ -210,14 +303,14 @@ $(document).ready(function() {
     // $('#initiative-wrapper').html(initiative_form);
     $('#checklist_div').html("");
 
-    $(`#${current_turn_name}-${msg.site_name}-row`).removeClass("bg-warning");
+    $(`#${current_turn_name}-${msg.username}-row`).removeClass("bg-warning");
 
     $('#end_turn_button').prop('disabled', true);
     $('#set_initiative_button').prop('disabled', false);
     $('#start_battle_button').prop('disabled', false);
     $('#end_battle_button').prop('disabled', true);
 
-    let token_id_to_unhighlight = current_turn_name + "_" + msg.site_name;
+    let token_id_to_unhighlight = current_turn_name + "_" + msg.username;
     $(`#${token_id_to_unhighlight}`).find("img").css( "border", "0px" ); // Try empty string instead of "0px"
 
     if ($('#character_name option').length != 0) {
@@ -247,17 +340,17 @@ $(document).ready(function() {
     // $('#initiative_wrapper').html(checklist);
     $('#checklist_div').html("");
 
-    $(`#${previous_character_name}-${msg.previous_site_name}-row`).removeClass("bg-warning");
-    $(`#${next_character_name}-${msg.next_site_name}-row`).addClass("bg-warning");
+    $(`#${previous_character_name}-${msg.previous_username}-row`).removeClass("bg-warning");
+    $(`#${next_character_name}-${msg.next_username}-row`).addClass("bg-warning");
 
-    let token_id_to_highlight = next_character_name + "_" + msg.next_site_name;
+    let token_id_to_highlight = next_character_name + "_" + msg.next_username;
     $(`#${token_id_to_highlight}`).find("img").css( "border", "3px solid red" );
 
-    let token_id_to_unhighlight = previous_character_name + "_" + msg.previous_site_name;
+    let token_id_to_unhighlight = previous_character_name + "_" + msg.previous_username;
     $(`#${token_id_to_unhighlight}`).find("img").css( "border", "0px" ); // Try empty string instead of "0px"
 
     $('#end_turn_button').prop('disabled', true);
-    if (site_name == msg.next_site_name) {
+    if (username == msg.next_username) {
       $('#end_turn_button').prop('disabled', false);
       $('#checklist_div').html(checklist);
     }
@@ -265,12 +358,12 @@ $(document).ready(function() {
 
   socket.on('combat_connect', function(msg) {
     var first_turn_name = msg.first_turn_name.split(" ").join("_");
-    turn_index = initiatives.findIndex(x => x[0]===first_turn_name && x[2]===msg.site_name);
+    turn_index = initiatives.findIndex(x => x[0]===first_turn_name && x[2]===msg.username);
 
     // $('#initiative-wrapper').html(checklist);
     // TODO: highlight current character's icon here
 
-    $(`#${first_turn_name}-${msg.site_name}-row`).addClass("bg-warning");
+    $(`#${first_turn_name}-${msg.username}-row`).addClass("bg-warning");
 
     $('#set_initiative_button').prop('disabled', true);
     $('#start_battle_button').prop('disabled', true);
@@ -278,15 +371,15 @@ $(document).ready(function() {
     $('#add_character_button').prop('disabled', true);
     $('#add_npc_button').prop('disabled', true);
 
-    if (site_name == msg.site_name) {
+    if (username == msg.username) {
       $('#end_turn_button').prop('disabled', false);
       $('#checklist_div').html(checklist);
     }
-    setTimeout(() => $(`#${first_turn_name}-${msg.site_name}-row`).addClass("bg-warning"), 100);
+    setTimeout(() => $(`#${first_turn_name}-${msg.username}-row`).addClass("bg-warning"), 100);
   });
 
   socket.on('populate_select_with_character_names', function(msg) {
-    if (msg.site_name == site_name) {
+    if (msg.username == username) {
       let character_name = msg.character_name;
       let id_character_name = character_name.split(" ").join(":") + "-init-update";
       let old_character_name = character_name.split(" ").join("\\:") + "-add-row";
@@ -296,7 +389,7 @@ $(document).ready(function() {
       $('#set_initiative_button').prop('disabled', false);
 
       if ($('#character_name option').length == 0) {
-        $('#character_name').append("<option>All Characters are in the Battle!</option>");
+        $(`#character_name`).append(`<option id="character_placeholder">All Characters are in the Battle!</option>`);
         $('#add_character_button').prop('disabled', true);
       }
     }
@@ -304,7 +397,7 @@ $(document).ready(function() {
 
  socket.on('redraw_character_tokens_on_map', function(msg) {
   for (let character in msg) {
-    let character_site_name = msg[character].site_name;
+    let character_username = msg[character].username;
     let character_name = msg[character].character_name.split(" ").join(":");
     let character_image = msg[character].character_image;
     let room_id = msg[character].room_id;
@@ -314,11 +407,11 @@ $(document).ready(function() {
     let left = msg[character].left;
     let is_turn = msg[character].is_turn;
 
-    let character_html_id_build = character_name + "_" + character_site_name;
+    let character_html_id_build = character_name + "_" + character_username;
 
     let character_token_html = build_html_for_character_icon(character_html_id_build, character_image, height, width, top, left, is_turn);
 
-    let character_html_id_remove = character_name.split(":").join("\\:") + "_" + character_site_name;
+    let character_html_id_remove = character_name.split(":").join("\\:") + "_" + character_username;
 
     $("#" + character_html_id_remove).remove();
     $('#battle_map_container').append(character_token_html.outerHTML);
@@ -334,9 +427,16 @@ $(document).ready(function() {
   function update_init_table() {
     code = "<tbody>";
     for (i = 0; i < initiatives.length; i++) {
-      // TODO: Fix id to work when site_name has a space in it
       var id = initiatives[i][0].split(" ").join("_");
-      code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td></tr>`;
+      if (initiatives[i][2] == site_name) {
+        code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td>
+         <td>${initiatives[i][1]}</td>
+         <td><button type="submit" class="close" value=${id}-${initiatives[i][2]}-${i} aria-label="close"><span "aria-hidden"="true">&times;</span></button>
+         </td></tr>`;
+      }
+      // TODO: Fix id to work when site_name has a space in it
+      else {
+      code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td><td></td></tr>`; }
     }
   
     code += "</tbody>";
@@ -411,18 +511,18 @@ function reloadDroppable(socket, room_id){
     drop: function(event, ui) {
       let new_top = ui.position.top.toString() + "px";
       let new_left = ui.position.left.toString() + "px";
-      let site_name = ui.draggable[0].id.split("_")[1];
+      let username = ui.draggable[0].id.split("_")[1];
       let character_name = ui.draggable[0].id.split("_")[0].split(":").join(" ");
       let partially_sliced_character_image = ui.draggable[0].innerHTML.substring(ui.draggable[0].innerHTML.indexOf("src") + 5);
       let character_image = scrapeCharacterImage(partially_sliced_character_image);
       if (ui.draggable[0].innerHTML.substring(ui.draggable[0].innerHTML.indexOf("border:"), ui.draggable[0].innerHTML.indexOf("border:") + 21) == "border: 3px solid red") {
         var is_turn = 1;
-        socket.emit('character_icon_update_database', {desc: "ChangeLocation", character_image: character_image, site_name: site_name, character_name: character_name, new_top: new_top, new_left: new_left, new_width: "Null", new_height: "Null", is_turn: is_turn, room_id: room_id});
+        socket.emit('character_icon_update_database', {desc: "ChangeLocation", character_image: character_image, username: username, character_name: character_name, new_top: new_top, new_left: new_left, new_width: "Null", new_height: "Null", is_turn: is_turn, room_id: room_id});
         character_image = "";
       }
       else {
         var is_turn = 0;
-        socket.emit('character_icon_update_database', {desc: "ChangeLocation", character_image: character_image, site_name: site_name, character_name: character_name, new_top: new_top, new_left: new_left, new_width: "Null", new_height: "Null", is_turn: is_turn, room_id: room_id});
+        socket.emit('character_icon_update_database', {desc: "ChangeLocation", character_image: character_image, username: username, character_name: character_name, new_top: new_top, new_left: new_left, new_width: "Null", new_height: "Null", is_turn: is_turn, room_id: room_id});
         character_image = "";
       }
     }
@@ -445,16 +545,18 @@ function reloadResizable(socket, room_id) {
       // TODO: Log chracter icon size when done resizing in json positions file
       let new_width = ui.size.width.toString() + "px";
       let new_height = ui.size.height.toString() + "px";
-      let site_name = ui.originalElement[0].offsetParent.id.split("_")[1];
+      let username = ui.originalElement[0].offsetParent.id.split("_")[1];
       let character_name = ui.originalElement[0].offsetParent.id.split("_")[0].split(":").join(" ");
       let character_image = ui.originalElement[0].src;
+      // TODO: Simplify this logic
       if (ui.originalElement[0].outerHTML.substring(ui.originalElement[0].outerHTML.indexOf("border:"), ui.originalElement[0].outerHTML.indexOf("border:") + 21) == "border: 3px solid red") {
         var is_turn = 1;
-        socket.emit('character_icon_update_database', {desc: "Resize", character_image: character_image, site_name: site_name, character_name: character_name, new_top: "Null", new_left: "Null", new_width: new_width, new_height: new_height, is_turn: is_turn, room_id: room_id});
+        // TODO: What about when the character is resize to the left and/or up? The new_top and new_left variables should not be "Null"
+        socket.emit('character_icon_update_database', {desc: "Resize", character_image: character_image, username: username, character_name: character_name, new_top: "Null", new_left: "Null", new_width: new_width, new_height: new_height, is_turn: is_turn, room_id: room_id});
       }
       else {
         var is_turn = 0;
-        socket.emit('character_icon_update_database', {desc: "Resize", character_image: character_image, site_name: site_name, character_name: character_name, new_top: "Null", new_left: "Null", new_width: new_width, new_height: new_height, is_turn: is_turn, room_id: room_id});
+        socket.emit('character_icon_update_database', {desc: "Resize", character_image: character_image, username: username, character_name: character_name, new_top: "Null", new_left: "Null", new_width: new_width, new_height: new_height, is_turn: is_turn, room_id: room_id});
       }
     }
   });
