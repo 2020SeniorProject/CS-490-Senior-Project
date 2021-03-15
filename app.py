@@ -197,10 +197,10 @@ def determine_if_user_spamming(chats):
 
 
 def character_icon_add_database(character_name, site_name, character_image, user_id, room_id):
-    initial_height = "2em"
-    initial_width = "2em"
-    initial_top = "25px"
-    initial_left = "25px"
+    initial_height = "10%"
+    initial_width = "10%"
+    initial_top = "10%"
+    initial_left = "10%"
 
     # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
