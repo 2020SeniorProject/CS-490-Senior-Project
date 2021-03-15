@@ -75,6 +75,13 @@ $(document).ready(function() {
       else if (turn_index == character_info[2]) {
         if (window.confirm("Are you sure you want to remove this character from the initiative list?") ){
           
+          var next_index = null;
+          if (turn_index + 1 == initiatives.length) {
+            next_index = 0;
+          }
+          else {
+            next_index = turn_index + 1;
+          }
         
           // console.log(turn_index)
           // console.log(next_index)
@@ -84,8 +91,8 @@ $(document).ready(function() {
                                         site_name: character_info[1], 
                                         room_id: room_id, 
                                         init_val: character_info[2], 
-                                        next_character_name: initiatives[turn_index][0], 
-                                        next_site_name: initiatives[turn_index][2]} );
+                                        next_character_name: initiatives[turn_index + 1][0], 
+                                        next_site_name: initiatives[turn_index + 1][2]} );
         }
         return false;
         
@@ -166,7 +173,7 @@ $(document).ready(function() {
       if (character_name.slice(0, 3) != "NPC" && msg.site_name == site_name) {
         if ($('#character_placeholder')) {
           $('#character_placeholder').remove();
-          if(!turn_index) {
+          if(turn_index == null) {
           $('#add_character_button').prop('disabled', false); }
         }
         $('#character_name').append(`<option id=${option_character_name}>${character_name}</option>`);

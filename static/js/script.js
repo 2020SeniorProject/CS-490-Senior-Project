@@ -69,8 +69,8 @@ $(document).ready(function() {
         socket.emit('remove_character', {character_name: character_info[0].split("_").join(" "), 
                                        site_name: character_info[1],
                                       init_val:character_info[2], 
-                                       next_character_name:initiatives[turn_index][0], 
-                                       next_site_name:initiatives[turn_index][2],
+                                       next_character_name:initiatives[turn_index + 1][0], 
+                                       next_site_name:initiatives[turn_index + 1][2],
                                         room_id: room_id});
 
         
