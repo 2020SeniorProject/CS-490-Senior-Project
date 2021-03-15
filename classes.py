@@ -13,7 +13,7 @@ import string
 
 
 class CharacterValidation(FlaskForm):
-    name = StringField('Name', [DataRequired(message="Please Input Name"), Length(min=1, max=15, message ="Bad Name Size"), AlphaSpace(message="Names must only be alphanumeric!")])
+    name = StringField('Name', [DataRequired(message="Please Input Name"), Length(min=1, max=25, message ="Bad Name Size"), AlphaSpace(message="Names must only be alphanumeric!")])
     race = StringField('Race', [DataRequired(message="Please choose a race")])
     subrace = StringField('Subrace', [DataRequired(message="Please choose a subrace")])
     speed = IntegerField('speed', [DataRequired(message="Please input Speed"), NumberRange(min=1, max=100, message="Outside Possible Range")])

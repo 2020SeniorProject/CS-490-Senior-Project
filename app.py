@@ -171,11 +171,11 @@ def process_room_form(form, user_id, usage, room_id):
     err_lis = readify_form_errors(form)
     if usage == "create":
         app.logger.debug(f"The room {current_user.get_site_name()} was attempting to create had some errors. Sending back to creation page to fix errors.")
-        return render_template("add_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name() )
+        return render_template("room_create.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name() )
 
     if usage == "edit":
         app.logger.debug(f"The room {current_user.get_site_name()} was attempting to edit had some errors. Sending back to edit page to fix errors.")
-        return render_template("edit_room.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name() )
+        return render_template("room_edit.html", errors=err_lis, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name() )
         
 
 
@@ -222,6 +222,34 @@ def character_icon_add_database(character_name, site_name, character_image, user
     updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     emit('redraw_character_tokens_on_map', updated_character_icon_status, room=room_id)
 
+
+def character_icon_del_database(character_name, site_name, user_id, room_id ):
+    
+    # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    
+    # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
+    wrong_room = []
+    for i in walla_walla:
+        if walla_walla[i]['room_id'] != room_id:
+            wrong_room.append(i)
+    for i in wrong_room:
+        del walla_walla[i]
+
+
+    character_name = " ".join(character_name.split("_"))
+    
+    user_id_character_name = str(user_id) + '_' + str(character_name)
+
+    del walla_walla[user_id_character_name]
+    map_status_json = json.dumps(walla_walla)
+    
+    update_db("room_object", f"map_status = '{map_status_json}'", f"WHERE active_room_id = '{room_id}'" )
+
+    updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    emit("redraw_character_tokens_on_map", updated_character_icon_status, room=room_id)
+
+    
 
 # COMMENTED UNTIL PRODUCTION 
 # #Clears Chat, Log, Active rooms 
@@ -441,7 +469,7 @@ def room_creation():
         app.logger.debug(f"User {current_user.get_site_name()} is attempting to create a new room")
         return process_room_form(form, user_id, "create", "")
 
-    return render_template("add_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg")
+    return render_template("room_create.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url="https://i.pinimg.com/564x/b7/7f/6d/b77f6df018cc374afca057e133fe9814.jpg")
 
 
 @app.route("/rooms/<room_id>", methods=["GET", "POST"])
@@ -458,7 +486,7 @@ def room_edit(room_id):
     if room:
         room = room[0]
         app.logger.debug(f"User {current_user.get_site_name()} is prepping their room for their encounter!")
-        return render_template("edit_room.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url= room[5], room_name=room[2], dm_notes = room[6], room_id=room_id )
+        return render_template("room_edit.html", profile_pic=current_user.get_profile_pic(), site_name=current_user.get_site_name(), map_url= room[5], room_name=room[2], dm_notes = room[6], room_id=room_id )
 
     app.logger.warning(f"User attempted to prep a room with name {room_id}. They do not have a room with that id. Throwing a Bad Request error.")
     raise BadRequest(description=f"You don't have a room with id: {room_id}!")
@@ -468,13 +496,13 @@ def room_edit(room_id):
 @login_required
 def generate_room_id():
     user_id = current_user.get_user_id()
-    room_name = request.form["room_name"]
+    room_id = request.form["room_id"]
     random_key = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
 
     while read_db("room_object", "*", f"WHERE active_room_id = '{random_key}'"):
         random_key = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
 
-    update_db("room_object", f"active_room_id = '{random_key}'", f"WHERE user_key = '{user_id}' AND room_name = '{room_name}'")
+    update_db("room_object", f"active_room_id = '{random_key}'", f"WHERE user_key = '{user_id}' AND row_id = '{room_id}'")
 
     return redirect(url_for('enterRoom', room_id=random_key))
 
@@ -678,13 +706,13 @@ def send_chat(message):
 @socketio.on('start_combat', namespace='/combat')
 def start_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    user_id = current_user.get_user_id()
     room_id = message['room_id']
     characters = read_db("active_room", "user_key, chr_name, init_val", f"WHERE room_id = '{room_id}' ORDER BY init_val, chr_name DESC ")
     first_character = characters[-1]
     character_id = first_character[0]
     character_name = first_character[1]
     site_name = read_db("users", "site_name", f"WHERE user_id = '{first_character[0]}'")[0][0]
+    user_id = first_character[0]
     app.logger.debug(f"Battle update: Combat has started in room {room_id}")
 
     # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
@@ -714,13 +742,13 @@ def start_combat(message):
 @socketio.on('end_combat', namespace='/combat')
 def end_combat(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    user_id = current_user.get_user_id()
     room_id = message['room_id']
     character = read_db("active_room","user_key, chr_name", f"WHERE room_id = '{room_id}' AND is_turn = '1'")[0]
     character_id = character[0]
     character_name = character[1]
     site_name = read_db("users", "site_name", f"WHERE user_id = '{character[0]}'")[0][0]
     app.logger.debug(f"Battle update: Combat has ended in room {room_id}")
+    user_id = character[0]
 
     # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
@@ -764,10 +792,10 @@ def end_session(message):
 @socketio.on('end_turn', namespace='/combat')
 def end_turn(message):
     time_rcvd = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
-    previous_character_id = current_user.get_user_id()
     previous_character_name = message['previous_character_name']
     next_character_name = message['next_character_name']
     previous_site_name = message['previous_site_name']
+    previous_character_id = read_db("users", "user_id", f"WHERE site_name = '{previous_site_name}'")[0][0]
     next_site_name = message['next_site_name']
     room_id = message['room_id']
     next_character_id = read_db("users", "user_id", f"WHERE site_name = '{next_site_name}'")[0][0]
@@ -946,6 +974,60 @@ def add_character(message):
     emit('initiative_update', {'character_name': character_name, 'init_val': init_val, 'site_name': site_name}, room=room_id)
     character_icon_add_database(character_name, site_name, character_image, user_id, room_id)
     app.logger.debug(f"User {site_name} has added character {character_name} to the battle")
+
+
+
+@socketio.on('remove_character', namespace="/combat")
+def remove_character(message):
+    room_id = message['room_id']    
+    site_name = message['site_name']
+    character_name = message["character_name"]
+    user_id = read_db("users", "user_id", f"WHERE site_name = '{site_name}'")[0][0]     # Required for the removal from the room's JSON
+    
+
+
+    if message["next_character_name"]:
+        next_site_name = message["next_site_name"]
+        next_character_name = message["next_character_name"]
+        next_character_id = read_db("users", "user_id", f"WHERE site_name = '{next_site_name}'")[0][0]
+
+        # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+        walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+        
+        # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
+        wrong_room = []
+        for i in walla_walla:
+            if walla_walla[i]['room_id'] != room_id:
+                wrong_room.append(i)
+        for i in wrong_room:
+            del walla_walla[i]
+        previous_user_id_character_name = str(user_id) + '_' + str(character_name)
+        next_user_id_character_name = str(next_character_id) + '_' + str(next_character_name)
+        previous_json_character_to_update = { previous_user_id_character_name: {"site_name": site_name, "character_name": character_name, "room_id": room_id, "character_image": walla_walla[previous_user_id_character_name]['character_image'], "height": walla_walla[previous_user_id_character_name]['height'], "width": walla_walla[previous_user_id_character_name]['width'], "top": walla_walla[previous_user_id_character_name]['top'], "left": walla_walla[previous_user_id_character_name]['left'], "is_turn": 0}}
+        next_json_character_to_update = { next_user_id_character_name: {"site_name": next_site_name, "character_name": next_character_name, "room_id": room_id, "character_image": walla_walla[next_user_id_character_name]['character_image'], "height": walla_walla[next_user_id_character_name]['height'], "width": walla_walla[next_user_id_character_name]['width'], "top": walla_walla[next_user_id_character_name]['top'], "left": walla_walla[next_user_id_character_name]['left'], "is_turn": 1}}
+        walla_walla[previous_user_id_character_name] = previous_json_character_to_update[previous_user_id_character_name]
+        walla_walla[next_user_id_character_name] = next_json_character_to_update[next_user_id_character_name]
+        characters_json = json.dumps(walla_walla)
+        update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
+
+        update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_key = '{next_character_id}' AND chr_name = '{next_character_name}'")    
+
+
+    
+    character_icon_del_database(character_name, site_name, user_id, room_id)
+
+    delete_from_db("active_room", f"WHERE room_id = '{room_id}' and chr_name = '{character_name}' and user_key = '{user_id}'")
+
+
+    emit('removed_character', {"site_name":site_name, "character_name": ":".join(character_name.split("_")), "user_id":user_id, "init_val":message["init_val"]}, room=room_id)
+
+    app.logger.debug(f"User {site_name} has removed character {character_name} from the battle")
+
+
+
+
+
+
 
 @socketio.on('add_npc', namespace='/combat')
 def add_npc(message):
