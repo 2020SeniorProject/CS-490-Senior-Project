@@ -892,7 +892,7 @@ def generate_room_id():
     while read_db("room_object", "*", f"WHERE active_room_id = '{random_key}'"):
         random_key = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(8))
 
-    update_db("room_object", f"active_room_id = '{random_key}'", f"WHERE user_id = '{user_id}' AND row_id = '{room_id}'")
+    update_db("room_object", f"active_room_id = '{random_key}'", f"WHERE user_id = '{user_id}' AND row_id = '{room_name}'")
 
     return redirect(url_for('enterRoom', room_id=random_key))
 
@@ -1594,7 +1594,7 @@ def add_character(message):
     character_name = message['char_name']
     room_id = message['room_id']
     user_id = current_user.id
-    username = message['username']
+    username = message['site_name']
     temp_db_read_character_token = read_db("characters", "char_token", f"WHERE user_id = '{user_id}' AND character_name = '{character_name}'")
     initiative = 0
 
@@ -1610,8 +1610,8 @@ def add_character(message):
     else:
         add_to_db("active_room", (room_id, user_id, character_name, 0, 0, character_image))
 
-    emit('populate_select_with_character_names', {'character_name': character_name, 'username': username}, room=room_id)
-    emit('initiative_update', {'character_name': character_name, 'init_val': initiative, 'username': username}, room=room_id)
+    emit('populate_select_with_character_names', {'character_name': character_name, 'site_name': username}, room=room_id)
+    emit('initiative_update', {'character_name': character_name, 'init_val': initiative, 'site_name': username}, room=room_id)
     character_icon_add_database(character_name, username, character_image, user_id, room_id)
     app.logger.debug(f"User {username} has added character {character_name} to the battle")
 
@@ -1746,8 +1746,8 @@ def generic_error(e):
     deals with all user errors, such as attempting to
     connect to a route on the site that does not exist.
     """
-        app.logger.warning(f"A HTTP error with code {e.code} has occurred. Handling the error.")
-        return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description, username=current_user.username, profile_picture=current_user.profile_picture), e.code
+    app.logger.warning(f"A HTTP error with code {e.code} has occurred. Handling the error.")
+    return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description, username=current_user.username, profile_picture=current_user.profile_picture), e.code
 
 
 @app.errorhandler(Exception)

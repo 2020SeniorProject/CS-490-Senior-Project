@@ -405,7 +405,7 @@ $(document).ready(function() {
   
    socket.on('redraw_character_tokens_on_map', function(msg) {
     for (let character in msg) {
-      let character_site_name = msg[character].site_name;
+      let character_site_name = msg[character].username;
       let character_name = msg[character].character_name.split(" ").join(":");
       let character_image = msg[character].character_image;
       let room_id = msg[character].room_id;
