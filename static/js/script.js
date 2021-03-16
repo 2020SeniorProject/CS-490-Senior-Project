@@ -58,19 +58,19 @@ $(document).ready(function() {
     if(window.confirm("Are you sure you want to remove this character from the initiative list?") ) {
       if (!turn_index) {
       socket.emit('remove_character', {character_name: character_info[0].split("_").join(" "), 
-                                       site_name: character_info[1],
+                                       username: character_info[1],
                                       init_val:character_info[2], 
                                        next_character_name: null, 
-                                       next_site_name: null,
+                                       next_username: null,
                                         room_id: room_id});
       return false; 
       }
       else {
         socket.emit('remove_character', {character_name: character_info[0].split("_").join(" "), 
-                                       site_name: character_info[1],
+                                       username: character_info[1],
                                       init_val:character_info[2], 
                                        next_character_name:initiatives[turn_index + 1][0], 
-                                       next_site_name:initiatives[turn_index + 1][2],
+                                       next_username:initiatives[turn_index + 1][2],
                                         room_id: room_id});
 
         
@@ -155,11 +155,11 @@ $(document).ready(function() {
     let character_name = msg.character_name;
     let old_character_name = character_name.split(" ").join("\\:") + "-init-update";
     let option_character_name = character_name.split(" ").join(":") + "-add-row";
-    let token_id = character_name.split(" ").join("\\:") + "_" + msg.site_name
-    let character_init_list_id = character_name.split(" ").join("_") + "-" + msg.site_name + "-row";
+    let token_id = character_name.split(" ").join("\\:") + "_" + msg.username
+    let character_init_list_id = character_name.split(" ").join("_") + "-" + msg.username + "-row";
   
 
-    if (character_name.slice(0, 3) != "NPC" && msg.site_name == site_name) {
+    if (character_name.slice(0, 3) != "NPC" && msg.username == username) {
       if ($('#character_placeholder')) {
         $('#character_placeholder').remove();
         if (!turn_index)  {
@@ -428,13 +428,13 @@ $(document).ready(function() {
     code = "<tbody>";
     for (i = 0; i < initiatives.length; i++) {
       var id = initiatives[i][0].split(" ").join("_");
-      if (initiatives[i][2] == site_name) {
+      if (initiatives[i][2] == username) {
         code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td>
          <td>${initiatives[i][1]}</td>
          <td><button type="submit" class="close" value=${id}-${initiatives[i][2]}-${i} aria-label="close"><span "aria-hidden"="true">&times;</span></button>
          </td></tr>`;
       }
-      // TODO: Fix id to work when site_name has a space in it
+      // TODO: Fix id to work when username has a space in it
       else {
       code += `<tr id=${id}-${initiatives[i][2]}-row><td>${initiatives[i][0]}</td><td>${initiatives[i][1]}</td><td></td></tr>`; }
     }
@@ -513,7 +513,7 @@ function reloadDroppable(socket, room_id){
       let parent_height = $("#"+ui.draggable[0].id).parent().height();
       let new_top = (ui.position.top / parent_height)*100 + "%";
       let new_left = (ui.position.left / parent_width)*100 + "%";
-      let site_name = ui.draggable[0].id.split("_")[1];
+      let username = ui.draggable[0].id.split("_")[1];
       let username = ui.draggable[0].id.split("_")[1];
       let character_name = ui.draggable[0].id.split("_")[0].split(":").join(" ");
       let partially_sliced_character_image = ui.draggable[0].innerHTML.substring(ui.draggable[0].innerHTML.indexOf("src") + 5);
