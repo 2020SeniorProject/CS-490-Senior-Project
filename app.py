@@ -1624,8 +1624,6 @@ def remove_character(message):
     username = message['username']
     character_name = message["character_name"]
     user_id = read_db("users", "user_id", f"WHERE username = '{username}'")[0][0]     # Required for the removal from the room's JSON
-    
-
 
     if message["next_character_name"]:
         next_username = message["next_username"]
@@ -1651,23 +1649,16 @@ def remove_character(message):
         characters_json = json.dumps(walla_walla)
         update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
-        update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_key = '{next_character_id}' AND chr_name = '{next_character_name}'")    
-
-
+        update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_key = '{next_character_id}' AND character_name = '{next_character_name}'")    
     
     character_icon_del_database(character_name, username, user_id, room_id)
 
-    delete_from_db("active_room", f"WHERE room_id = '{room_id}' and chr_name = '{character_name}' and user_key = '{user_id}'")
+    delete_from_db("active_room", f"WHERE room_id = '{room_id}' and character_name = '{character_name}' and user_key = '{user_id}'")
 
 
     emit('removed_character', {"username":username, "character_name": ":".join(character_name.split("_")), "user_id":user_id, "init_val":message["init_val"]}, room=room_id)
 
     app.logger.debug(f"User {username} has removed character {character_name} from the battle")
-
-
-
-
-
 
 
 @socketio.on('add_npc', namespace='/combat')
