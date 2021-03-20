@@ -358,24 +358,22 @@ def character_icon_add_database(character_name, username, character_image, user_
     initial_top = "10%"
     initial_left = "10%"
 
-    # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     
-    # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
+    # Clean up locally read copy of map_status
     wrong_room = []
-    for i in walla_walla:
-        if walla_walla[i]['room_id'] != room_id:
+    for i in map_status:
+        if map_status[i]['room_id'] != room_id:
             wrong_room.append(i)
     for i in wrong_room:
-        del walla_walla[i]
+        del map_status[i]
 
     user_id_character_name = str(user_id) + '_' + str(character_name)
     json_character_to_add = { user_id_character_name: {"username": username, "character_name": character_name, "room_id": room_id, "character_image": character_image, "height": initial_height, "width": initial_width, "top": initial_top, "left": initial_left, "is_turn": 0}}
-    walla_walla[user_id_character_name] = json_character_to_add[user_id_character_name]
-    map_status_json = json.dumps(walla_walla)
+    map_status[user_id_character_name] = json_character_to_add[user_id_character_name]
+    map_status_json = json.dumps(map_status)
     update_db("room_object", f"map_status = '{map_status_json}'", f"WHERE active_room_id = '{room_id}'")
 
-    # TODO: Is this not just `walla_walla`?
     updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     emit('redraw_character_tokens_on_map', updated_character_icon_status, room=room_id)
 
@@ -430,24 +428,23 @@ def load_user(user_id):
 
 def character_icon_del_database(character_name, site_name, user_id, room_id ):
     
-    # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     
-    # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
+    # Clean up locally read copy of map_status
     wrong_room = []
-    for i in walla_walla:
-        if walla_walla[i]['room_id'] != room_id:
+    for i in map_status:
+        if map_status[i]['room_id'] != room_id:
             wrong_room.append(i)
     for i in wrong_room:
-        del walla_walla[i]
+        del map_status[i]
 
 
     character_name = " ".join(character_name.split("_"))
     
     user_id_character_name = str(user_id) + '_' + str(character_name)
 
-    del walla_walla[user_id_character_name]
-    map_status_json = json.dumps(walla_walla)
+    del map_status[user_id_character_name]
+    map_status_json = json.dumps(map_status)
     
     update_db("room_object", f"map_status = '{map_status_json}'", f"WHERE active_room_id = '{room_id}'" )
 
@@ -1259,21 +1256,20 @@ def start_combat(message):
     username = read_db("users", "username", f"WHERE user_id = '{first_character[0]}'")[0][0]
     app.logger.debug(f"Battle update: Combat has started in room {room_id}")
 
-    # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     
-    # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
+    # Clean up locally read copy of map_status
     wrong_room = []
-    for i in walla_walla:
-        if walla_walla[i]['room_id'] != room_id:
+    for i in map_status:
+        if map_status[i]['room_id'] != room_id:
             wrong_room.append(i)
     for i in wrong_room:
-        del walla_walla[i]
+        del map_status[i]
 
     user_id_character_name = str(user_id) + '_' + str(character_name)
-    json_character_to_update = { user_id_character_name: {"username": username, "character_name": character_name, "room_id": room_id, "character_image": walla_walla[user_id_character_name]['character_image'], "height": walla_walla[user_id_character_name]['height'], "width": walla_walla[user_id_character_name]['width'], "top": walla_walla[user_id_character_name]['top'], "left": walla_walla[user_id_character_name]['left'], "is_turn": 1}}
-    walla_walla[user_id_character_name] = json_character_to_update[user_id_character_name]
-    characters_json = json.dumps(walla_walla)
+    json_character_to_update = { user_id_character_name: {"username": username, "character_name": character_name, "room_id": room_id, "character_image": map_status[user_id_character_name]['character_image'], "height": map_status[user_id_character_name]['height'], "width": map_status[user_id_character_name]['width'], "top": map_status[user_id_character_name]['top'], "left": map_status[user_id_character_name]['left'], "is_turn": 1}}
+    map_status[user_id_character_name] = json_character_to_update[user_id_character_name]
+    characters_json = json.dumps(map_status)
     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
     update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_id = '{first_character[0]}' AND character_name = '{first_character[1]}' AND init_val = '{first_character[2]}'")
@@ -1306,21 +1302,20 @@ def end_combat(message):
     app.logger.debug(f"Battle update: Combat has ended in room {room_id}")
     user_id = character[0]
 
-    # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     
-    # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
+    # Clean up locally read copy of map_status
     wrong_room = []
-    for i in walla_walla:
-        if walla_walla[i]['room_id'] != room_id:
+    for i in map_status:
+        if map_status[i]['room_id'] != room_id:
             wrong_room.append(i)
     for i in wrong_room:
-        del walla_walla[i]
+        del map_status[i]
 
     user_id_character_name = str(user_id) + '_' + str(character_name)
-    json_character_to_update = { user_id_character_name: {"username": username, "character_name": character_name, "room_id": room_id, "character_image": walla_walla[user_id_character_name]['character_image'], "height": walla_walla[user_id_character_name]['height'], "width": walla_walla[user_id_character_name]['width'], "top": walla_walla[user_id_character_name]['top'], "left": walla_walla[user_id_character_name]['left'], "is_turn": 0}}
-    walla_walla[user_id_character_name] = json_character_to_update[user_id_character_name]
-    characters_json = json.dumps(walla_walla)
+    json_character_to_update = { user_id_character_name: {"username": username, "character_name": character_name, "room_id": room_id, "character_image": map_status[user_id_character_name]['character_image'], "height": map_status[user_id_character_name]['height'], "width": map_status[user_id_character_name]['width'], "top": map_status[user_id_character_name]['top'], "left": map_status[user_id_character_name]['left'], "is_turn": 0}}
+    map_status[user_id_character_name] = json_character_to_update[user_id_character_name]
+    characters_json = json.dumps(map_status)
     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
     update_db("active_room", f"is_turn = '{0}'", f"WHERE room_id = '{room_id}'")
@@ -1387,24 +1382,23 @@ def end_turn(message):
     next_character_id = read_db("users", "user_id", f"WHERE username = '{next_username}'")[0][0]
     app.logger.debug(f"Battle update: {previous_character_name}'s turn has ended. It is now {next_character_name}'s turn in room {room_id}")
 
-    # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     
-    # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
+    # Clean up locally read copy of map_status
     wrong_room = []
-    for i in walla_walla:
-        if walla_walla[i]['room_id'] != room_id:
+    for i in map_status:
+        if map_status[i]['room_id'] != room_id:
             wrong_room.append(i)
     for i in wrong_room:
-        del walla_walla[i]
+        del map_status[i]
 
     previous_user_id_character_name = str(previous_character_id) + '_' + str(previous_character_name)
     next_user_id_character_name = str(next_character_id) + '_' + str(next_character_name)
-    previous_json_character_to_update = { previous_user_id_character_name: {"username": previous_username, "character_name": previous_character_name, "room_id": room_id, "character_image": walla_walla[previous_user_id_character_name]['character_image'], "height": walla_walla[previous_user_id_character_name]['height'], "width": walla_walla[previous_user_id_character_name]['width'], "top": walla_walla[previous_user_id_character_name]['top'], "left": walla_walla[previous_user_id_character_name]['left'], "is_turn": 0}}
-    next_json_character_to_update = { next_user_id_character_name: {"username": next_username, "character_name": next_character_name, "room_id": room_id, "character_image": walla_walla[next_user_id_character_name]['character_image'], "height": walla_walla[next_user_id_character_name]['height'], "width": walla_walla[next_user_id_character_name]['width'], "top": walla_walla[next_user_id_character_name]['top'], "left": walla_walla[next_user_id_character_name]['left'], "is_turn": 1}}
-    walla_walla[previous_user_id_character_name] = previous_json_character_to_update[previous_user_id_character_name]
-    walla_walla[next_user_id_character_name] = next_json_character_to_update[next_user_id_character_name]
-    characters_json = json.dumps(walla_walla)
+    previous_json_character_to_update = { previous_user_id_character_name: {"username": previous_username, "character_name": previous_character_name, "room_id": room_id, "character_image": map_status[previous_user_id_character_name]['character_image'], "height": map_status[previous_user_id_character_name]['height'], "width": map_status[previous_user_id_character_name]['width'], "top": map_status[previous_user_id_character_name]['top'], "left": map_status[previous_user_id_character_name]['left'], "is_turn": 0}}
+    next_json_character_to_update = { next_user_id_character_name: {"username": next_username, "character_name": next_character_name, "room_id": room_id, "character_image": map_status[next_user_id_character_name]['character_image'], "height": map_status[next_user_id_character_name]['height'], "width": map_status[next_user_id_character_name]['width'], "top": map_status[next_user_id_character_name]['top'], "left": map_status[next_user_id_character_name]['left'], "is_turn": 1}}
+    map_status[previous_user_id_character_name] = previous_json_character_to_update[previous_user_id_character_name]
+    map_status[next_user_id_character_name] = next_json_character_to_update[next_user_id_character_name]
+    characters_json = json.dumps(map_status)
     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
     update_db("active_room", f"is_turn = '{0}'", f"WHERE room_id = '{room_id}'AND user_id = '{previous_character_id}' AND character_name = '{previous_character_name}'")
@@ -1455,16 +1449,15 @@ def connect(message):
     room_id = message['room_id']
     initiatives = read_db("active_room", "character_name, init_val, user_id", f"WHERE room_id = '{room_id}'")
     chats = read_db("chat", "username, chat", f"WHERE room_id = '{room_id}'")
-    # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     
-    # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
+    # Clean up locally read copy of map_status
     wrong_room = []
-    for i in walla_walla:
-        if walla_walla[i]['room_id'] != room_id:
+    for i in map_status:
+        if map_status[i]['room_id'] != room_id:
             wrong_room.append(i)
     for i in wrong_room:
-        del walla_walla[i]
+        del map_status[i]
 
     add_to_db("log", (room_id, user_id, "Connection", f"User with id {user_id} connected", time_received))
     app.logger.debug(f"Battle update: User {current_user.username} has connected to room {room_id}")
@@ -1475,9 +1468,9 @@ def connect(message):
     character_names_read_from_db = read_db("active_room", "character_name", f"WHERE user_id='{user_id}' AND room_id='{room_id}'")
     for name in character_names_read_from_db:
         your_characters.append(name[0])
-    for player_id in walla_walla:
-        if player_id == user_id and walla_walla[player_id]['character_name'] not in your_characters:
-            your_characters.append(walla_walla[player_id]['character_name'])
+    for player_id in map_status:
+        if player_id == user_id and map_status[player_id]['character_name'] not in your_characters:
+            your_characters.append(map_status[player_id]['character_name'])
     for character in your_characters:
         emit('populate_select_with_character_names', {'character_name': character, 'username': current_user.username})
 
@@ -1491,8 +1484,8 @@ def connect(message):
     emit('log_update', {'desc': "Chat History Received"})
 
     # populate the map with the character tokens
-    if walla_walla:
-        emit('redraw_character_tokens_on_map', walla_walla, room=room_id)
+    if map_status:
+        emit('redraw_character_tokens_on_map', map_status, room=room_id)
         emit('log_update', {'desc': "Character Tokens Received"})
 
     if read_db("active_room", "*", f"WHERE room_id = '{room_id}' AND is_turn = '1'"):
@@ -1532,40 +1525,39 @@ def character_icon_update_database(message):
         if temp_read_for_user_id[character]['username'] == message['username'] and temp_read_for_user_id[character]['character_name'] == message['character_name']:
             user_id_character_name = character
     
-    # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     
-    # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
+    # Clean up locally read copy of map_status
     wrong_room = []
-    for i in walla_walla:
-        if walla_walla[i]['room_id'] != room_id:
+    for i in map_status:
+        if map_status[i]['room_id'] != room_id:
             wrong_room.append(i)
     for i in wrong_room:
-        del walla_walla[i]
+        del map_status[i]
 
     # Ensure that there is a valid value for the token position and size
     if message['new_top'] == "Null":
-        new_top = walla_walla[user_id_character_name]['top']
+        new_top = map_status[user_id_character_name]['top']
     else:
         new_top = message['new_top']
     if message['new_left'] == "Null":
-        new_left = walla_walla[user_id_character_name]['left']
+        new_left = map_status[user_id_character_name]['left']
     else:
         new_left = message['new_left']
     if message['new_width'] == "Null":
-        new_width = walla_walla[user_id_character_name]['width']
+        new_width = map_status[user_id_character_name]['width']
     else:
         new_width = message['new_width']
     if message['new_height'] == "Null":
-        new_height = walla_walla[user_id_character_name]['height']
+        new_height = map_status[user_id_character_name]['height']
     else:
         new_height = message['new_height']
         
 
     # TODO: Add check here to make sure that the token you're trying to move is your own and not someone elses. Check the user_id_character_name from user_id_character_name = character in the loop above against current_user.username. Add exception for if you are the DM
     json_character_to_update = { user_id_character_name: {"username": message['username'], "character_name": message['character_name'], "room_id": message['room_id'], "character_image": message['character_image'], "height": new_height, "width": new_width, "top": new_top, "left": new_left, "is_turn": message['is_turn']}}
-    walla_walla[user_id_character_name] = json_character_to_update[user_id_character_name]
-    characters_json = json.dumps(walla_walla)
+    map_status[user_id_character_name] = json_character_to_update[user_id_character_name]
+    characters_json = json.dumps(map_status)
     update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
     if message['desc'] == "Resize":
@@ -1574,7 +1566,7 @@ def character_icon_update_database(message):
         app.logger.debug(f"User {username} has moved their character to X:{message['new_left']}, Y:{message['new_top']}")
         emit('log_update', {'desc': f"{message['character_name']} moved"}, room=room_id)
 
-    emit('redraw_character_tokens_on_map', walla_walla, room=room_id)
+    emit('redraw_character_tokens_on_map', map_status, room=room_id)
 
 
 @socketio.on('add_character', namespace='/combat')
@@ -1632,23 +1624,22 @@ def remove_character(message):
         next_character_name = message["next_character_name"]
         next_character_id = read_db("users", "user_id", f"WHERE site_name = '{next_site_name}'")[0][0]
 
-        # map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-        walla_walla = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+        map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
         
-        # Clean up locally read copy of map_status (or walla_walla in the interm). This is a temporary solution to the larger design problem described at the end of this file. This also fails to preserve character token locations through multiple sessions. Make sure to replace walla_walla with map_status when this is resolved
+        # Clean up locally read copy of map_status
         wrong_room = []
-        for i in walla_walla:
-            if walla_walla[i]['room_id'] != room_id:
+        for i in map_status:
+            if map_status[i]['room_id'] != room_id:
                 wrong_room.append(i)
         for i in wrong_room:
-            del walla_walla[i]
+            del map_status[i]
         previous_user_id_character_name = str(user_id) + '_' + str(character_name)
         next_user_id_character_name = str(next_character_id) + '_' + str(next_character_name)
-        previous_json_character_to_update = { previous_user_id_character_name: {"site_name": site_name, "character_name": character_name, "room_id": room_id, "character_image": walla_walla[previous_user_id_character_name]['character_image'], "height": walla_walla[previous_user_id_character_name]['height'], "width": walla_walla[previous_user_id_character_name]['width'], "top": walla_walla[previous_user_id_character_name]['top'], "left": walla_walla[previous_user_id_character_name]['left'], "is_turn": 0}}
-        next_json_character_to_update = { next_user_id_character_name: {"site_name": next_site_name, "character_name": next_character_name, "room_id": room_id, "character_image": walla_walla[next_user_id_character_name]['character_image'], "height": walla_walla[next_user_id_character_name]['height'], "width": walla_walla[next_user_id_character_name]['width'], "top": walla_walla[next_user_id_character_name]['top'], "left": walla_walla[next_user_id_character_name]['left'], "is_turn": 1}}
-        walla_walla[previous_user_id_character_name] = previous_json_character_to_update[previous_user_id_character_name]
-        walla_walla[next_user_id_character_name] = next_json_character_to_update[next_user_id_character_name]
-        characters_json = json.dumps(walla_walla)
+        previous_json_character_to_update = { previous_user_id_character_name: {"site_name": site_name, "character_name": character_name, "room_id": room_id, "character_image": map_status[previous_user_id_character_name]['character_image'], "height": map_status[previous_user_id_character_name]['height'], "width": map_status[previous_user_id_character_name]['width'], "top": map_status[previous_user_id_character_name]['top'], "left": map_status[previous_user_id_character_name]['left'], "is_turn": 0}}
+        next_json_character_to_update = { next_user_id_character_name: {"site_name": next_site_name, "character_name": next_character_name, "room_id": room_id, "character_image": map_status[next_user_id_character_name]['character_image'], "height": map_status[next_user_id_character_name]['height'], "width": map_status[next_user_id_character_name]['width'], "top": map_status[next_user_id_character_name]['top'], "left": map_status[next_user_id_character_name]['left'], "is_turn": 1}}
+        map_status[previous_user_id_character_name] = previous_json_character_to_update[previous_user_id_character_name]
+        map_status[next_user_id_character_name] = next_json_character_to_update[next_user_id_character_name]
+        characters_json = json.dumps(map_status)
         update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
         update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_key = '{next_character_id}' AND chr_name = '{next_character_name}'")    
