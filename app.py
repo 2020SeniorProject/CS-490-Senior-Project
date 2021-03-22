@@ -115,7 +115,8 @@ Functions:
         4. process_room_form
         5. determine_if_user_spamming
         6. character_icon_add_database
-        7. clean_dbs
+        7. character_icon_del_database
+        8. clean_dbs
 """
 
 def get_google_provider_cfg():
@@ -360,7 +361,6 @@ def character_icon_add_database(character_name, username, character_image, user_
 
     map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     
-    # Clean up locally read copy of map_status
     wrong_room = []
     for i in map_status:
         if map_status[i]['room_id'] != room_id:
@@ -376,6 +376,50 @@ def character_icon_add_database(character_name, username, character_image, user_
 
     updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     emit('redraw_character_tokens_on_map', updated_character_icon_status, room=room_id)
+
+
+def character_icon_del_database(character_name, username, user_id, room_id ):
+    """
+    The character_icon_del_database function.
+    This function takes a character's name, the
+    username of the owner of the character, 
+    the user's id and the room's
+    id. Using this information, a character's token
+    is removed from the database.
+
+    :param character_name:
+        The name of the character whose token
+        is being deleted.
+    :param username:
+        The username of the user who "owns" the
+        character..
+    :param user_id:
+        The user_id of the owner of the character
+    :param room_id:
+        The id of the room that the character's token
+        is being deleted from.
+    """
+    map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    
+    wrong_room = []
+    for i in map_status:
+        if map_status[i]['room_id'] != room_id:
+            wrong_room.append(i)
+    for i in wrong_room:
+        del map_status[i]
+
+
+    character_name = " ".join(character_name.split("_"))
+    
+    user_id_character_name = str(user_id) + '_' + str(character_name)
+
+    del map_status[user_id_character_name]
+    map_status_json = json.dumps(map_status)
+    
+    update_db("room_object", f"map_status = '{map_status_json}'", f"WHERE active_room_id = '{room_id}'" )
+
+    updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    emit("redraw_character_tokens_on_map", updated_character_icon_status, room=room_id)
 
 
 def clean_dbs():
@@ -425,31 +469,6 @@ def load_user(user_id):
     if not db_response:
         return None
     return User(id_=db_response[0][0], email=db_response[0][1], profile_picture=db_response[0][2], username=db_response[0][3])
-
-def character_icon_del_database(character_name, site_name, user_id, room_id ):
-    
-    map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    
-    # Clean up locally read copy of map_status
-    wrong_room = []
-    for i in map_status:
-        if map_status[i]['room_id'] != room_id:
-            wrong_room.append(i)
-    for i in wrong_room:
-        del map_status[i]
-
-
-    character_name = " ".join(character_name.split("_"))
-    
-    user_id_character_name = str(user_id) + '_' + str(character_name)
-
-    del map_status[user_id_character_name]
-    map_status_json = json.dumps(map_status)
-    
-    update_db("room_object", f"map_status = '{map_status_json}'", f"WHERE active_room_id = '{room_id}'" )
-
-    updated_character_icon_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
-    emit("redraw_character_tokens_on_map", updated_character_icon_status, room=room_id)
 
 
 @login_manager.unauthorized_handler
@@ -1143,7 +1162,8 @@ SocketIO Handlers:
         8.  join_actions
         9.  character_icon_update_database
         10. add_character
-        11. add_npc
+        11. remove_character
+        12. add_npc
 """
 
 
@@ -1258,7 +1278,7 @@ def start_combat(message):
 
     map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     
-    # Clean up locally read copy of map_status
+    
     wrong_room = []
     for i in map_status:
         if map_status[i]['room_id'] != room_id:
@@ -1304,7 +1324,6 @@ def end_combat(message):
 
     map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     
-    # Clean up locally read copy of map_status
     wrong_room = []
     for i in map_status:
         if map_status[i]['room_id'] != room_id:
@@ -1384,7 +1403,6 @@ def end_turn(message):
 
     map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     
-    # Clean up locally read copy of map_status
     wrong_room = []
     for i in map_status:
         if map_status[i]['room_id'] != room_id:
@@ -1451,7 +1469,6 @@ def connect(message):
     chats = read_db("chat", "username, chat", f"WHERE room_id = '{room_id}'")
     map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     
-    # Clean up locally read copy of map_status
     wrong_room = []
     for i in map_status:
         if map_status[i]['room_id'] != room_id:
@@ -1527,7 +1544,6 @@ def character_icon_update_database(message):
     
     map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
     
-    # Clean up locally read copy of map_status
     wrong_room = []
     for i in map_status:
         if map_status[i]['room_id'] != room_id:
@@ -1586,7 +1602,7 @@ def add_character(message):
     character_name = message['char_name']
     room_id = message['room_id']
     user_id = current_user.id
-    username = message['site_name']
+    username = message['username']
     temp_db_read_character_token = read_db("characters", "char_token", f"WHERE user_id = '{user_id}' AND character_name = '{character_name}'")
     initiative = 0
 
@@ -1602,31 +1618,39 @@ def add_character(message):
     else:
         add_to_db("active_room", (room_id, user_id, character_name, 0, 0, character_image))
 
-    emit('populate_select_with_character_names', {'character_name': character_name, 'site_name': username}, room=room_id)
-    emit('initiative_update', {'character_name': character_name, 'init_val': initiative, 'site_name': username}, room=room_id)
+    emit('populate_select_with_character_names', {'character_name': character_name, 'username': username}, room=room_id)
+    emit('initiative_update', {'character_name': character_name, 'init_val': initiative, 'username': username}, room=room_id)
     character_icon_add_database(character_name, username, character_image, user_id, room_id)
     app.logger.debug(f"User {username} has added character {character_name} to the battle")
 
 
-
-
 @socketio.on('remove_character', namespace="/combat")
 def remove_character(message):
-    room_id = message['room_id']    
-    site_name = message['site_name']
-    character_name = message["character_name"]
-    user_id = read_db("users", "user_id", f"WHERE site_name = '{site_name}'")[0][0]     # Required for the removal from the room's JSON
-    
+    """
+    The remove_character event handler. This function removes a specific
+    character from a room. Usually this is done when a character
+    dies or is accidentally added.
 
+    :message keys:
+        character_name: the character who is being removed.
+        username: the owner of `character_name`
+        room_id: the id the character is in
+        init_val: the initiative of the character
+        next_character_name: null if not the character's turn. It it exists, the name of the character who's turn it is next
+        next_username: null if not the character's turn. If it exists, the owner of `next_character_name`
+    """
+    room_id = message['room_id']    
+    username = message['username']
+    character_name = message["character_name"]
+    user_id = read_db("users", "user_id", f"WHERE username = '{username}'")[0][0]     # Required for the removal from the room's JSON
 
     if message["next_character_name"]:
-        next_site_name = message["next_site_name"]
+        next_username = message["next_username"]
         next_character_name = message["next_character_name"]
-        next_character_id = read_db("users", "user_id", f"WHERE site_name = '{next_site_name}'")[0][0]
+        next_character_id = read_db("users", "user_id", f"WHERE username = '{next_username}'")[0][0]
 
         map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
         
-        # Clean up locally read copy of map_status
         wrong_room = []
         for i in map_status:
             if map_status[i]['room_id'] != room_id:
@@ -1635,30 +1659,20 @@ def remove_character(message):
             del map_status[i]
         previous_user_id_character_name = str(user_id) + '_' + str(character_name)
         next_user_id_character_name = str(next_character_id) + '_' + str(next_character_name)
-        previous_json_character_to_update = { previous_user_id_character_name: {"site_name": site_name, "character_name": character_name, "room_id": room_id, "character_image": map_status[previous_user_id_character_name]['character_image'], "height": map_status[previous_user_id_character_name]['height'], "width": map_status[previous_user_id_character_name]['width'], "top": map_status[previous_user_id_character_name]['top'], "left": map_status[previous_user_id_character_name]['left'], "is_turn": 0}}
-        next_json_character_to_update = { next_user_id_character_name: {"site_name": next_site_name, "character_name": next_character_name, "room_id": room_id, "character_image": map_status[next_user_id_character_name]['character_image'], "height": map_status[next_user_id_character_name]['height'], "width": map_status[next_user_id_character_name]['width'], "top": map_status[next_user_id_character_name]['top'], "left": map_status[next_user_id_character_name]['left'], "is_turn": 1}}
+        previous_json_character_to_update = { previous_user_id_character_name: {"username": username, "character_name": character_name, "room_id": room_id, "character_image": map_status[previous_user_id_character_name]['character_image'], "height": map_status[previous_user_id_character_name]['height'], "width": map_status[previous_user_id_character_name]['width'], "top": map_status[previous_user_id_character_name]['top'], "left": map_status[previous_user_id_character_name]['left'], "is_turn": 0}}
+        next_json_character_to_update = { next_user_id_character_name: {"username": next_username, "character_name": next_character_name, "room_id": room_id, "character_image": map_status[next_user_id_character_name]['character_image'], "height": map_status[next_user_id_character_name]['height'], "width": map_status[next_user_id_character_name]['width'], "top": map_status[next_user_id_character_name]['top'], "left": map_status[next_user_id_character_name]['left'], "is_turn": 1}}
         map_status[previous_user_id_character_name] = previous_json_character_to_update[previous_user_id_character_name]
         map_status[next_user_id_character_name] = next_json_character_to_update[next_user_id_character_name]
         characters_json = json.dumps(map_status)
         update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
-        update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_key = '{next_character_id}' AND chr_name = '{next_character_name}'")    
-
-
+        update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_key = '{next_character_id}' AND character_name = '{next_character_name}'")    
     
-    character_icon_del_database(character_name, site_name, user_id, room_id)
+    character_icon_del_database(character_name, username, user_id, room_id)
+    delete_from_db("active_room", f"WHERE room_id = '{room_id}' and character_name = '{character_name}' and user_key = '{user_id}'")
 
-    delete_from_db("active_room", f"WHERE room_id = '{room_id}' and chr_name = '{character_name}' and user_key = '{user_id}'")
-
-
-    emit('removed_character', {"site_name":site_name, "character_name": ":".join(character_name.split("_")), "user_id":user_id, "init_val":message["init_val"]}, room=room_id)
-
-    app.logger.debug(f"User {site_name} has removed character {character_name} from the battle")
-
-
-
-
-
+    emit('removed_character', {"username":username, "character_name": ":".join(character_name.split("_")), "user_id":user_id, "init_val":message["init_val"]}, room=room_id)
+    app.logger.debug(f"User {username} has removed character {character_name} from the battle")
 
 
 @socketio.on('add_npc', namespace='/combat')
