@@ -1,8 +1,11 @@
+// Called when the document fully loads
 $('document').ready(function() {
     var previousSource = $(this).data('previousSource', $("#initial_image").val());
     console.log("connected");
 });
 
+// called when the input in the map_url html id is chnaged.
+// Updates the displayed image.
 $('#map_url').on('input', function() {
     console.log("sd'");
     var src = jQuery(this).val();

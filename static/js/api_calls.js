@@ -1,15 +1,20 @@
 var subclasses = [];
 var subraces = [];
 
-// Gets API data or throws an error (handles error too)
 async function getData(url) {
+  /* The getData function. This function gets
+  JSON information from the API 
+  
+  :param url:
+    the URL of the API */
     return fetch(url)
     .then(response => response.json())
     .catch(error => console.log(error));
   }
 
-// Populates the select options for the "race" tab
 async function populate_races() {
+  /* The populate_races function.n THis function
+  populates the race select options */
   var data = await Promise.all([getData("/api/races")]);
 
   let races = data[0].races;
@@ -28,8 +33,9 @@ async function populate_races() {
   document.getElementById('subrace').value=`${old_subrace}`;
 };
 
-// Populates the select options for the "class" tab
 async function populate_class() {
+  /* The populate_class function. This function
+  populates the class select options. */
   var data = await Promise.all([getData("/api/classes")]);
 
   let classes = data[0].classes;
@@ -47,8 +53,14 @@ async function populate_class() {
   document.getElementById('subclass').value=`${old_subclass}`;
 };
 
-// Using the store objects from API (essentially dictionaries), gets the options that match the selected property
 function get_option_html(property_name, objectt) {
+  /* The get_option_html function. This
+  function creates the options for the "sub" selects. 
+  
+  :param property_name:
+    The name of the property being used: class or Race
+  :param objectt:
+    the mapping of classes to subclasses or races to subraces */
   var html_code = "";
 
   for (i=0; i<objectt[property_name].length; i++) {
@@ -58,8 +70,9 @@ function get_option_html(property_name, objectt) {
   return html_code;
 }
 
-// Calls the populate functions when the document loads
 $(document).ready(function() {
+  /* The document.ready function. This
+  function runs when the page is fully loaded. */
     populate_races();
     populate_class();
 });
@@ -68,6 +81,9 @@ $(document).ready(function() {
 $(document).on('change', '#racename', change_race);
 
 function change_race() {
+  /* The change_race function. This function
+  is called when the race select is changed,
+  updating the subrace select. */ 
   let racename = $('#racename').val();
   let html_code = "";
 
@@ -84,7 +100,10 @@ function change_race() {
 // Updates the subclasses when the selection in the "subclass" tab changes
 $(document).on('change', '#classname', change_class);
 
-function change_class(){
+function change_class() {
+  /* The change_class function. This function
+  is called when the class select is changed,
+  updating the subclass select. */
   let classname = $('#classname').val();
   let html_code = "";
 

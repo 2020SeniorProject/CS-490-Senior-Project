@@ -1,11 +1,14 @@
+// Called when the page loads
 $(document).ready(function() {
     resize_body();
 });
 
+// Called whenever the page is resized
 $(window).resize(function() {
     resize_body();
 });
 
+// This function resizes the page
 function resize_body() {
     var navbarHeightStr = $("#main_navbar").css("height");
     var navbarHeight = parseFloat(navbarHeightStr);

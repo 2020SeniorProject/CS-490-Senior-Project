@@ -1,3 +1,5 @@
+// Called when the page fully loads.
+// Underlines the correct page option on the navbar.
 $(document).ready(function() {
     const route = $(location).attr('pathname');
     const first_item = route.split('/')[1];
