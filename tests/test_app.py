@@ -266,20 +266,28 @@ def test_delete_character(client_2):
 # SocketIO Event Tests
 
 def test_client_connect(client_2):
-    socketio_client = socketio.test_client(app, namespace="/combat", flask_test_client=client_2)
+    app.config["FLASK_DEBUG"] = 0
+    app.config["PRESERVE_CONTEXT_ON_EXCEPTION"] = False
+    
+    with app.app_context():
+        socketio_client = socketio.test_client(app, namespace="/combat")
 
-    row_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle'")[0][0]
-    app_context = client_2.get(f"/room/{row_id}")
-    open_room_test = client_2.post("/generate_room", data={"room_id":f"{row_id}", "csrf_token":client_2.csrf_token}, follow_redirects=True)
+        row_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle'")[0][0]
+        app_context = client_2.get(f"/room/{row_id}")
+        open_room_test = client_2.post("/generate_room", data={"room_id":f"{row_id}", "csrf_token":client_2.csrf_token}, follow_redirects=True)
 
-    # print(open_room_test.data.decode("utf-8"))
-    assert socketio_client.is_connected("/combat")
-    assert not socketio_client.is_connected("/")
+        # print(open_room_test.data.decode("utf-8"))
+        assert socketio_client.is_connected("/combat")
+        assert not socketio_client.is_connected("/")
 
-    room_id = read_db("room_object", "active_room_id", f"WHERE row_id = '{row_id}'")[0][0]
-    # Throws an 'AssertionError: Popped wrong app context.'
-    # socketio_client.emit("on_join", {'room_id': room_id}, namespace="/combat")
-    print(rooms(socketio_client, "/combat"))
+        room_id = read_db("room_object", "active_room_id", f"WHERE row_id = '{row_id}'")[0][0]
+        with app.test_request_context():
+            socketio_client.emit("on_join", {'room_id': room_id}, namespace="/combat")
+            print(socketio_client.get_received(namespace="/combat"))
+            # Need to figure out how to get the sid of the client
+            # print(flask.request.sid)
+            # print(rooms(flask.request, namespace="/combat"))
+        assert socketio_client.is_connect("/combat")
 
 # def test_open_room(client_2):
 #     room_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle'")[0][0]
