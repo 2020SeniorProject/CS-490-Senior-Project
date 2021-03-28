@@ -6,8 +6,15 @@ title = "Application testing cases"
 [[character_creation]]
 
 fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints","character_token"]
-inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
-expected = 'Yanko'
+inputs = ["Ibrov", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77", "lizardboi.jpg"]
+expected = 'Ibrov'
+
+[[character_creation]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "20", "Ranger", "Hunter", "20", "12", "18", "16", "12", "18", "8", "77"]
+expected = "You already have a character with this name!"
+
 
 [[character_creation]]
 
@@ -182,5 +189,15 @@ fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", 
 inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "30", "Ranger", "Hunter", "20", "12", "12", "12", "12", "12", "12", "77", "Yanko", "Lizardfolk", "Lizardfolk", "Ranger", "Hunter"]
 expected = "30"
 
+[[edit_char]]
 
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints", "old_name", "old_race", "old_subrace", "old_class", "old_subclass"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "30", "Ranger", "Hunter", "20", "12", "12", "12", "12", "12", "12", "77", "Yanko", "Lizardfolk", "Lizardfolk", "Ranger", "Hunter"]
+expected = "30"
+
+[[edit_char]]
+
+fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", "strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma", "hitpoints", "old_name", "old_race", "old_subrace", "old_class", "old_subclass"]
+inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "30", "Ranger", "Hunter", "20", "12", "12", "12", "12", "12", "12", "77", "Fashum", "Lizardfolk", "Lizardfolk", "Ranger", "Hunter"]
+expected = "You already have a character with this name!"
 

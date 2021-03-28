@@ -114,6 +114,8 @@ def test_sql_db_connect():
 
 
 
+
+
 # Testing client with authenticated user 
 # but nothing else in the db except another User named Charnk(for site name test)
 @pytest.fixture
@@ -143,7 +145,10 @@ def client_2(mocker):
         mocker.patch("flask_login.utils._get_user", return_value = User("paulinaMock21", "mail", "mock.jpg", "mrsmock69"))
         add_to_db("room_object", ("paulinaMock21", "Dungeon Battle", "", "", "this_is_sweet_map.jpg", "This is going to be an intense batle"))
         add_to_db("users", ("paulinaMock21", "mail", "mock.jpg", "mrsmock69"))
-        add_to_db("characters", ["paulinaMock21" ,"Yanko", "Lizardfolk", "Lizardfolk", 20, "Ranger", "Hunter", 20, 12, 18, 16, 12, 18, 8, 77, "lizardboi.jpg"])
+        add_to_db("chars", ("paulinaMock21" ,"Yanko", "Lizardfolk", "Lizardfolk", 20, "Ranger", "Hunter", 20, 12, 18, 16, 12, 18, 8, 77, "lizardboi.jpg"))
+        # print(read_db("characters", "*", "WHERE user_id = 'paulinaMock21'"))
+        add_to_db("chars", ("paulinaMock21" ,"Fashum", "Lizardfolk", "Lizardfolk", 20, "Ranger", "Hunter", 20, 12, 18, 16, 12, 18, 8, 77, "lizardboi.jpg"))
+        
         yield client_2
     
     delete_from_db("users", "WHERE user_id = 'paulinaMock21'")
@@ -196,9 +201,9 @@ def test_login(client_1):
 # Utilizing our fake( but authenticated !)user, we check to make sure character creation works as expected
 # ex. throws correct errors, redirects to the proper pages 
 @pytest.mark.parametrize("fields, inputs, expected", get_cases("character_creation"))
-def test_character_create(client_1, fields, inputs, expected):
+def test_character_create(client_2, fields, inputs, expected):
     # This line sets up the app context... Don't ask me why it is needed...
-    char_create_view = client_1.get("/characters/create")
+    char_create_view = client_2.get("/characters/create")
 
     valid_inputs = []
     for items in inputs:
@@ -208,10 +213,14 @@ def test_character_create(client_1, fields, inputs, expected):
             valid_inputs.append(items)
 
     data = {fields[x]:valid_inputs[x] for x in range(len(fields))}
-    data["csrf_token"] = client_1.csrf_token
-
-    character_create_attempt = client_1.post("/characters/create", data = data, follow_redirects=True)
+    data["csrf_token"] = client_2.csrf_token
+    
+    character_create_attempt = client_2.post("/characters/create", data = data, follow_redirects=True)
     assert bytes(expected,'utf-8') in character_create_attempt.data
+
+
+
+
 
 # Testing creation of rooms 
 # Utilize client 1(User w/o data)
