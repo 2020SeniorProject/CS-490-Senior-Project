@@ -9,6 +9,7 @@ from flask_wtf.csrf import generate_csrf
 from flask_socketio import SocketIO, emit, join_room, close_room
 from flask_socketio.test_client import SocketIOTestClient
 from requests import get, post, request
+import sqlite3
 
 # python library imports
 import toml
@@ -23,8 +24,9 @@ from unittest import mock
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from app import app, socketio
 from db import create_dbs, add_to_db, delete_from_db, read_db
+from db import *
 import wtforms.csrf 
-from classes import User
+from classes import User, AnonymousUser
 
 
 # 
@@ -32,7 +34,9 @@ from classes import User
 #  I RECOMMEND USING THE COMMAND 
 #  python3 -m pytest tests/test_app.py -W ignore::DeprecationWarning
 #  
-
+#  Use this command to find coverage calculation
+#  python3 -m pytest --cov=. tests/ -W ignore::DeprecationWarning
+#
 
 def get_cases(category: str):
     with open(pathlib.Path(__file__).with_suffix(".toml")) as f:
@@ -88,6 +92,24 @@ class FlaskClient(BaseFlaskClient):
             flask.current_app.save_session(flask.session, request)
             # And finally, return that CSRF token we got from Flask-WTF.
             return csrf_token
+
+
+
+
+def test_sql_db_connect():
+
+    battle_db_con = create_connection("battle_sesh.db")
+    battle_cursor = battle_db_con.cursor()
+
+    assert battle_cursor.execute("""SELECT * from log, 
+                                                chat,
+                                                active_room, 
+                                                room_object,
+                                                users, 
+                                                characters""")  
+
+
+
 
 
 
@@ -263,6 +285,32 @@ def test_delete_character(client_2):
     del_char = client_2.post("/characters", data=data, follow_redirects=True )
 
     assert b'Yanko' not in del_char.data
+
+
+def test_logout_user(client_2, mocker):
+    logged_out = client_2.get("/logout", follow_redirects=True)
+    mocker.patch("flask_login.utils._get_user", return_value = AnonymousUser())
+    login_attempt = client_2.get("/home", follow_redirects=True)
+
+    assert b"""Welcome to Wizards of the Driftless (formerly Wizards of the Plains) Online Battle Simulator! You currently are not logged in. As such, you cannot access most of the site's functionality. If you wish to do anything other than spectate a room, please log in!""" in login_attempt.data
+
+
+def test_delete_user(client_2):
+    del_user = client_2.get("/delete")
+
+    log_lis = read_db("log", "user_id", f"WHERE user_id = 'paulinaMock21'")
+    chat_lis = read_db("chat", "user_id", f"WHERE user_id = 'paulinaMock21'")
+    active_rooms_lis = read_db("active_room", "user_id", f"WHERE user_id = 'paulinaMock21'")
+    room_object_lis = read_db("room_object", "user_id", f"WHERE user_id = 'paulinaMock21'")
+    user_lis = read_db("users", "user_id", f"WHERE user_id = 'paulinaMock21'")
+    characters_list = read_db("characters", "user_id", f"WHERE user_id = 'paulinaMock21'")
+    assert not log_lis
+    assert not chat_lis
+    assert not active_rooms_lis
+    assert not room_object_lis
+    assert not user_lis
+    assert not characters_list
+
 
 # SocketIO Event Tests
 
