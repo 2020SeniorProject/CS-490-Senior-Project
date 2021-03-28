@@ -8,6 +8,7 @@ from flask_login import current_user, UserMixin
 from flask_wtf.csrf import generate_csrf
 from flask_socketio import SocketIO, emit, join_room, close_room, rooms
 from requests import get, post, request
+import sqlite3
 
 # python library imports
 import toml
@@ -22,8 +23,9 @@ from unittest import mock
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from app import app, socketio
 from db import create_dbs, add_to_db, delete_from_db, read_db
+from db import *
 import wtforms.csrf 
-from classes import User
+from classes import User, AnonymousUser
 
 
 # 
@@ -31,7 +33,9 @@ from classes import User
 #  I RECOMMEND USING THE COMMAND 
 #  python3 -m pytest tests/test_app.py -W ignore::DeprecationWarning
 #  
-
+#  Use this command to find coverage calculation
+#  python3 -m pytest --cov=. tests/ -W ignore::DeprecationWarning
+#
 
 def get_cases(category: str):
     with open(pathlib.Path(__file__).with_suffix(".toml")) as f:
@@ -91,6 +95,26 @@ class FlaskClient(BaseFlaskClient):
 
 
 
+def test_sql_db_connect():
+
+    battle_db_con = create_connection("battle_sesh.db")
+    battle_cursor = battle_db_con.cursor()
+
+    assert battle_cursor.execute("""SELECT * from log, 
+                                                chat,
+                                                active_room, 
+                                                room_object,
+                                                users, 
+                                                characters""")  
+
+
+
+
+
+
+
+
+
 
 # Testing client with authenticated user 
 # but nothing else in the db except another User named Charnk(for site name test)
@@ -122,6 +146,9 @@ def client_2(mocker):
         add_to_db("room_object", ("paulinaMock21", "Dungeon Battle", "", "", "this_is_sweet_map.jpg", "This is going to be an intense batle"))
         add_to_db("users", ("paulinaMock21", "mail", "mock.jpg", "mrsmock69"))
         add_to_db("characters", ("paulinaMock21" ,"Yanko", "Ranger", "Hunter", "Lizardfolk", "Lizardfolk", 30, 20, 20, 12, 18, 16, 12, 8, 77, "lizardboi.jpg"))
+        # print(read_db("characters", "*", "WHERE user_id = 'paulinaMock21'"))
+        add_to_db("characters", ("paulinaMock21" ,"Fashum", "Ranger", "Hunter", "Lizardfolk", "Lizardfolk", 30, 20, 20, 12, 18, 16, 12, 8, 77, "lizardboi.jpg"))
+        
         yield client_2
     
     delete_from_db("users", "WHERE user_id = 'paulinaMock21'")
@@ -165,9 +192,9 @@ def test_login(client_1):
 # Utilizing our fake( but authenticated !)user, we check to make sure character creation works as expected
 # ex. throws correct errors, redirects to the proper pages 
 @pytest.mark.parametrize("fields, inputs, expected", get_cases("character_creation"))
-def test_character_create(client_1, fields, inputs, expected):
+def test_character_create(client_2, fields, inputs, expected):
     # This line sets up the app context... Don't ask me why it is needed...
-    char_create_view = client_1.get("/characters/create")
+    char_create_view = client_2.get("/characters/create")
 
     valid_inputs = []
     for items in inputs:
@@ -177,10 +204,14 @@ def test_character_create(client_1, fields, inputs, expected):
             valid_inputs.append(items)
 
     data = {fields[x]:valid_inputs[x] for x in range(len(fields))}
-    data["csrf_token"] = client_1.csrf_token
-
-    character_create_attempt = client_1.post("/characters/create", data = data, follow_redirects=True)
+    data["csrf_token"] = client_2.csrf_token
+    
+    character_create_attempt = client_2.post("/characters/create", data = data, follow_redirects=True)
     assert bytes(expected,'utf-8') in character_create_attempt.data
+
+
+
+
 
 # Testing creation of rooms 
 # Utilize client 1(User w/o data)
@@ -253,6 +284,32 @@ def test_delete_character(client_2):
     del_char = client_2.post("/characters", data=data, follow_redirects=True )
 
     assert b'Yanko' not in del_char.data
+
+
+def test_logout_user(client_2, mocker):
+    logged_out = client_2.get("/logout", follow_redirects=True)
+    mocker.patch("flask_login.utils._get_user", return_value = AnonymousUser())
+    login_attempt = client_2.get("/home", follow_redirects=True)
+
+    assert b"""Welcome to Wizards of the Driftless (formerly Wizards of the Plains) Online Battle Simulator! You currently are not logged in. As such, you cannot access most of the site's functionality. If you wish to do anything other than spectate a room, please log in!""" in login_attempt.data
+
+
+def test_delete_user(client_2):
+    del_user = client_2.get("/delete")
+
+    log_lis = read_db("log", "user_id", f"WHERE user_id = 'paulinaMock21'")
+    chat_lis = read_db("chat", "user_id", f"WHERE user_id = 'paulinaMock21'")
+    active_rooms_lis = read_db("active_room", "user_id", f"WHERE user_id = 'paulinaMock21'")
+    room_object_lis = read_db("room_object", "user_id", f"WHERE user_id = 'paulinaMock21'")
+    user_lis = read_db("users", "user_id", f"WHERE user_id = 'paulinaMock21'")
+    characters_list = read_db("characters", "user_id", f"WHERE user_id = 'paulinaMock21'")
+    assert not log_lis
+    assert not chat_lis
+    assert not active_rooms_lis
+    assert not room_object_lis
+    assert not user_lis
+    assert not characters_list
+
 
 # SocketIO Event Tests
 
