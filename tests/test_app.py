@@ -121,14 +121,12 @@ def client_2(mocker):
         mocker.patch("flask_login.utils._get_user", return_value = User("paulinaMock21", "mail", "mock.jpg", "mrsmock69"))
         add_to_db("room_object", ("paulinaMock21", "Dungeon Battle", "", "", "this_is_sweet_map.jpg", "This is going to be an intense batle"))
         add_to_db("users", ("paulinaMock21", "mail", "mock.jpg", "mrsmock69"))
-        add_to_db("characters", ["paulinaMock21" ,"Yanko", "Lizardfolk", "Lizardfolk", 20, "Ranger", "Hunter", 20, 12, 18, 16, 12, 18, 8, 77, "lizardboi.jpg"])
+        add_to_db("characters", ("paulinaMock21" ,"Yanko", "Ranger", "Hunter", "Lizardfolk", "Lizardfolk", 30, 20, 20, 12, 18, 16, 12, 8, 77, "lizardboi.jpg"))
         yield client_2
     
     delete_from_db("users", "WHERE user_id = 'paulinaMock21'")
     delete_from_db("room_object", "WHERE user_id = 'paulinaMock21'")
     delete_from_db("characters", "WHERE user_id = 'paulinaMock21'")
-
-
 
 
 # Testing client without authenticated user
@@ -137,13 +135,6 @@ def client_3():
     app.config['TESTING'] = True
     with app.test_client() as client_3:
         yield client_3
-
-
-@pytest.fixture
-def socket_client(client_2):
-    yield socket_client
-
-
 
 
 # Testing client 
@@ -265,6 +256,7 @@ def test_delete_character(client_2):
 
 # SocketIO Event Tests
 
+# gotta be a better way to do this
 def test_client_connect(client_2):
     app.config["FLASK_DEBUG"] = 0
     app.config["PRESERVE_CONTEXT_ON_EXCEPTION"] = False
@@ -280,24 +272,37 @@ def test_client_connect(client_2):
         assert not socketio_client.is_connected("/")
 
         room_id = read_db("room_object", "active_room_id", f"WHERE row_id = '{row_id}'")[0][0]
-        with app.test_request_context():
-            # Have the client join the room
-            socketio_client.emit("on_join", {'room_id': room_id}, namespace="/combat")
-            response = socketio_client.get_received(namespace="/combat")
 
-            # Ensure the right events were sent back
-            assert len(response) == 2
-            assert response[0]['name'] == 'testing'
-            assert response[1]['name'] == 'joined'
-            
-            # Get the client's
-            socketio_id = response[0]['args'][0]['id']
-            room_ids = rooms(socketio_id, namespace="/combat")
+        # Was originally needed
+        # with app.test_request_context():
 
-            # Ensure that the rooms the client is in are correct
-            assert socketio_id == room_ids[0]
-            assert room_id == room_ids[1]
+        # get the client's sid
+        socketio_client.emit("get_sid", {}, namespace="/combat")
+        response = socketio_client.get_received(namespace="/combat")
 
-            # Throws a JSONDecodeError. Change the name or anything the dictionary and its fine.
-            # socketio_client.emit("join_actions", {"room_id": room_id}, namespace="/combat")
-            # print(socketio_client.get_received(namespace="/combat"))
+        socketio_id = response[0]['args'][0]['id']
+
+        # have the client join the room
+        socketio_client.emit("on_join", {'room_id': room_id}, namespace="/combat")
+        response = socketio_client.get_received(namespace="/combat")
+
+        # Ensure the right event was sent back
+        assert len(response) == 1
+        assert response[0]['name'] == 'joined'
+        
+        # Get the client's rooms
+        room_ids = rooms(socketio_id, namespace="/combat")
+
+        # Ensure that the rooms the client is in are correct
+        assert socketio_id == room_ids[0]
+        assert room_id == room_ids[1]
+
+        socketio_client.emit("join_actions", {'room_id': room_id}, namespace="/combat")
+        response = socketio_client.get_received(namespace="/combat")
+
+        # Ensure the basic 3 responses are sent
+        print(response)
+        assert len(response) == 3
+        assert response[0]['args'][0]['desc'] == 'mrsmock69 Connected'
+        assert response[1]['args'][0]['desc'] == 'Initiative List Received'
+        assert response[2]['args'][0]['desc'] == 'Chat History Received'

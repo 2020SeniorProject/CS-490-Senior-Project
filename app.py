@@ -209,7 +209,7 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
                 return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
 
             app.logger.debug(f"User {current_user.username} successfully added a character with name {form.name.data}. Redirecting them to the View Characters page.")
-            add_to_db("chars", values)
+            add_to_db("characters", values)
 
             return redirect(url_for("view_characters"))
 
@@ -220,7 +220,7 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
 
             app.logger.debug(f"Updating the characters owned by user {current_user.username}.")
             delete_from_db("characters", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['old_name']}'")
-            add_to_db("chars", values)
+            add_to_db("characters", values)
 
             if request.form['old_name'] != form.name.data:
                 app.logger.warning(f"User {current_user.username} updating the character name. Updating all of the references to that character in the database.")
@@ -231,7 +231,7 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
             return redirect(url_for("view_characters"))
         
         elif usage == "play":
-            add_to_db("chars", values)
+            add_to_db("characters", values)
             app.logger.debug(f"User {current_user.username} successfully created their first character with name {form.name.data}. Redirecting them to the Choose Characters Page")
             return redirect(route)
 
@@ -1158,12 +1158,13 @@ SocketIO Handlers:
         4.  end_combat
         5.  end_room
         6.  end_turn
-        7.  on_join
-        8.  join_actions
-        9.  character_icon_update_database
-        10. add_character
-        11. remove_character
-        12. add_npc
+        7.  get_sid
+        8.  on_join
+        9.  join_actions
+        10. character_icon_update_database
+        11. add_character
+        12. remove_character
+        13. add_npc
 """
 
 
@@ -1427,6 +1428,17 @@ def end_turn(message):
     emit("turn_ended", {'desc': message['desc'], 'previous_username': previous_username, 'next_username': next_username}, room=room_id)
 
 
+@socketio.on("get_sid", namespace="/combat")
+def get_sid(message):
+    """
+    The get_sid event handler. This function
+    is only used in the tests. It emits an
+    event to the client with it's socketio
+    id 
+    """
+    emit('sid', {'id': request.sid})
+
+
 @socketio.on('on_join', namespace='/combat')
 def on_join(message):
     """
@@ -1442,8 +1454,6 @@ def on_join(message):
     """
     app.logger.debug(f"Battle update: User {current_user.username} has entered room {message['room_id']}")
     join_room(message['room_id'])
-    # This first emit is only there for the tests
-    emit('testing', {'id': request.sid})
     
     emit('joined', {'desc': 'Joined room'})
 
@@ -1470,7 +1480,10 @@ def connect(message):
     room_id = message['room_id']
     initiatives = read_db("active_room", "character_name, init_val, user_id", f"WHERE room_id = '{room_id}'")
     chats = read_db("chat", "username, chat", f"WHERE room_id = '{room_id}'")
-    map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    map_status = {}
+    db_read = read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0]
+    if db_read:
+        map_status = json.loads(db_read)
     
     wrong_room = []
     for i in map_status:

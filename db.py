@@ -210,7 +210,6 @@ def create_dbs():
         cur.execute(f"""CREATE TABLE IF NOT EXISTS active_room 
                         (room_id TEXT, user_id TEXT, character_name TEXT, init_val INT, is_turn INT, char_token TEXT, PRIMARY KEY(room_id, user_id, character_name));""") 
 
-        # TODO: Why are we using an auto-incrementing primary key when we could just use the user_id and room_name rows?
         cur.execute(f"""CREATE TABLE IF NOT EXISTS room_object
                         (row_id INTEGER PRIMARY KEY, user_id TEXT, room_name TEXT, active_room_id TEXT, map_status TEXT, map_url TEXT, dm_notes TEXT);""")
         
@@ -246,7 +245,7 @@ def add_to_db(table_name, values):
             cur.execute("INSERT INTO active_room(room_id, user_id, character_name, init_val, is_turn, char_token) VALUES(?, ?, ?, ?, ?, ?)", values)
         elif table_name == "room_object":
             cur.execute("INSERT INTO room_object(user_id, room_name, active_room_id, map_status, map_url, dm_notes) VALUES(?,?,?,?,?,?)", values)
-        elif table_name == "chars":
+        elif table_name == "characters":
             cur.execute("""INSERT INTO characters(user_id, character_name, class, subclass, race, subrace, speed, level, strength, dexterity, constitution, intelligence, wisdom, charisma, hitpoints, char_token) 
                            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
         elif table_name == "users":
