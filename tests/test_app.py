@@ -22,6 +22,7 @@ from unittest import mock
 # Internal imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from app import app, socketio
+from app import determine_if_user_spamming
 from db import create_dbs, add_to_db, delete_from_db, read_db
 from db import *
 import wtforms.csrf 
@@ -41,8 +42,11 @@ def get_cases(category: str):
     with open(pathlib.Path(__file__).with_suffix(".toml")) as f:
         all_cases = toml.load(f)
         for case in all_cases[category]:
-            yield (case.get("fields"), case.get("inputs"), case.get("expected"))
-
+            if case.get("fields"):
+                yield (case.get("fields"), case.get("inputs"), case.get("expected"))
+            else:
+                yield (case.get("inputs"), case.get("expected"))
+                
 
 
 class RequestShim(object):
@@ -93,6 +97,9 @@ class FlaskClient(BaseFlaskClient):
             return csrf_token
 
 
+# 
+# SQL Tests
+# 
 
 
 def test_sql_db_connect():
@@ -106,6 +113,10 @@ def test_sql_db_connect():
                                                 room_object,
                                                 users, 
                                                 characters""")  
+
+
+
+
 
 
 
@@ -134,6 +145,12 @@ def client_1(mocker):
     delete_from_db("room_object", "WHERE user_id = 'mocksterid'")
     delete_from_db("characters", "WHERE user_id = 'mocksterid'")
 
+
+
+
+
+
+
 #User with a character in the DB and 
 # a room in it for socketio testing
 @pytest.fixture
@@ -156,6 +173,9 @@ def client_2(mocker):
     delete_from_db("characters", "WHERE user_id = 'paulinaMock21'")
 
 
+
+
+
 # Testing client without authenticated user
 @pytest.fixture
 def client_3():
@@ -164,12 +184,23 @@ def client_3():
         yield client_3
 
 
+
+
+
+
+
 # Testing client 
 def test_invalid_user(client_3):
 
     login_view = client_3.get('/home', follow_redirects=True)
     assert b'Welcome to' in login_view.data
     assert b'This form allows you to spectate in the active room with the provided id.' in login_view.data
+
+
+
+
+
+
 
 
 # Testing Authenticated User Login
@@ -185,6 +216,12 @@ def test_login(client_1):
     assert b'This form allows you to (re)join and play in the active room with the provided id.' in home_view.data
     assert b'Create a Character' in characters_view.data
     assert b'Account Actions' in settings_view.data
+
+
+
+
+
+
 
 
 
@@ -213,6 +250,10 @@ def test_character_create(client_2, fields, inputs, expected):
 
 
 
+
+
+
+
 # Testing creation of rooms 
 # Utilize client 1(User w/o data)
 @pytest.mark.parametrize("fields, inputs, expected", get_cases("room_creation"))
@@ -225,6 +266,11 @@ def test_room_create(client_1, fields, inputs, expected):
     create_room_attempt = client_1.post("/rooms/create", data = data, follow_redirects= True)
 
     assert bytes(expected, 'utf-8') in create_room_attempt.data
+
+
+
+
+
 
 
 @pytest.mark.parametrize("fields, inputs, expected", get_cases("room_edit"))
@@ -242,6 +288,11 @@ def test_room_edit(client_2, fields, inputs, expected):
 
 
 
+
+
+
+
+
 # Test changing a user's sitename
 # Only checks that illegal characters fail 
 # Utilize Client 1 (User w/o data)
@@ -255,6 +306,12 @@ def test_username_change(client_1, fields, inputs, expected):
 
     update_username_attempt = client_1.post("/user/settings", data = data, follow_redirects= True)
     assert bytes(expected, 'utf-8') in update_username_attempt.data
+
+
+
+
+
+
 
 # Testing editing a character
 # utilize Client_2 - > User with data 
@@ -275,6 +332,9 @@ def test_edit_character(client_2, inputs, fields, expected):
 
     assert bytes(expected, 'utf-8') in edit_char.data
 
+
+
+
 # Testing deletion of characters
 # utilize Client_2 - > User with data 
 def test_delete_character(client_2):
@@ -286,6 +346,8 @@ def test_delete_character(client_2):
     assert b'Yanko' not in del_char.data
 
 
+
+
 def test_logout_user(client_2, mocker):
     logged_out = client_2.get("/logout", follow_redirects=True)
     mocker.patch("flask_login.utils._get_user", return_value = AnonymousUser())
@@ -294,8 +356,17 @@ def test_logout_user(client_2, mocker):
     assert b"""Welcome to Wizards of the Driftless (formerly Wizards of the Plains) Online Battle Simulator! You currently are not logged in. As such, you cannot access most of the site's functionality. If you wish to do anything other than spectate a room, please log in!""" in login_attempt.data
 
 
-def test_delete_user(client_2):
+
+
+
+# Check user info wipe route
+# NOTE: this test simply checks DB correctness post-wipe and
+# then does a mock wipe of user from flask login's user context 
+
+def test_delete_user(client_2, mocker):
     del_user = client_2.get("/delete")
+
+    mocker.patch("flask_login.utils._get_user", return_value = AnonymousUser())
 
     log_lis = read_db("log", "user_id", f"WHERE user_id = 'paulinaMock21'")
     chat_lis = read_db("chat", "user_id", f"WHERE user_id = 'paulinaMock21'")
@@ -309,6 +380,25 @@ def test_delete_user(client_2):
     assert not room_object_lis
     assert not user_lis
     assert not characters_list
+    
+
+    home_screen_check = client_2.get("/home")
+    assert b"""Welcome to Wizards of the Driftless (formerly Wizards of the Plains) Online Battle Simulator! You currently are not logged in. As such, you cannot access most of the site's functionality. If you wish to do anything other than spectate a room, please log in!""" in home_screen_check.data
+
+
+
+
+@pytest.mark.parametrize("  inputs, expected", get_cases("check_spam"))
+def test_user_spamming(client_2, inputs, expected):
+    fake_time_used = "2021-03-28 16:48:30"
+
+    chats = inputs
+    is_spam = determine_if_user_spamming(chats, fake_time_used)
+
+    assert expected == is_spam
+
+
+
 
 
 # SocketIO Event Tests

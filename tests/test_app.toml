@@ -201,3 +201,10 @@ fields = ["name", "race", "subrace", "speed", "classname", "subclass", "level", 
 inputs = ["Yanko", "Lizardfolk", "Lizardfolk", "30", "Ranger", "Hunter", "20", "12", "12", "12", "12", "12", "12", "77", "Fashum", "Lizardfolk", "Lizardfolk", "Ranger", "Hunter"]
 expected = "You already have a character with this name!"
 
+[[check_spam]]
+inputs = [ ["paulinaMock21", "2021-03-28 16:48:29"], ["paulinaMock21", "2021-03-28 16:48:28"], ["paulinaMock21", "2021-03-28 16:48:27"], ["paulinaMock21", "2021-03-28 16:48:26"], ["paulinaMock21", "2021-03-28 16:48:25"], ["paulinaMock21", "2021-03-28 16:48:24"] ]
+expected = true
+
+[[check_spam]]
+inputs = [ ["paulinaMock21", "2021-03-28 16:48:29"], ["paulinaMock21", "2021-03-28 16:48:28"], ["paulinaMock21", "2021-03-28 16:48:27"] ]
+expected = false

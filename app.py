@@ -298,7 +298,7 @@ def process_room_form(form, user_id, usage, room_id):
         return render_template("room_edit.html", errors=error_list, room_name=form.room_name.data, map_url=form.map_url.data, dm_notes=form.dm_notes.data ,profile_picture=current_user.profile_picture, username=current_user.username )
         
 
-def determine_if_user_spamming(chats):
+def determine_if_user_spamming(chats, time_received):
     """
     The determine_if_user_spamming function.
     This function looks at a user's chat history
@@ -314,7 +314,7 @@ def determine_if_user_spamming(chats):
     """
     max_messages = spam_max_messages
     timeframe = spam_timeout
-    current_time = datetime.datetime.now()
+    current_time = datetime.datetime.fromisoformat(time_received)
     total_messages_user_sent= 0
     chats.reverse()
     
@@ -1231,14 +1231,14 @@ def send_chat(message):
     """
     time_received = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.id
-    username = message['username']
+    username = message['character_name']
     room_id = message['room_id']
     chat = message['chat']
     username = current_user.username
 
     chats = read_db("chat", "user_id, timestamp", f"WHERE room_id = '{room_id}' and user_id = '{user_id}'")
 
-    if determine_if_user_spamming(chats):
+    if determine_if_user_spamming(chats, time_received):
         add_to_db("log", (room_id, user_id, "Spam", f"{username} was spamming the chat. They have been disabled for {spam_penalty} seconds", time_received))
         emit("lockout_spammer", {'message': f"Sorry, you can only send {spam_max_messages} messages per {spam_timeout} seconds. Try again in {spam_penalty} seconds.", 'spam_penalty': spam_penalty})
         emit('log_update', {'desc': f"{username} was spamming the chat. They have been disabled for {spam_penalty} seconds"}, room=room_id)
