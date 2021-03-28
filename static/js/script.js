@@ -145,8 +145,7 @@ $(document).ready(function() {
   });
 
   socket.on('joined', function(msg) {
-    // TODO: remove character_name. Doesn't look like it does anything
-    socket.emit('join_actions', {room_id: room_id, character_name: ""});
+    socket.emit('join_actions', {room_id: room_id});
   });
 
 

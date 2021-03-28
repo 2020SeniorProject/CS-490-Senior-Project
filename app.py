@@ -1442,6 +1442,9 @@ def on_join(message):
     """
     app.logger.debug(f"Battle update: User {current_user.username} has entered room {message['room_id']}")
     join_room(message['room_id'])
+    # This first emit is only there for the tests
+    emit('testing', {'id': request.sid})
+    
     emit('joined', {'desc': 'Joined room'})
 
 
@@ -1669,7 +1672,7 @@ def remove_character(message):
         update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_key = '{next_character_id}' AND character_name = '{next_character_name}'")    
     
     character_icon_del_database(character_name, username, user_id, room_id)
-    delete_from_db("active_room", f"WHERE room_id = '{room_id}' and character_name = '{character_name}' and user_key = '{user_id}'")
+    delete_from_db("active_room", f"WHERE room_id = '{room_id}' and character_name = '{character_name}' and user_id = '{user_id}'")
 
     emit('removed_character', {"username":username, "character_name": ":".join(character_name.split("_")), "user_id":user_id, "init_val":message["init_val"]}, room=room_id)
     app.logger.debug(f"User {username} has removed character {character_name} from the battle")

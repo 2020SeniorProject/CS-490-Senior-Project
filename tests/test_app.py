@@ -6,8 +6,7 @@ from flask import Flask, session
 from flask.testing import FlaskClient as BaseFlaskClient
 from flask_login import current_user, UserMixin
 from flask_wtf.csrf import generate_csrf
-from flask_socketio import SocketIO, emit, join_room, close_room
-from flask_socketio.test_client import SocketIOTestClient
+from flask_socketio import SocketIO, emit, join_room, close_room, rooms
 from requests import get, post, request
 import sqlite3
 
@@ -315,47 +314,38 @@ def test_delete_user(client_2):
 # SocketIO Event Tests
 
 def test_client_connect(client_2):
-    socketio_client = SocketIOTestClient(app, socketio, namespace="/combat", flask_test_client=client_2)
-
-    row_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle'")[0][0]
-    app_context = client_2.get(f"/room/{row_id}")
-    open_room_test = client_2.post("/generate_room", data={"room_id":f"{row_id}", "csrf_token":client_2.csrf_token}, follow_redirects=True)
-
-    print(open_room_test.data.decode("utf-8"))
-    assert socketio_client.is_connected("/combat")
-
-# def test_open_room(client_2):
-#     room_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle'")[0][0]
-
-#     app_context = client_2.get(f"/room/{room_id}")
-#     open_room_test = client_2.post("/generate_room", data={"room_name":"Dungeon Battle", "csrf_token":client_2.csrf_token}, follow_redirects=True)
+    app.config["FLASK_DEBUG"] = 0
+    app.config["PRESERVE_CONTEXT_ON_EXCEPTION"] = False
     
-#     socket_client = socketio.test_client(app, flask_test_client=client_2)
-#     socket_client.connect("/combat")
-    
+    with app.app_context():
+        socketio_client = socketio.test_client(app, namespace="/combat")
 
-#     data_recv = socket_client.get_received()
+        row_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle'")[0][0]
+        app_context = client_2.get(f"/room/{row_id}")
+        open_room_test = client_2.post("/generate_room", data={"room_id":f"{row_id}", "csrf_token":client_2.csrf_token}, follow_redirects=True)
 
-#     print(data_recv)
+        assert socketio_client.is_connected("/combat")
+        assert not socketio_client.is_connected("/")
 
-    # assert b'Yanko' in open_room_test.data
+        room_id = read_db("room_object", "active_room_id", f"WHERE row_id = '{row_id}'")[0][0]
+        with app.test_request_context():
+            # Have the client join the room
+            socketio_client.emit("on_join", {'room_id': room_id}, namespace="/combat")
+            response = socketio_client.get_received(namespace="/combat")
 
+            # Ensure the right events were sent back
+            assert len(response) == 2
+            assert response[0]['name'] == 'testing'
+            assert response[1]['name'] == 'joined'
+            
+            # Get the client's
+            socketio_id = response[0]['args'][0]['id']
+            room_ids = rooms(socketio_id, namespace="/combat")
 
-# def testing_add_characters(socket_client, client_2):
-#     room_object_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle' and user_id= 'paulinaMock21'")[0][0]
-#     app_context = client_2.get(f"/room/{room_object_id}")
-#     open_room_test = client_2.post("/generate_room", data={"room_name":"Dungeon Battle", "csrf_token":client_2.csrf_token}, follow_redirects=True)
+            # Ensure that the rooms the client is in are correct
+            assert socketio_id == room_ids[0]
+            assert room_id == room_ids[1]
 
-#     room_id = read_db("room_object", "active_room_id", f"WHERE row_id= {room_object_id}")
-
-#     socket_client = socketio.test_client(app, namespace="/combat", flask_test_client=client_2)
-#     socket_client.join_room(room_id)
-#     # socket_client.emit("join_actions", {"room_id":room_id, "character_name":""}, room_id=room_id)
-#     socket_join_events = socket_client.get_received()
-#     # print(socket_join_events)
-#     assert socket_join_events[0]["username"] == mrsmock69
-
-#     # add_char_event = socket_client.emit("add_character", {"character_name":"Yanko", "username":"mrsmock69", "room_id":room_id})
-
-
-
+            # Throws a JSONDecodeError. Change the name or anything the dictionary and its fine.
+            # socketio_client.emit("join_actions", {"room_id": room_id}, namespace="/combat")
+            # print(socketio_client.get_received(namespace="/combat"))
