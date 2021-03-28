@@ -1442,6 +1442,9 @@ def on_join(message):
     """
     app.logger.debug(f"Battle update: User {current_user.username} has entered room {message['room_id']}")
     join_room(message['room_id'])
+    # This first emit is only there for the tests
+    emit('testing', {'id': request.sid})
+    
     emit('joined', {'desc': 'Joined room'})
 
 
