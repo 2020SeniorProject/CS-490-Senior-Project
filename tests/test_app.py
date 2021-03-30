@@ -180,8 +180,12 @@ def client_2(mocker):
 @pytest.fixture
 def client_3():
     app.config['TESTING'] = True
+    app.test_client_class = FlaskClient
+    add_to_db("users", ("6969testingCharnky", "treach01@luther.edu", "mock.jpg", "Charnk98"))
     with app.test_client() as client_3:
         yield client_3
+    delete_from_db("users", "WHERE username = 'Charnk98'")
+    
 
 
 
@@ -190,13 +194,46 @@ def client_3():
 
 
 # Testing client 
-def test_invalid_user(client_3):
+def test_invalid_user_and_new_user(client_3, mocker):
 
-    login_view = client_3.get('/home', follow_redirects=True)
-    assert b'Welcome to' in login_view.data
-    assert b'This form allows you to spectate in the active room with the provided id.' in login_view.data
+    failed_login_view = client_3.get('/home', follow_redirects=True)
+    assert b'Welcome to' in failed_login_view.data
+    assert b'This form allows you to spectate in the active room with the provided id.' in failed_login_view.data
+
+    mocker.patch("flask_login.utils._get_user", return_value = User("fakeUser404", "fakeUser@mail.com", "mockUserPic.jpg", None))
+    delete_from_db("users", "WHERE user_id = 'fakeUser404'")
+    add_to_db("users", ("fakeUser404", "fakeUser@mail.com", "mockUserPic.jpg", None))
+
+    set_user_name_view = client_3.get("/home", follow_redirects=True)
+
+    assert b'Please enter in your username! It can be changed at any time in the user settings page. Please note that your username must be unique across all users.' in set_user_name_view.data
+
+    data = {"username":"Charnk98"}
+    data["csrf_token"] = client_3.csrf_token
+    
+
+    bad_user_name_attempt = client_3.post("/home", data=data, follow_redirects=True)
+
+    assert b"Another user has that username!"  in bad_user_name_attempt.data
+
+    data = {"username":""}
+    data["csrf_token"] = client_3.csrf_token
+
+    missing_user_name_attempt = client_3.post("/home", data=data, follow_redirects=True)
+
+    assert b"You must enter something for your username." in missing_user_name_attempt.data
+    
+
+    data = {"username":"AnotherMocker1"}
+    data["csrf_token"] = client_3.csrf_token
+    mocker.patch("flask_login.utils._get_user", return_value = User("fakeUser404", "fakeUser@mail.com", "mockUserPic.jpg", "AnotherMocker1"))
+
+    good_user_name_attmept = client_3.post("/home", data=data, follow_redirects=True)
 
 
+    assert b'AnotherMocker1' in good_user_name_attmept.data
+    assert b'This form allows you to (re)join and play in the active room with the provided id.' in good_user_name_attmept.data
+    
 
 
 
@@ -298,13 +335,21 @@ def test_room_edit(client_2, fields, inputs, expected):
 # Utilize Client 1 (User w/o data)
 # Note: Checking for user name change success will fail due to means with which we authenticate fake users
 @pytest.mark.parametrize("fields, inputs, expected", get_cases("username"))
-def test_username_change(client_1, fields, inputs, expected):
+def test_username_change(client_1, fields, inputs, expected, mocker):
     settings_view = client_1.get("/user/settings")
 
     data = {fields[0]:inputs[0]}
     data["csrf_token"] = client_1.csrf_token
 
+    try:
+        if fields[1]:
+            mocker.patch("flask_login.utils._get_user", return_value = User("mocksterid", "mail", "mock.jpg", f"{inputs[0]}"))
+    except:
+        pass
+
     update_username_attempt = client_1.post("/user/settings", data = data, follow_redirects= True)
+    
+
     assert bytes(expected, 'utf-8') in update_username_attempt.data
 
 
@@ -388,7 +433,7 @@ def test_delete_user(client_2, mocker):
 
 
 
-@pytest.mark.parametrize("  inputs, expected", get_cases("check_spam"))
+@pytest.mark.parametrize("inputs, expected", get_cases("check_spam"))
 def test_user_spamming(client_2, inputs, expected):
     fake_time_used = "2021-03-28 16:48:30"
 
@@ -397,6 +442,11 @@ def test_user_spamming(client_2, inputs, expected):
 
     assert expected == is_spam
 
+
+
+
+# @pytest.mark.parametrize("inputs, expected", get_cases("add_icon"))
+# def test_add_data(client_2, inputs, expected):
 
 
 

@@ -153,12 +153,10 @@ fields = ["room_name", "map_url", "dm_notes"]
 inputs = ["Dungeon Battle", "this_is_dope_map.jpg", "This is not going to be an intense batle"]
 expected = 'this_is_dope_map.jpg'
 
-#Problem: This test cannot be done with the current way I'm handling users
-# This form should alter user data but can't alter the user data given to the test client and therefore becomes problematic
-# [[username]]
-#fields = ["username"]
-#inputs = ["mockman69"]
-#expected = "mockman69"
+[[username]]
+fields = ["username", "changed_name"]
+inputs = ["mockman69"]
+expected = "mockman69"
 
 [[username]]
 fields = ["username"]
