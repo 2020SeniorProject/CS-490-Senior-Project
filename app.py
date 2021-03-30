@@ -754,7 +754,7 @@ def user_settings():
     user_email = current_user.email
 
     if request.method == "POST":
-        if 'username' in request.form:
+        if 'username' in request.form and request.form['username'] != current_user.username:
             new_username = request.form['username']
 
             form = UsernameValidation()
