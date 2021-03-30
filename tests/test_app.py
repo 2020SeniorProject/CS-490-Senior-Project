@@ -238,7 +238,7 @@ def test_invalid_user_and_new_user(client_3, mocker):
     
 
 
-def test_join_active_room(client_2, client_3):
+def test_join_active_room(mocker, client_2, client_3):
 
     client_2.get("/home", follow_redirects=True)
 
@@ -256,14 +256,12 @@ def test_join_active_room(client_2, client_3):
 
     data = {"play_room_id":"ABC123", "csrf_token":client_2.csrf_token}
 
-    print(read_db("active_room", "*", f"WHERE room_id = 'ABC123'"))
     test_join_active_room = client_2.post("/home", data=data, follow_redirects=True)
 
     assert b'Add a Character First' in test_join_active_room.data
 
     client_2.get("/home", follow_redirects=True)
 
-    
     data1 = {"spectate_room_id":"ABC123", "csrf_token":client_2.csrf_token}
     
     authentic_user_spectate = client_2.post("/home", data=data1, follow_redirects=True)
@@ -278,6 +276,15 @@ def test_join_active_room(client_2, client_3):
 
     assert b'Initiative Order' in unauthenticated_user_spectate.data
 
+    mocker.patch("flask_login.utils._get_user", return_value = User("fakeUser404", "fakeUser@mail.com", "mockUserPic.jpg", "AnotherMocker1"))
+
+    client_3.get("/home", follow_redirects=True)
+
+    data = {"play_room_id":"ABC123", "csrf_token":client_3.csrf_token, }
+
+    no_characters_connect = client_3.post("/home", data=data,follow_redirects=True )
+
+    assert b"Add a Character" in no_characters_connect.data
     
 
 
