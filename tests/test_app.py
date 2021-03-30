@@ -160,7 +160,8 @@ def client_2(mocker):
     with app.test_client() as client_2:
         create_dbs()
         mocker.patch("flask_login.utils._get_user", return_value = User("paulinaMock21", "mail", "mock.jpg", "mrsmock69"))
-        add_to_db("room_object", ("paulinaMock21", "Dungeon Battle", "", "", "this_is_sweet_map.jpg", "This is going to be an intense batle"))
+        add_to_db("room_object", ("paulinaMock21", "Dungeon Battle", "ABC123", "", "this_is_sweet_map.jpg", "This is going to be an intense batle"))
+        add_to_db("active_room", ("ABC123", "paulinaMock21", "Yanko", 10, 0, "yanko.jpg"))
         add_to_db("users", ("paulinaMock21", "mail", "mock.jpg", "mrsmock69"))
         add_to_db("characters", ("paulinaMock21" ,"Yanko", "Ranger", "Hunter", "Lizardfolk", "Lizardfolk", 30, 20, 20, 12, 18, 16, 12, 8, 77, "lizardboi.jpg"))
         # print(read_db("characters", "*", "WHERE user_id = 'paulinaMock21'"))
@@ -168,6 +169,7 @@ def client_2(mocker):
         
         yield client_2
     
+    delete_from_db("active_room", "WHERE user_id = 'paulinaMock21'")
     delete_from_db("users", "WHERE user_id = 'paulinaMock21'")
     delete_from_db("room_object", "WHERE user_id = 'paulinaMock21'")
     delete_from_db("characters", "WHERE user_id = 'paulinaMock21'")
@@ -235,6 +237,48 @@ def test_invalid_user_and_new_user(client_3, mocker):
     assert b'This form allows you to (re)join and play in the active room with the provided id.' in good_user_name_attmept.data
     
 
+
+def test_join_active_room(client_2, client_3):
+
+    client_2.get("/home", follow_redirects=True)
+
+    data = {"play_room_id":"123ABC", "csrf_token":client_2.csrf_token}
+
+    test_join_fake_room = client_2.post("/home", data= data, follow_redirects=True)
+    
+    assert b"There is not an open room with that key!" in test_join_fake_room.data
+
+    data = {"spectate_room_id":"123ABC", "csrf_token":client_2.csrf_token}
+
+    test_spectate_fake_room =  client_2.post("/home", data= data, follow_redirects=True)
+
+    assert b'There is not an open room with that key!' in test_spectate_fake_room.data
+
+    data = {"play_room_id":"ABC123", "csrf_token":client_2.csrf_token}
+
+    print(read_db("active_room", "*", f"WHERE room_id = 'ABC123'"))
+    test_join_active_room = client_2.post("/home", data=data, follow_redirects=True)
+
+    assert b'Add a Character First' in test_join_active_room.data
+
+    client_2.get("/home", follow_redirects=True)
+
+    
+    data1 = {"spectate_room_id":"ABC123", "csrf_token":client_2.csrf_token}
+    
+    authentic_user_spectate = client_2.post("/home", data=data1, follow_redirects=True)
+    
+    assert b'Initiative Order' in authentic_user_spectate.data
+    
+    data2 = {"spectate_room_id":"ABC123", "csrf_token":client_3.csrf_token}
+    
+    client_3.get("/home", follow_redirects=True)
+
+    unauthenticated_user_spectate = client_3.post("/home", data=data2, follow_redirects=True)
+
+    assert b'Initiative Order' in unauthenticated_user_spectate.data
+
+    
 
 
 
