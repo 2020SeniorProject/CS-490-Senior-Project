@@ -254,6 +254,13 @@ def test_join_active_room(mocker, client_2, client_3):
 
     assert b'There is not an open room with that key!' in test_spectate_fake_room.data
 
+    data = {"spectate_room_id":"123ABC", "csrf_token":client_3.csrf_token}
+
+    test_unauthenticated_fail_spectate = client_3.post("/home", data=data, follow_redirects=True)
+
+    assert b"There is not an open room with that key!"
+
+
     data = {"play_room_id":"ABC123", "csrf_token":client_2.csrf_token}
 
     test_join_active_room = client_2.post("/home", data=data, follow_redirects=True)

@@ -153,6 +153,13 @@ fields = ["room_name", "map_url", "dm_notes"]
 inputs = ["Dungeon Battle", "this_is_dope_map.jpg", "This is not going to be an intense batle"]
 expected = 'this_is_dope_map.jpg'
 
+[[room_edit]]
+
+fields = ["room_name", "map_url", "dm_notes"]
+inputs = ["Dungeon Battle", "www.luther.edu", "This is not going to be an intense batle"]
+expected = 'The encounter map must be an image! Please ensure that the URL you entered ends with .jpg, .gif, .png, .jpeg or .webp!'
+
+
 [[username]]
 fields = ["username", "changed_name"]
 inputs = ["mockman69"]
