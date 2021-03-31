@@ -415,18 +415,21 @@ def test_username_change(client_1, fields, inputs, expected, mocker):
 def test_edit_character(client_2, inputs, fields, expected):
 
     character_edit_view = client_2.get(f"/characters/edit/{inputs[14]}")
-    
-    valid_inputs = []
-    for items in inputs:
-        try:
-            valid_inputs.append(int(items))
-        except:
-            valid_inputs.append(items)
-    data = {fields[x]:inputs[x] for x in range(len(fields))}
-    data["csrf_token"] = client_2.csrf_token
-    edit_char = client_2.post(f"/characters/edit/{inputs[14]}", data=data, follow_redirects=True)
+    print(character_edit_view.data)
+    if b'Error Code' not in character_edit_view.data:
+        valid_inputs = []
+        for items in inputs:
+            try:
+                valid_inputs.append(int(items))
+            except:
+                valid_inputs.append(items)
+        data = {fields[x]:inputs[x] for x in range(len(fields))}
+        data["csrf_token"] = client_2.csrf_token
+        edit_char = client_2.post(f"/characters/edit/{inputs[14]}", data=data, follow_redirects=True)
 
-    assert bytes(expected, 'utf-8') in edit_char.data
+        assert bytes(expected, 'utf-8') in edit_char.data
+    else:
+        assert bytes(expected, 'utf-8') in character_edit_view.data
 
 
 
