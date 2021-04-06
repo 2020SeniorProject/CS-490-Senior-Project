@@ -20,14 +20,46 @@ const html = fs.readFileSync(path.resolve(__dirname, '../templates/play.html'), 
 // console.log(html);
 const $ = require('jquery');
 // console.log($);
-const dm_play_script = require('../tests/dm_play_script.js');
+const all = require('./dm_play_script.js');
 // console.log(dm_play_script);
+const io = require('socket.io-client');
+const http = require('http');
+const ioBack = require('socket.io');
+
+let socket;
+let httpServer;
+let httpServerAddr;
+let ioServer;
 
 test('use jsdom in this test file', () => {
+    const $ = require('jquery');
+    window.$ = $;
     const element = document.createElement('div');
     expect(element).not.toBeNull();
   });
 
-// test('Use the /combat namespace', () => {
-//     expect(namespace).toMatch('/combat');
-// });
+test('Test constants are as expected', () => {
+    const callback = jest.fn();
+    all(callback);
+    expect(namespace).toMatch('/combat');
+    expect(checklist).toMatch(`<ul id=checklist class="list-group list-group-flush">
+                      <li class="list-group-item">
+                        <div class="custom-control custom-checkbox">
+                          <input type="checkbox" class="custom-control-input" id=movement_checklist>
+                          <label class="custom-control-label" for=movement_checklist>Movement</label>
+                        </div>
+                      </li>
+                      <li class="list-group-item">
+                      <div class="custom-control custom-checkbox">
+                          <input type="checkbox" class="custom-control-input" id=action_checklist>
+                          <label class="custom-control-label" for=action_checklist>Action</label>
+                        </div>
+                      </li>
+                      <li class="list-group-item">
+                      <div class="custom-control custom-checkbox">
+                          <input type="checkbox" class="custom-control-input" id=bonus_action_checklist>
+                          <label class="custom-control-label" for=bonus_action_checklist>Bonus Action</label>
+                        </div>
+                      </li>
+                    </ul>`)
+});
