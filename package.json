@@ -132,6 +132,9 @@
   "scripts": {
     "test": "jest"
   },
+  "jest": {
+    "collectCoverage": true
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/2020SeniorProject/CS-490-Senior-Project.git"

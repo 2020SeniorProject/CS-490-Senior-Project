@@ -1,4 +1,7 @@
 /*jshint esversion: 6 */
+// The line below is required for testing jquery elements with jest
+const $ = require('jquery');
+
 
 $(document).ready(function() {
     jQuery.browser = {
