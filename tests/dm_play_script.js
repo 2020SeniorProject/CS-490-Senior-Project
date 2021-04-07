@@ -1,10 +1,12 @@
 /*jshint esversion: 6 */
+// The line below is required for testing jquery elements with jest
+const $ = require('jquery');
+const io = require('socket.io-client');
+window.$ = $;
 
-$(document).ready(function() {
-    jQuery.browser = {
-      msie: false,
-      version: 0
-    };
+// $(document).ready(all);
+
+function all() {
   
     // Use a "/test" namespace.
     // An application can open a connection on multiple namespaces, and
@@ -12,14 +14,14 @@ $(document).ready(function() {
     // physical channel. If you don't care about multiple channels, you
     // can set the namespace to an empty string.
   
-    var initiatives = [];
-    var turn_index = null;
-    var username = $('#username').text();
-    var room_id = $('#room_id').text();
+    initiatives = [];
+    turn_index = null;
+    username = $('#username').text();
+    room_id = $('#room_id').text();
   
     // TODO: Replacing the form does not work
     // var initiative_form = $('#initiative-wrapper').html();
-    var checklist = `<ul id=checklist class="list-group list-group-flush">
+    checklist = `<ul id=checklist class="list-group list-group-flush">
                       <li class="list-group-item">
                         <div class="custom-control custom-checkbox">
                           <input type="checkbox" class="custom-control-input" id=movement_checklist>
@@ -467,7 +469,7 @@ $(document).ready(function() {
       character_icon_wrapper.appendChild(character_icon);
       return character_icon_wrapper;
     }
-  });
+  };
   
   
   function compareSecondColumn(a, b) {
@@ -570,3 +572,6 @@ $(document).ready(function() {
   //   $('#battle_map_container').html('<img id="battle_map" style="height:100%;width:100%;" draggable="false" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Flag_of_Libya_%281977%E2%80%932011%29.svg/300px-Flag_of_Libya_%281977%E2%80%932011%29.svg.png">');
   //   $('#initiative-table').html('<tbody><tr id=Helga-Yee-row><td>Helga</td><td>4444</td></tr></tbody>');
   // }
+
+
+  module.exports = all;
