@@ -506,9 +506,9 @@ def test_user_spamming(client_2, inputs, expected):
 
 # gotta be a better way to do this
 def test_client_connect(client_2):
-    app.config["FLASK_DEBUG"] = 0
-    app.config["PRESERVE_CONTEXT_ON_EXCEPTION"] = False
-    
+    """
+    Tests get_sid, on_join, join_actions
+    """
     with app.app_context():
         socketio_client = socketio.test_client(app, namespace="/combat")
 
@@ -554,3 +554,143 @@ def test_client_connect(client_2):
         assert response[0]['args'][0]['desc'] == 'mrsmock69 Connected'
         assert response[1]['args'][0]['desc'] == 'Initiative List Received'
         assert response[2]['args'][0]['desc'] == 'Chat History Received'
+
+
+@pytest.fixture
+def client_4(mocker):
+    app.config['TESTING'] = True
+    app.test_client_class = FlaskClient
+    with app.test_client() as client_4:
+        create_dbs()
+        mocker.patch("flask_login.utils._get_user", return_value = User("client4id", "mail", "mock.jpg", "client4username"))
+        add_to_db("room_object", ("client4id", "Dungeon Battle4", "null", "{}", "this_is_sweet_map.jpg", "This is going to be an intense batle"))
+        add_to_db("users", ("client4id", "mail", "mock.jpg", "client4username"))
+        add_to_db("characters", ("client4id" ,"Yanko", "Ranger", "Hunter", "Lizardfolk", "Lizardfolk", 30, 20, 20, 12, 18, 16, 12, 8, 77, "lizardboi.jpg"))
+        # print(read_db("characters", "*", "WHERE user_id = 'client_4'"))
+        add_to_db("characters", ("client4id" ,"Fashum", "Ranger", "Hunter", "Lizardfolk", "Lizardfolk", 30, 20, 20, 12, 18, 16, 12, 8, 77, "lizardboi.jpg"))
+        
+        yield client_4
+    
+    delete_from_db("active_room", "WHERE user_id = 'client4id'")
+    delete_from_db("users", "WHERE user_id = 'client4id'")
+    delete_from_db("room_object", "WHERE user_id = 'client4id'")
+    delete_from_db("characters", "WHERE user_id = 'client4id'")
+    delete_from_db("log", "WHERE user_id = 'client4id'")
+    delete_from_db("chat", "WHERE user_id = 'client4id'")
+
+
+def test_character_functionality(client_4):
+    """
+    Tests add_character, set_initiative, character_icon_update_database, remove_character
+    """
+    # Needed to set up the context
+    with app.app_context():
+        row_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle4'")[0][0]
+        app_context = client_4.get(f"/room/{row_id}")
+        open_room_test = client_4.post("/generate_room", data={"room_id":f"{row_id}", "csrf_token":client_4.csrf_token}, follow_redirects=True)
+        socketio_client = socketio.test_client(app, namespace="/combat")
+        room_id = read_db("room_object", "active_room_id", f"WHERE row_id = '{row_id}'")[0][0]
+        socketio_client.emit("on_join", {'room_id': room_id}, namespace="/combat")
+        socketio_client.emit("join_actions", {'room_id': room_id}, namespace="/combat")
+        socketio_client.get_received(namespace="/combat")
+
+        socketio_client.emit("add_character", {'room_id': room_id, "username": 'client4username', "char_name": 'Yanko'}, namespace="/combat")
+
+        character_tokens = read_db("room_object", "map_status", f"WHERE active_room_id='{room_id}'")[0][0]
+        characters_in_room = read_db("active_room", "character_name", f"WHERE room_id='{room_id}'")[0]
+        response = socketio_client.get_received(namespace="/combat")
+
+        assert "client4id_Yanko" in character_tokens
+        assert 'Yanko' in characters_in_room
+        assert len(response) == 3
+        assert response[0]['name'] == 'populate_select_with_character_names'
+        assert response[1]['name'] == 'initiative_update'
+        assert response[2]['name'] == 'redraw_character_tokens_on_map'
+
+        socketio_client.emit("set_initiative", {'room_id': room_id, "username": 'client4username', "character_name": 'Yanko', "init_val": 2}, namespace="/combat")
+        characters_in_room_initiatives = read_db("active_room", "init_val", f"WHERE room_id='{room_id}'")[0][0]
+        response = socketio_client.get_received(namespace="/combat")
+
+        assert characters_in_room_initiatives == 2
+        assert len(response) == 2
+        assert response[0]['name'] == 'initiative_update'
+        assert response[1]['name'] == 'log_update'
+
+        socketio_client.emit("remove_character", {'room_id': room_id, "username": 'client4username', "character_name": 'Yanko', "init_val": 2, "next_character_name": None, "next_username": None}, namespace="/combat")
+        characters_in_room = read_db("active_room", "*", f"WHERE room_id='{room_id}'")
+        response = socketio_client.get_received(namespace="/combat")
+
+        assert characters_in_room == []
+        assert len(response) == 2
+        assert response[0]['name'] == 'redraw_character_tokens_on_map'
+        assert response[1]['name'] == 'removed_character'
+
+def test_chat(client_4):
+    """
+    Tests send_chat
+    """
+    # Needed to set up the context
+    with app.app_context():
+        row_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle4'")[0][0]
+        app_context = client_4.get(f"/room/{row_id}")
+        open_room_test = client_4.post("/generate_room", data={"room_id":f"{row_id}", "csrf_token":client_4.csrf_token}, follow_redirects=True)
+        socketio_client = socketio.test_client(app, namespace="/combat")
+        room_id = read_db("room_object", "active_room_id", f"WHERE row_id = '{row_id}'")[0][0]
+        socketio_client.emit("on_join", {'room_id': room_id}, namespace="/combat")
+        socketio_client.emit("join_actions", {'room_id': room_id}, namespace="/combat")
+        socketio_client.get_received(namespace="/combat")
+
+        socketio_client.emit("send_chat", {'room_id': room_id, "username": 'client4username', "chat": 'Testing the chat.'}, namespace="/combat")
+        socketio_client.emit("send_chat", {'room_id': room_id, "username": 'client4username', "chat": 'Testing the c3hat.'}, namespace="/combat")
+
+        chats = read_db("chat", "*", f"WHERE room_id = '{room_id}'")
+        logs = read_db("log", "*", f"WHERE room_id = '{room_id}' and title = 'Chat'")
+        response = socketio_client.get_received(namespace="/combat")
+
+        # Ensures the updates occur and the right events were sent out
+        assert len(chats) == 2
+        assert len(logs) == 2
+        assert len(response) == 2
+        assert response[0]['name'] == 'chat_update'
+        assert response[1]['name'] == 'chat_update'
+
+        socketio_client.emit("send_chat", {'room_id': room_id, "username": 'client4username', "chat": 'Testing the chat.'}, namespace="/combat")
+        socketio_client.emit("send_chat", {'room_id': room_id, "username": 'client4username', "chat": 'Testing the chat.'}, namespace="/combat")
+        socketio_client.emit("send_chat", {'room_id': room_id, "username": 'client4username', "chat": 'Testing the chat.'}, namespace="/combat")
+        socketio_client.emit("send_chat", {'room_id': room_id, "username": 'client4username', "chat": 'Testing the chat.'}, namespace="/combat")
+        socketio_client.get_received(namespace="/combat")
+        socketio_client.emit("send_chat", {'room_id': room_id, "username": 'client4username', "chat": 'Testing the chat.'}, namespace="/combat")
+        response = socketio_client.get_received(namespace="/combat")
+
+        assert len(response) == 2
+        assert response[0]['name'] == 'lockout_spammer'
+        assert response[1]['name'] == 'log_update'
+
+
+def test_npc(client_4):
+    """
+    Tests add_npc
+    """
+    # Needed to set up the context
+    with app.app_context():
+        row_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle4'")[0][0]
+        app_context = client_4.get(f"/room/{row_id}")
+        open_room_test = client_4.post("/generate_room", data={"room_id":f"{row_id}", "csrf_token":client_4.csrf_token}, follow_redirects=True)
+        socketio_client = socketio.test_client(app, namespace="/combat")
+        room_id = read_db("room_object", "active_room_id", f"WHERE row_id = '{row_id}'")[0][0]
+        socketio_client.emit("on_join", {'room_id': room_id}, namespace="/combat")
+        socketio_client.emit("join_actions", {'room_id': room_id}, namespace="/combat")
+        socketio_client.get_received(namespace="/combat")
+
+        socketio_client.emit("add_npc", {'room_id': room_id, "username": 'client4username'}, namespace="/combat")
+
+        npc_name = read_db("active_room", "character_name", f"WHERE room_id = '{room_id}'")[0][0]
+        map_status = read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0]
+        response = socketio_client.get_received(namespace="/combat")
+
+        assert npc_name[0:3] == "NPC"
+        assert f"client4id_{npc_name}" in map_status
+        assert len(response) == 3
+        assert response[0]['name'] == 'populate_select_with_character_names'
+        assert response[1]['name'] == 'initiative_update'
+        assert response[2]['name'] == 'redraw_character_tokens_on_map'

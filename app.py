@@ -1231,7 +1231,7 @@ def send_chat(message):
     """
     time_received = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.id
-    username = message['character_name']
+    username = message['username']
     room_id = message['room_id']
     chat = message['chat']
     username = current_user.username
