@@ -694,3 +694,96 @@ def test_npc(client_4):
         assert response[0]['name'] == 'populate_select_with_character_names'
         assert response[1]['name'] == 'initiative_update'
         assert response[2]['name'] == 'redraw_character_tokens_on_map'
+
+
+def test_combat(client_4):
+    """
+    Tests start_combat, end_turn, end_combat
+    """
+    # Needed to set up the context
+    with app.app_context():
+        row_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle4'")[0][0]
+        app_context = client_4.get(f"/room/{row_id}")
+        open_room_test = client_4.post("/generate_room", data={"room_id":f"{row_id}", "csrf_token":client_4.csrf_token}, follow_redirects=True)
+        socketio_client = socketio.test_client(app, namespace="/combat")
+        room_id = read_db("room_object", "active_room_id", f"WHERE row_id = '{row_id}'")[0][0]
+        socketio_client.emit("on_join", {'room_id': room_id}, namespace="/combat")
+        socketio_client.emit("join_actions", {'room_id': room_id}, namespace="/combat")
+        socketio_client.emit("add_character", {'room_id': room_id, "username": 'client4username', "char_name": 'Yanko'}, namespace="/combat")
+        socketio_client.emit("add_character", {'room_id': room_id, "username": 'client4username', "char_name": 'Fashum'}, namespace="/combat")
+        socketio_client.emit("set_initiative", {'room_id': room_id, "username": 'client4username', "character_name": 'Yanko', "init_val": 2}, namespace="/combat")
+        socketio_client.emit("set_initiative", {'room_id': room_id, "username": 'client4username', "character_name": 'Fashum', "init_val": 20}, namespace="/combat")
+        socketio_client.get_received(namespace="/combat")
+
+        # start_combat
+        socketio_client.emit("start_combat", {'room_id': room_id, "desc": "Start Combat"}, namespace="/combat")
+        socketio_client.get_received(namespace="/combat")
+
+        characters = read_db("active_room", "character_name, is_turn", f"WHERE room_id = '{room_id}'")
+        is_turn_dict = {}
+
+        for char in characters:
+            is_turn_dict[char[0]] = char[1]
+
+        assert is_turn_dict["Yanko"] == 0
+        assert is_turn_dict["Fashum"] == 1
+
+        # end_turn
+        socketio_client.emit("end_turn", {"room_id": room_id, "desc": "Fashum's turn ended", "previous_character_name":"Fashum", "next_character_name": "Yanko", "previous_username": "client4username", "next_username": "client4username"}, namespace="/combat")
+        socketio_client.get_received(namespace="/combat")
+
+        characters = read_db("active_room", "character_name, is_turn", f"WHERE room_id = '{room_id}'")
+        is_turn_dict = {}
+
+        for char in characters:
+            is_turn_dict[char[0]] = char[1]
+
+        assert is_turn_dict["Yanko"] == 1
+        assert is_turn_dict["Fashum"] == 0
+
+        # end_combat
+        socketio_client.emit("end_combat", {'room_id': room_id, "desc": "End Combat"}, namespace="/combat")
+        socketio_client.get_received(namespace="/combat")
+
+        characters = read_db("active_room", "character_name, is_turn", f"WHERE room_id = '{room_id}'")
+        is_turn_dict = {}
+
+        for char in characters:
+            is_turn_dict[char[0]] = char[1]
+
+        assert is_turn_dict["Yanko"] == 0
+        assert is_turn_dict["Fashum"] == 0
+
+
+def test_end_room(client_4):
+    """
+    Tests end_room
+    """
+    # Needed to set up the context
+    with app.app_context():
+        row_id = read_db("room_object", "row_id", "WHERE room_name = 'Dungeon Battle4'")[0][0]
+        app_context = client_4.get(f"/room/{row_id}")
+        open_room_test = client_4.post("/generate_room", data={"room_id":f"{row_id}", "csrf_token":client_4.csrf_token}, follow_redirects=True)
+        socketio_client = socketio.test_client(app, namespace="/combat")
+        room_id = read_db("room_object", "active_room_id", f"WHERE row_id = '{row_id}'")[0][0]
+        socketio_client.emit("on_join", {'room_id': room_id}, namespace="/combat")
+        socketio_client.emit("join_actions", {'room_id': room_id}, namespace="/combat")
+        socketio_client.emit("add_character", {'room_id': room_id, "username": 'client4username', "char_name": 'Yanko'}, namespace="/combat")
+        socketio_client.emit("add_character", {'room_id': room_id, "username": 'client4username', "char_name": 'Fashum'}, namespace="/combat")
+
+        # end_room
+        socketio_client.emit("end_room", {'room_id': room_id, "desc": "Close Room"}, namespace="/combat")
+        socketio_client.get_received(namespace="/combat")
+
+        active_room = read_db("active_room", "*", f"WHERE room_id = '{room_id}'")
+        chat = read_db("chat", "*", f"WHERE room_id = '{room_id}'")
+        log = read_db("log", "*", f"WHERE room_id = '{room_id}'")
+        room_object = read_db("room_object", "map_status, active_room_id", f"WHERE row_id = '{row_id}'")
+        map_status = room_object[0][0]
+        active_room_id = room_object[0][1]
+
+        assert active_room == []
+        assert chat == []
+        assert log == []
+        assert map_status == '{}'
+        assert active_room_id == "null"
