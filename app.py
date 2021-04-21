@@ -510,8 +510,10 @@ Routing Directives:
         12. /
         13. /login
         14. /login/callback
-        15. /logout
-        16. /delete
+        15. /help
+        16. /help/<template>
+        17. /logout
+        18. /delete
 """
 
 @app.route("/characters", methods=["GET", "POST"])
@@ -1064,6 +1066,21 @@ def callback():
     # Log the user in and send them to the homepage
     login_user(user)
     return redirect(url_for("login_index"))
+
+
+@app.route("/help")
+def help():
+    """
+    The /help route. This route sends
+    users to the user documentation template
+    """
+    app.logger.debug(f"User {current_user.username} has gone to the user documentation")
+
+    if current_user.is_authenticated:
+        return render_template("help.html", profile_picture=current_user.profile_picture, username=current_user.username)
+
+    return render_template("help_unlogged.html", profile_picture=current_user.profile_picture, username=current_user.username)
+
 
 
 # Logout
