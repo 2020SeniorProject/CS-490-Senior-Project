@@ -536,6 +536,9 @@ def view_characters():
     character from both the `characters` table
     and the `active_room` table.
     """
+    if not current_user.username:
+        return redirect(url_for("home"))
+
     user_id = current_user.id
 
     if request.method == "POST":
@@ -751,6 +754,9 @@ def user_settings():
     If the form fails to validate, the user_settings.html
     template is loaded with an error message.
     """
+    if not current_user.username:
+        return redirect(url_for("home"))
+
     user_id = current_user.id
     characters = read_db("characters", "character_name, char_token", f"WHERE user_id = '{user_id}'")
     user_email = current_user.email
@@ -798,6 +804,9 @@ def view_rooms():
     room is deleted from the room_object table and the
     user is redirected to the /rooms route with the GET method.
     """
+    if not current_user.username:
+        return redirect(url_for("home"))
+
     if request.method == "POST":
         app.logger.debug(f"Attempting to delete room owned by {current_user.username} named {request.form['room_name']}.")
         
