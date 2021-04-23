@@ -1091,8 +1091,25 @@ def help():
     return render_template("help_unlogged.html", profile_picture=current_user.profile_picture, username=current_user.username)
 
 
+@app.route("/help/<template>")
+def help_template(template):
+    """
+    The /help/<template> route. This route
+    sends users to the user documentation for the
+    specific how-to they have
 
-# Logout
+    :param template:
+        the name of the template that is being loaded
+        (without the file extension)
+    """
+    try:
+        return render_template(f"{template}.html", profile_picture=current_user.profile_picture, username=current_user.username)
+
+    except:
+        app.logger.debug(f"Template does not exist")
+        raise BadRequest(description=f"That help page does not exist!")
+
+
 @app.route("/logout")
 @login_required
 def logout():
@@ -1105,7 +1122,6 @@ def logout():
     return redirect(url_for("login_index"))
 
 
-# Delete Account
 @app.route("/delete")
 @login_required
 def delete_account():
