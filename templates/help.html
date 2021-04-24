@@ -1,4 +1,8 @@
-{% extends "base.html" %}
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif -%}
 
 {% block content %}
 

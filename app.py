@@ -1084,11 +1084,7 @@ def help():
     users to the user documentation template
     """
     app.logger.debug(f"User {current_user.username} has gone to the user documentation")
-
-    if current_user.is_authenticated:
-        return render_template("help.html", profile_picture=current_user.profile_picture, username=current_user.username)
-
-    return render_template("help_unlogged.html", profile_picture=current_user.profile_picture, username=current_user.username)
+    return render_template("help.html", profile_picture=current_user.profile_picture, username=current_user.username, logged=current_user.is_authenticated)
 
 
 @app.route("/help/<template>")
@@ -1103,7 +1099,10 @@ def help_template(template):
         (without the file extension)
     """
     try:
-        return render_template(f"{template}.html", profile_picture=current_user.profile_picture, username=current_user.username)
+        if current_user.is_authenticated:
+            return render_template(f"{template}.html", profile_picture=current_user.profile_picture, username=current_user.username)
+        else:
+            return render_template(f"{template}_unlogged.html", profile_picture=current_user.profile_picture, username=current_user.username)
 
     except:
         app.logger.debug(f"Template does not exist")
