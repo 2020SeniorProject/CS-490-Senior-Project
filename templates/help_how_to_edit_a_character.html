@@ -1,0 +1,43 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to Edit a Character</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to edit a character. You need to be logged in in order to have access to characters.</p>
+    <ol>
+        <li>From the home screen, click the "Characters" tab on the navigation bar at the top.</li>
+        <li>You should see a table listing all of your character. Find the character you want to edit in your list and click the yellow button with a pencil in the last column of that row.</li>
+        <li>You should have a form titled "Edit a character". Change the values you want and click on "Change Character!. If your form has errors, fix the indicated issues, then resubmit."<b>*</b></li>
+        <li>Upon submitting, you should be brought back to the main character page. You will see your edited character in your list of characters!</li>
+    </ol>
+    <hr>
+
+    <p><b>*</b>The form has the following rules</p>
+    <ul>
+        <li>Name: Cannot be empty, maximum 25 characters, can only be made of alphabet characters and spaces.</li>
+        <li>Race: Cannot be empty.</li>
+        <li>Subrace: Cannot be empty.</li>
+        <li>Speed: Cannot be empty, must be a positive number equal to or less than 1000.</li>
+        <li>Class: Cannot be empty.</li>
+        <li>Subclass: Cannot be empty.</li>
+        <li>Level: Cannot be empty, must be a positive number equal to or less than 20.</li>
+        <li>Strength: Cannot be empty, must be a positive number equal to or less than 30.</li>
+        <li>Dexterity: Cannot be empty, must be a positive number equal to or less than 30.</li>
+        <li>Constitution: Cannot be empty, must be a positive number equal to or less than 30.</li>
+        <li>Intelligence: Cannot be empty, must be a positive number equal to or less than 30.</li>
+        <li>Wisdom: Cannot be empty, must be a positive number equal to or less than 30.</li>
+        <li>Charisma: Cannot be empty, must be a positive number equal to or less than 30.</li>
+        <li>Hitpoints: Cannot be empty.</li>
+        <li>Character Icon: If supplied, it must be a valid image publically available from another site. Otherwise it defaults to your Google profile picture.</li>
+    </ul>
+</div>
+
+{% endblock %}

@@ -1099,10 +1099,7 @@ def help_template(template):
         (without the file extension)
     """
     try:
-        if current_user.is_authenticated:
-            return render_template(f"{template}.html", profile_picture=current_user.profile_picture, username=current_user.username)
-        else:
-            return render_template(f"{template}_unlogged.html", profile_picture=current_user.profile_picture, username=current_user.username)
+        return render_template(f"help_{template}.html", profile_picture=current_user.profile_picture, username=current_user.username, logged=current_user.is_authenticated)
 
     except:
         app.logger.debug(f"Template does not exist")

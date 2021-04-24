@@ -2,6 +2,9 @@
 
 {% block content %}
 <div class="container">
+    <p class="text-center mb-5">Welcome, <b>{{ username }}</b>, to Wizards of the Driftless (formerly Wizards of the Plains) Online Battle Simulator!</p>
+    <p class="text-center">Don't know what to do? Click <a href=/help>here</a> for help!</p>
+    <hr>
     <form action="/home" method="POST" class="form">
         <label class=form-label for=play_room_id>Play Room ID</label>
         <div class="row">
