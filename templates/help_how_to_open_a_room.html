@@ -1,0 +1,23 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to Open a Room</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to delete a room. You need to be logged in in order to have access to rooms.</p>
+    <ol>
+        <li>From the home screen, click the "Room" tab on the navigation bar at the top.</li>
+        <li>You should see a list of all your rooms. Click the name of the room you want to open.</li>
+        <li>You should a battle map with a form in the upper right corner. Click the green "Open room" button.</li>
+        <li>You will be redirected to the link for your open room!</li>
+    </ol>
+</div>
+
+{% endblock %}

@@ -1,0 +1,44 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <h2 class="text-center">Dangeon Master Aid User Documentation</h2>
+    <p class="small text-center">Everything you need to know about our tool.</p>
+    <hr>
+    
+    <h4>Tutorials</h4>
+    <ul>
+        <li>Here</li>
+        <li>there</li>
+        <li>will</li>
+        <li>links</li>
+        <li>to</li>
+        <li>video</li>
+        <li>tutorials</li>
+    </ul>
+    <hr>
+
+    <h4>How-Tos</h4>
+    <ul>
+        <li><a href="/help/how_to_make_a_character">How to Make a Character</a></li>
+        <li><a href="/help/how_to_edit_a_character">How to Edit a Character</a></li>
+        <li><a href="/help/how_to_delete_a_character">How to Delete a Character</a></li>
+        <li><a href="/help/how_to_make_a_room">How to Make a Room</a></li>
+        <li><a href="/help/how_to_edit_a_room">How to Edit a Room</a></li>
+        <li><a href="/help/how_to_delete_a_room">How to Delete a Room</a></li>
+        <li><a href="/help/how_to_open_a_room">How to Open a Room</a></li>
+        <li><a href="/help/how_to_join_a_room">How to Join a Room</a></li>
+        <li><a href="/help/how_to_spectate_a_room">How to Spectate a Room</a></li>
+        <li><a href="/help/how_to_change_a_username">How to Change Your Username</a></li>
+        <li><a href="/help/how_to_logout">How to Logout</a></li>
+        <li><a href="/help/how_to_delete_an_account">How to Delete Your Account</a></li>
+    </ul>
+</div>
+
+
+{% endblock %}

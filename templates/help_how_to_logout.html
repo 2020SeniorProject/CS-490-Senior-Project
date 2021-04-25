@@ -1,0 +1,22 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to Logout</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to logout. You must be logged in to be able to logout.</p>
+    <ol>
+        <li>From the home screen, click on your profile picture in the upper right corner.</li>
+        <li>Click logout</li>
+        <li>You are now logged out!</li>
+    </ol>
+</div>
+
+{% endblock %}

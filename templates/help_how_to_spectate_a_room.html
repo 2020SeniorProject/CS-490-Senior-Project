@@ -1,0 +1,22 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to Spectate a Room</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to spectate a room.</p>
+    <ol>
+        <li>Get the specific room id to the room you wish to spectate from your DM. It is an 8-character alphanumeric code located in the middle of the navigation bar in the room.</li>
+        <li>From the home screen, enter the room id into the "Spectate Room ID" form and click the red "Choose room a to spectate" button.</li>
+        <li>You are now spectating the room!</li>
+    </ol>
+</div>
+
+{% endblock %}

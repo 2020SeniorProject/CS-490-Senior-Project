@@ -1,0 +1,26 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to Change Your Username</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to change your usename. You must be logged in to have a username.</p>
+    <ol>
+        <li>From the home screen, click the "Settings" tab on the navigation bar at the top.</li>
+        <li>You should see a a listing of your email and your username.</li>
+        <li>In the username section of the page, type your new username in the provide form and click the "Update" button.<b>*</b></li>
+        <li>Your username is now updated!</li>
+    </ol>
+    <hr>
+    
+    <p><b>*</b>The username must be unique across all users.</p>
+</div>
+
+{% endblock %}

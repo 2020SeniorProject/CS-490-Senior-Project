@@ -1,0 +1,23 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to Join a Room</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to join a room. You need to be logged in in order to join rooms.</p>
+    <ol>
+        <li><b>Note</b>: You need a character in order to join a room. Follow <a href="/help/how_to_make_a_character">this</a> guide to create a character.</li>
+        <li>Get the specific room id to the room you wish to join from your DM. It is an 8-character alphanumeric code located in the middle of the navigation bar in the room.</li>
+        <li>From the home screen, enter the room id into the "Play Room ID" form and click the red "Choose room" button.</li>
+        <li>You have now joined the room!</li>
+    </ol>
+</div>
+
+{% endblock %}

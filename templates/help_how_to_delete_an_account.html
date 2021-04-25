@@ -1,0 +1,23 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to Delete an Account</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to delete your account. You must be logged in to have an account. Any data that was associated with your account will be deleted from our databases, lost forever. We are not responsible if you delete your account, and then change your mind. We do not keep backups of deleted data.</p>
+    <ol>
+        <li>From the home screen, click on your profile picture in the upper right corner.</li>
+        <li>Click "Delte Account".</li>
+        <li>Press OK in the pop up.</li>
+        <li>Your account is now deleted!</li>
+    </ol>
+</div>
+
+{% endblock %}

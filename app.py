@@ -510,8 +510,10 @@ Routing Directives:
         12. /
         13. /login
         14. /login/callback
-        15. /logout
-        16. /delete
+        15. /help
+        16. /help/<template>
+        17. /logout
+        18. /delete
 """
 
 @app.route("/characters", methods=["GET", "POST"])
@@ -534,6 +536,9 @@ def view_characters():
     character from both the `characters` table
     and the `active_room` table.
     """
+    if not current_user.username:
+        return redirect(url_for("home"))
+
     user_id = current_user.id
 
     if request.method == "POST":
@@ -749,6 +754,9 @@ def user_settings():
     If the form fails to validate, the user_settings.html
     template is loaded with an error message.
     """
+    if not current_user.username:
+        return redirect(url_for("home"))
+
     user_id = current_user.id
     characters = read_db("characters", "character_name, char_token", f"WHERE user_id = '{user_id}'")
     user_email = current_user.email
@@ -796,6 +804,9 @@ def view_rooms():
     room is deleted from the room_object table and the
     user is redirected to the /rooms route with the GET method.
     """
+    if not current_user.username:
+        return redirect(url_for("home"))
+
     if request.method == "POST":
         app.logger.debug(f"Attempting to delete room owned by {current_user.username} named {request.form['room_name']}.")
         
@@ -1066,7 +1077,35 @@ def callback():
     return redirect(url_for("login_index"))
 
 
-# Logout
+@app.route("/help")
+def help():
+    """
+    The /help route. This route sends
+    users to the user documentation template
+    """
+    app.logger.debug(f"User {current_user.username} has gone to the user documentation")
+    return render_template("help.html", profile_picture=current_user.profile_picture, username=current_user.username, logged=current_user.is_authenticated)
+
+
+@app.route("/help/<template>")
+def help_template(template):
+    """
+    The /help/<template> route. This route
+    sends users to the user documentation for the
+    specific how-to they have
+
+    :param template:
+        the name of the template that is being loaded
+        (without the file extension)
+    """
+    try:
+        return render_template(f"help_{template}.html", profile_picture=current_user.profile_picture, username=current_user.username, logged=current_user.is_authenticated)
+
+    except:
+        app.logger.debug(f"Template does not exist")
+        raise BadRequest(description=f"That help page does not exist!")
+
+
 @app.route("/logout")
 @login_required
 def logout():
@@ -1079,7 +1118,6 @@ def logout():
     return redirect(url_for("login_index"))
 
 
-# Delete Account
 @app.route("/delete")
 @login_required
 def delete_account():
@@ -1231,7 +1269,7 @@ def send_chat(message):
     """
     time_received = datetime.datetime.now().isoformat(sep=' ',timespec='seconds')
     user_id = current_user.id
-    username = message['character_name']
+    username = message['username']
     room_id = message['room_id']
     chat = message['chat']
     username = current_user.username
