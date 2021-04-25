@@ -1,0 +1,31 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to Make a Room</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to make a room. In order to open a room, you need a room! Likewise, you also need to be logged in in order to make a room.</p>
+    <ol>
+        <li>From the home screen, click the "Room" tab on the navigation bar at the top.</li>
+        <li>You should see a list of all your rooms. Click the green "Create a Character!" button at the top of the page</li>
+        <li>You should a battle map with a form in the upper right corner. Fill out the form and click on "Add Room!". If your form has errors, fix the indicated issues, then resubmit."<b>*</b></li>
+        <li>Upon submitting, you should be brought back to the main room page. You will see your room in your list of rooms!</li>
+    </ol>
+    <hr>
+
+    <p><b>*</b>The form has the following rules</p>
+    <ul>
+        <li>Room Name: The name can only be up to 42 characters long. You must enter something for the name.</li>
+        <li>DM Notes: This is optional. No restrictions on this.</li>
+        <li>Map URL: it must link to an image hosted on a publically available address. The address must end with .jpg, .jpeg, .webp, .gif, or .png.</li>
+    </ul>
+</div>
+
+{% endblock %}
