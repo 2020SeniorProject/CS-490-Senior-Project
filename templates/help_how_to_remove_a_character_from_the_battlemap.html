@@ -1,0 +1,23 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to Remove a Character from the Battlemap</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to remove a character from the Battlemap.</p>
+    <ol>
+        <li>You must already have a character or NPC added to the battlemap in order to remove them (see: <a href="/help/how_to_add_a_character_to_the_battlemap">How to Add a character to the Battlemap</a>).</li>
+        <li>In the box labeled "Initiative Order" on the right side of the battlemap screen, you will see a list of characters in the battlemap.</li>
+        <li>Click the X by the character's name you wish to remove from the battlemap. This will remove their character icon from the battlemap and remove erase their initative, but don't worry! You can always just add them back.</li>
+        <li>The character has been removed from the battlemap!</li>
+    </ol>
+</div>
+
+{% endblock %}

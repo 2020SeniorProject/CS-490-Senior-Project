@@ -1,0 +1,24 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to Add a Character to the Battlemap</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to add a character to the battlemap. You must be in a room in order to add a character to the battlemap.</p>
+    <ol>
+        <li>Upon opening a room, you will see the battlemap screen.</li>
+        <li>First, select the character that you want to add to the battlemap from the dropdown in the bottom right of the screen under the label "Add a Character".</li>
+        <li>Click the button labeled "Add Character" just below the dropdown.</li>
+        <li>You will see your character icon appear on the battlemap.</li>
+        <li>You have just added a character to the battlemap!</li>
+    </ol>
+</div>
+
+{% endblock %}

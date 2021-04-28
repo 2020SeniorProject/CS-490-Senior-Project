@@ -1,0 +1,23 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to End a Session</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to end a session. You need to have opened a room as a Dungeon Master in order to end a session.</p>
+    <ol>
+        <li>Click the yellow button labeled "End Session!" under the header "DM's Tools".</li>
+        <li>You will be asked via a pop-up if you are sure you want to end the session. Don't worry! The battlemap and all character locations will be saved. Click OK.</li>
+        <li>You will be returned to home page.</li>
+        <li>You have ended the session!</li>
+    </ol>
+</div>
+
+{% endblock %}

@@ -1,0 +1,21 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to End a Battle</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to end a battle. You need to have opened a room as a Dungeon Master and already started a battle in order to end a battle.</p>
+    <ol>
+        <li>Click the red button labeled "End Battle" under the header "DM's Tools".</li>
+        <li>You have ended the battle!</li>
+    </ol>
+</div>
+
+{% endblock %}
