@@ -1,0 +1,23 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to Start a Battle</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to start a battle. You need to have opened a room as a Dungeon Master in order to start a battle.</p>
+    <ol>
+        <li>Upon opening a room, you will see the battlemap screen.</li>
+        <li>Add at least one character or NPC to the battle map. (See: <a href="/help/how_to_add_a_character_to_the_battlemap">How to Add a Character to the Battlemap</a> or <a href="/help/how_to_add_an_NPC_to_battlemap">How to Add a NPC to the Battlemap</a>)</li>
+        <li>Click the blue button that says "Start Battle!" located in the top right corner of the screen under the label "DM's Tools"</li>
+        <li>You've started a battle!</li>
+    </ol>
+</div>
+
+{% endblock %}

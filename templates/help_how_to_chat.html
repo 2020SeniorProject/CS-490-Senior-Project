@@ -1,0 +1,23 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to Chat</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to use the chat feature. You must be in a room in order to chat.</p>
+    <ol>
+        <li>Upon opening a room, you will see the battlemap screen.</li>
+        <li>At the bottom center of the screen, you will see an input field that says "Type here". Type your messsage that you want to send to everyone (inculding spectators) in the room there.</li>
+        <li>Once you have typed your message, hit the blue button labeled "Chat" that sits to the right of the text input field.</li>
+        <li>You have just chatted with everyone in the room! Chats from others will appear in the same place as your newly sent message.</li>
+    </ol>
+</div>
+
+{% endblock %}

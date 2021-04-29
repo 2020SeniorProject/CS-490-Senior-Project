@@ -1,0 +1,20 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to Read the Log</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details what the log is. The log is only present in a room.</p>
+    <ol>
+        <li>The log is a record of events that happen in a room. It is located on the right side of the battlemap screen.</li>
+    </ol>
+</div>
+
+{% endblock %}

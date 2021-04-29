@@ -1,0 +1,22 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to Add an NPC to the Battlemap</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to add an NPC to the battlemap. You need to have opened a room as a Dungeon Master in order to add an NPC to the battlemap.</p>
+    <ol>
+        <li>Upon opening a room, you will see the battlemap screen.</li>
+        <li>Click the button labeled "Add NPC" located in the bottom right corner of the screen.</li>
+        <li>You've added an NPC to the battlemap! You should see an icon appear in the top left corner of the battlemap.</li>
+    </ol>
+</div>
+
+{% endblock %}

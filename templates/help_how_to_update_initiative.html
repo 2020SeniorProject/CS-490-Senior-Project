@@ -1,0 +1,24 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to Update a Character's Initiative</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to update a character's initiative. You must already have added a character to the battlemap in order to change their initiative.</p>
+    <ol>
+        <li>You must already have a character or NPC added to the battlemap in order to update their initiative (see: <a href="/help/how_to_add_a_character_to_the_battlemap">How to Add a character to the Battlemap</a>).</li>
+        <li>In the bottom left of the battlemap screen, you will see a dropdown listing your characters on the map. Select the character whose initiative you wish to update.</li>
+        <li>Type the initiative you wish to change your character's value to in the input field labeled "Initiative".</li>
+        <li>Click the blue buttom labeled "Update Initiative" below the dropdown and the initiative input field.</li>
+        <li>Your character's initative has been updated!</li>
+    </ol>
+</div>
+
+{% endblock %}

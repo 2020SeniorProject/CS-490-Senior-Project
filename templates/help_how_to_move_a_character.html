@@ -1,0 +1,23 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to Move a Character</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to move a character's icon on the battlemap.</p>
+    <ol>
+        <li>You must already have a character or NPC added to the battlemap in order to move them (see: <a href="/help/how_to_add_a_character_to_the_battlemap">How to Add a character to the Battlemap</a>).</li>
+        <li>Hover over the character's icon on the battlemap.</li>
+        <li>Click and drag the character icon to where you would like to place them. You cannot drag the icon outside of the battlemap.</li>
+        <li>You have moved a character!</li>
+    </ol>
+</div>
+
+{% endblock %}

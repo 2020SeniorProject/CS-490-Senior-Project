@@ -1,0 +1,23 @@
+{% if logged %}
+    {% extends 'base.html' %}
+{% else %}
+    {% extends 'login_base.html' %}
+{% endif %}
+
+{% block content %}
+
+<div class=container>
+    <a href=/help>Back</a>
+    <h2 class="text-center">How to End a Charater's Turn</h2>
+    <hr>
+
+    <p class="pb-3 text-center small">This document details how to end a character's turn. You must have previously added a character to the battlemap, a battle must be ongoing, and it must be the character's turn in order to end a character's turn.</p>
+    <ol>
+        <li>A battle must have been started by the Dungeon Master (see: <a href="/help/how_to_start_a_battle">How to Start a Battle</a>), and you must already have added a character to the battlemap (see <a href="/help/how_to_add_a_character_to_the_battlemap">How to Add a character to the Battlemap</a>).</li>
+        <li>Unless you are the Dungeon Master, it must be your character's turn in order to end their turn.</li>
+        <li>Click the red button in the bottom left corner of the battlemap screen labeled "End Turn!"</li>
+        <li>You have ended the current character's turn!</li>
+    </ol>
+</div>
+
+{% endblock %}
