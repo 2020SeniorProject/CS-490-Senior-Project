@@ -5,6 +5,7 @@ Imported Libraries:
     in the following sections:
         1. Python standard libraries
         2. Third-party libraries
+        3. Internal libraries
 """
 
 
@@ -18,6 +19,52 @@ from flask_wtf import FlaskForm
 from wtforms import FileField, Form, IntegerField, StringField, SubmitField, validators
 from wtforms.validators import DataRequired, Length, NumberRange, Optional, Regexp, URL, ValidationError
 from wtforms_validators import AlphaNumeric, AlphaSpace
+
+# Internal libraries
+from db import read_db
+
+
+class CharacterImage(Regexp):
+    """
+    The CharacterImage class. This class inherits from
+    wtforms' Regexp class. Essentially, it a specialized
+    Regex validator. 
+    """
+    def __init__(self, regex="", message="Image does not match the provided regex"):
+        """
+        :param regex:
+            the regular expression to match against
+            the provided url
+        :param message:
+            the error message provided if the image 
+            is not in the database or does not match
+            the provided `regex`
+        """
+        super().__init__(regex, message=message)
+
+
+    def __call__(self, form, field):
+        """
+        The __call__ dunder method. This method
+        checks to see if the provided url is
+        in the users database as a profile picture.
+        If it is, None is returned, signalling that
+        there is no issues. If the url is not
+        in the database, the basic Regex validator
+        is called.
+
+        :param form:
+            a jsonified html form. Used in the
+            super's call function
+        :param field:
+            the specified html field that
+            is being checked
+        """
+        if read_db("users", "*", f"WHERE profile_pic = '{field.data}'"):
+            print("In db")
+            return None
+        print("Not in db")
+        return super().__call__(form, field)
 
 
 """
@@ -56,8 +103,8 @@ class CharacterValidation(FlaskForm):
     wisdom = IntegerField('Wisdom', [DataRequired(message="Your character must have a wisdom score! Please enter your wisdom."), NumberRange(min=1, max=30, message="A character's strength must be wisdom 1 and 30. Please enter a number within that range.")])
     charisma = IntegerField('Charisma', [DataRequired(message="Your character must have a charisma score! Please enter your charisma."), NumberRange(min=1, max=30, message="A character's charisma must be between 1 and 30. Please enter a number within that range.")])
     hitpoints = IntegerField('Hitpoints', [DataRequired(message="Your character must have health! Please enter your hit points.")])
-    character_token = StringField('Character Token', [Optional(), Regexp("^https?://(?:[a-zA-Z0-9\-]+\.)+[a-z]{2,6}(?:/[^/#?]+)+\.(?:jpg|gif|png|jpeg|webp)$", message="A character's token must be an image. Ensure that the URL you entered ends with .jpg, .gif, .png, .jpeg or .webp!")])
-
+    character_token = StringField('Character Token', [Optional(), CharacterImage(regex="^https?://(?:[a-zA-Z0-9\-]+\.)+[a-z]{2,6}(?:/[^/#?]+)+\.(?:jpg|gif|png|jpeg|webp)$", message="A character's token must be an image. Ensure that the URL you entered ends with .jpg, .gif, .png, .jpeg or .webp!")])
+    
 
 class RoomValidation(FlaskForm):
     """

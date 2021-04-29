@@ -1,3 +1,9 @@
+CharacterImage class:
+    regex: the regular expression that is used in the validator
+    message: the error message that is returned if  the validation fails
+    form: a JSON representation of the entire html form
+    field: the HTML of the specific field that is being checked by the validator
+
 CharacterValidation class:
     name: the character's name
     race: the character's race
