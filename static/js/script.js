@@ -513,7 +513,6 @@ function reloadDroppable(socket, room_id){
       let new_top = (ui.position.top / parent_height)*100 + "%";
       let new_left = (ui.position.left / parent_width)*100 + "%";
       let username = ui.draggable[0].id.split("_")[1];
-      let username = ui.draggable[0].id.split("_")[1];
       let character_name = ui.draggable[0].id.split("_")[0].split(":").join(" ");
       let partially_sliced_character_image = ui.draggable[0].innerHTML.substring(ui.draggable[0].innerHTML.indexOf("src") + 5);
       let character_image = scrapeCharacterImage(partially_sliced_character_image);
