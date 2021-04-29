@@ -114,7 +114,7 @@
 
   var PreviousSource = $(this).data('previousSource');
 
-  if(!src.match("^https?://(?:[a-z\-]+\.)+[a-z]{2,6}(?:/[^/#?]+)+\.(?:jpg|gif|png|jpeg|webp)$") && src != "") {
+  if(!src.match("^https?://(?:[a-z\-]+\.)+[a-z]{2,6}(?:/[^/#?]+)+\.(?:jpg|gif|png|jpeg|webp)$") && src != "{{ profile_picture }}" && src != "") {
     $("#warning").html("Must be an image");
     return false;  
   } else {

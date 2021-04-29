@@ -61,9 +61,7 @@ class CharacterImage(Regexp):
             is being checked
         """
         if read_db("users", "*", f"WHERE profile_pic = '{field.data}'"):
-            print("In db")
             return None
-        print("Not in db")
         return super().__call__(form, field)
 
 
