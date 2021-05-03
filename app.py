@@ -1325,7 +1325,8 @@ def start_combat(message):
     for i in wrong_room:
         del map_status[i]
 
-    user_id_character_name = str(user_id) + '_' + str(character_name)
+    user_id_character_name = str(character_id) + '_' + str(character_name)
+
     json_character_to_update = { user_id_character_name: {"username": username, "character_name": character_name, "room_id": room_id, "character_image": map_status[user_id_character_name]['character_image'], "height": map_status[user_id_character_name]['height'], "width": map_status[user_id_character_name]['width'], "top": map_status[user_id_character_name]['top'], "left": map_status[user_id_character_name]['left'], "is_turn": 1}}
     map_status[user_id_character_name] = json_character_to_update[user_id_character_name]
     characters_json = json.dumps(map_status)
@@ -1720,7 +1721,7 @@ def remove_character(message):
         characters_json = json.dumps(map_status)
         update_db("room_object", f"map_status = '{characters_json}'", f"WHERE active_room_id = '{room_id}'")
 
-        update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_key = '{next_character_id}' AND character_name = '{next_character_name}'")    
+        update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_id = '{next_character_id}' AND character_name = '{next_character_name}'")    
     
     character_icon_del_database(character_name, username, user_id, room_id)
     delete_from_db("active_room", f"WHERE room_id = '{room_id}' and character_name = '{character_name}' and user_id = '{user_id}'")
