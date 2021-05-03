@@ -451,16 +451,16 @@ $(document).ready(function() {
       let character_icon_wrapper = document.createElement("div");
       character_icon_wrapper.setAttribute("id", character_id);
       character_icon_wrapper.setAttribute("class", "characterIconWrapper draggable ui-draggable ui-draggable-handle");
-      character_icon_wrapper.setAttribute("style", "position:absolute; z-index:10; top:" + top + "; left:" + left + "; display:inline-block;");
+      character_icon_wrapper.setAttribute("style", "position:absolute; z-index:10; top:" + top + "; left:" + left + "; height: " + height + "; width: " + width + "; display:inline-block;");
   
       let character_icon = document.createElement("img");
       character_icon.setAttribute("id", "characterIcon");
       character_icon.setAttribute("class", "characterIcon resizable ui-resizable");
       if (is_turn) {
-        character_icon.setAttribute("style", "position: static; height: " + height + "; width: " + width + "; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block; draggable: true; border: 3px solid red");
+        character_icon.setAttribute("style", "position: static; height: 100%; width: 100%; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block; draggable: true; border: 3px solid red");
       }
       else {
-        character_icon.setAttribute("style", "position: static; height: " + height + "; width: " + width + "; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block; draggable: true;");
+        character_icon.setAttribute("style", "position: static; height: 100%; width: 100%; z-index: 10; margin: 0px; resize: none; zoom: 1; display: block; draggable: true;");
       }
       character_icon.setAttribute("src", character_image);
   
@@ -512,8 +512,10 @@ $(document).ready(function() {
     $(".droppable").droppable({
       accept: ".draggable",
       drop: function(event, ui) {
-        let new_top = ui.position.top.toString() + "px";
-        let new_left = ui.position.left.toString() + "px";
+        let parent_width = $("#"+ui.draggable[0].id).parent().width();
+        let parent_height = $("#"+ui.draggable[0].id).parent().height();
+        let new_top = (ui.position.top / parent_height)*100 + "%";
+        let new_left = (ui.position.left / parent_width)*100 + "%";
         let username = ui.draggable[0].id.split("_")[1];
         let character_name = ui.draggable[0].id.split("_")[0].split(":").join(" ");
         let partially_sliced_character_image = ui.draggable[0].innerHTML.substring(ui.draggable[0].innerHTML.indexOf("src") + 5);
@@ -546,13 +548,41 @@ $(document).ready(function() {
       minWidth: 25,
       stop: function( event, ui ) {
         // TODO: Log chracter icon size when done resizing in json positions file
-        let new_width = ui.size.width.toString() + "px";
-        let new_height = ui.size.height.toString() + "px";
+        let min_height_ratio = 0.015;
+        let min_width_ratio = 0.015;
+        let max_height_ratio = 0.3;
+        let max_width_ratio = 0.3;
+        let parent_width = $("#"+ui.originalElement[0].offsetParent.id).parent().width();
+        let parent_height = $("#"+ui.originalElement[0].offsetParent.id).parent().height();
+        // let height = $("#"+ui.originalElement[0].offsetParent.id).height();
+        // let width = $("#"+ui.originalElement[0].offsetParent.id).width();
+        let height = ui.size.height;
+        let width = ui.size.width;
+        let height_ratio = height/parent_height;
+        let width_ratio = width/parent_width;
+        if (height_ratio > max_height_ratio){
+          height_ratio = max_height_ratio;
+        }
+        if (height_ratio < min_height_ratio){
+          height_ratio = min_height_ratio;
+        }
+        if (width_ratio > max_width_ratio){
+          width_ratio = max_width_ratio;
+        }
+        if (width_ratio < min_width_ratio){
+          width_ratio = min_width_ratio;
+        }
+        let new_height = height_ratio*100 + "%";
+        let new_width = width_ratio*100 + "%";
+        // let new_width = ui.size.width.toString() + "px";
+        // let new_height = ui.size.height.toString() + "px";
         let username = ui.originalElement[0].offsetParent.id.split("_")[1];
         let character_name = ui.originalElement[0].offsetParent.id.split("_")[0].split(":").join(" ");
         let character_image = ui.originalElement[0].src;
+        // TODO: Simplify this logic
         if (ui.originalElement[0].outerHTML.substring(ui.originalElement[0].outerHTML.indexOf("border:"), ui.originalElement[0].outerHTML.indexOf("border:") + 21) == "border: 3px solid red") {
           var is_turn = 1;
+          // TODO: What about when the character is resize to the left and/or up? The new_top and new_left variables should not be "Null"
           socket.emit('character_icon_update_database', {desc: "Resize", character_image: character_image, username: username, character_name: character_name, new_top: "Null", new_left: "Null", new_width: new_width, new_height: new_height, is_turn: is_turn, room_id: room_id});
         }
         else {
