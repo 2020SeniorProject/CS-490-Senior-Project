@@ -1724,9 +1724,15 @@ def remove_character(message):
         update_db("active_room", f"is_turn = '{1}'", f"WHERE room_id = '{room_id}' AND user_id = '{next_character_id}' AND character_name = '{next_character_name}'")    
     
     character_icon_del_database(character_name, username, user_id, room_id)
+
+    map_status = json.loads(read_db("room_object", "map_status", f"WHERE active_room_id = '{room_id}'")[0][0])
+    previous_user_id_character_name = str(user_id) + '_' + str(character_name)
+    
     delete_from_db("active_room", f"WHERE room_id = '{room_id}' and character_name = '{character_name}' and user_id = '{user_id}'")
 
-    emit('removed_character', {"username":username, "character_name": ":".join(character_name.split("_")), "user_id":user_id, "init_val":message["init_val"]}, room=room_id)
+    print(read_db("active_room", "*", f"WHERE room_id = '{room_id}'"))
+
+    emit('removed_character', {"username":username, "character_name": ":".join(character_name.split("_")), "init_val":message["init_val"]}, room=room_id)
     app.logger.debug(f"User {username} has removed character {character_name} from the battle")
 
 
