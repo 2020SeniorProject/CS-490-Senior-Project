@@ -29,7 +29,7 @@ from werkzeug.exceptions import BadRequest, HTTPException
 # Internal imports
 from classes import AnonymousUser, CharacterValidation, RoomValidation, User, UsernameValidation
 from db import add_to_db, add_to_error_db, build_api_db, build_error_db, create_dbs, delete_from_db, get_api_info, read_db, read_error_db, update_db
-
+from model import db, UserObject, Character, RoomObject, ActiveRoom
 
 """
 Initialization and Setup:
@@ -59,6 +59,8 @@ app = Flask(__name__)
 # TODO: hmmmm... this doesn't seem like it's good
 app.config['SECRET_KEY'] = 'secret!'
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
+
+db.init_app(app)
 
 # Setups to the SocketIO server that is used
 # None defaults to whatever supported library is installed
@@ -665,6 +667,17 @@ def home():
     there) with an error message.
     """
     authenticated = False
+    # UserObject(user_id='696969', username="bigGamer", email="iLoveD&D@mail.no", profile_pic="123456.jpg").save()
+    # Character(user_id='696969', name="yanko", stats=[8,11,12,14,15,17], classes=[["Ranger", 'Hunter']],
+    #              race=["LizardFolk", "LizardFolk"], hitpoints=60, level=8, speed=30, char_token="yanko.jpg").save()
+    # RoomObject(user_id='6969', room_name="dungeon", description='fight!', map_url="dingon.jpg", active_rooms=['123MPG', 'HdgYUo'], initial_map_status={}).save()
+    # ActiveRoom(user_id='6969', room_id='123MPG', map_status={}, log=[["123TIME", "entered room"]], chat=[['user_name', 'chat']]).save()
+    
+    # print(UserObject.objects)
+    # print(Character.objects)
+    # print(RoomObject.objects)
+    # print(ActiveRoom.objects)
+
     if current_user.is_authenticated:
         app.logger.debug(f"User logged in")
         authenticated = True
