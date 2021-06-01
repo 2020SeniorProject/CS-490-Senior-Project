@@ -542,21 +542,17 @@ def view_characters():
         return redirect(url_for("home"))
 
     user_id = current_user.id
-
     if request.method == "POST":
-        app.logger.debug(f"Attempting to delete character owned by {current_user.username} named {request.form['character_name']}.")
-        Character(user_id=user_id, name=request.form['character_name']).delete()
+        print(request.form['character_id'])
+        app.logger.debug(f"Attempting to delete character owned by {current_user.username} named {request.form['character_id']}.")
+        Character.objects(id=request.form['character_id'], user_id=user_id).delete()
+        #TODO: Figure out solution to removing characters from active rooms -- Add list of characters or dictionary of all characters in active room?
         #ActiveRoom(user_id=user_id, name=request.form['character_name'])
         
-        #delete_from_db("characters", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['character_name']}'")
-        #delete_from_db("active_room", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['character_name']}'")
-        print(Character.objects)
-
-    #characters = read_db("characters", "*", f"WHERE user_id = '{user_id}'")
-    Character(user_id=user_id, name="yanko", stats=[8,11,12,14,15,17], classes=[["Ranger", 'Hunter']],
-                  race=["LizardFolk", "LizardFolk"], hitpoints=60, level=8, speed=30, char_token="yanko.jpg").save()
-    characters = Character(user_id=user_id)
+    characters = Character.objects(user_id=user_id)
+    
     app.logger.debug(f"User {current_user.username} has gone to view their characters. They have {len(characters)} characters.")
+    #print(Character(name='Yanko').race)
     return render_template("view_characters.html", items=characters, profile_picture=current_user.profile_picture, username=current_user.username)
 
 
