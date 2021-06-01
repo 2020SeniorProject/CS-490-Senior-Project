@@ -545,10 +545,17 @@ def view_characters():
 
     if request.method == "POST":
         app.logger.debug(f"Attempting to delete character owned by {current_user.username} named {request.form['character_name']}.")
-        delete_from_db("characters", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['character_name']}'")
-        delete_from_db("active_room", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['character_name']}'")
-                        
-    characters = read_db("characters", "*", f"WHERE user_id = '{user_id}'")
+        Character(user_id=user_id, name=request.form['character_name']).delete()
+        #ActiveRoom(user_id=user_id, name=request.form['character_name'])
+        
+        #delete_from_db("characters", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['character_name']}'")
+        #delete_from_db("active_room", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['character_name']}'")
+        print(Character.objects)
+
+    #characters = read_db("characters", "*", f"WHERE user_id = '{user_id}'")
+    Character(user_id=user_id, name="yanko", stats=[8,11,12,14,15,17], classes=[["Ranger", 'Hunter']],
+                  race=["LizardFolk", "LizardFolk"], hitpoints=60, level=8, speed=30, char_token="yanko.jpg").save()
+    characters = Character(user_id=user_id)
     app.logger.debug(f"User {current_user.username} has gone to view their characters. They have {len(characters)} characters.")
     return render_template("view_characters.html", items=characters, profile_picture=current_user.profile_picture, username=current_user.username)
 
