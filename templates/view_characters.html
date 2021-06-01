@@ -28,30 +28,30 @@
         <tbody class="tableBody">
             {% for s in items %}
             <tr>
-                <td class="sticky-cell-left align-middle">{{ s[1] }}</td>
-                <td class="align-middle">{{ s[4] }}</td>
-                <td class="align-middle">{{ s[5] }}</td>
-                <td class="align-middle">{{ s[2] }}</td>
-                <td class="align-middle">{{ s[3] }}</td>
-                <td class="align-middle">{{ s[6] }}</td>
-                <td class="align-middle">{{ s[7] }}</td>
-                <td class="align-middle">{{ s[8] }}</td>
-                <td class="align-middle">{{ s[9] }}</td>
-                <td class="align-middle">{{ s[10] }}</td>
-                <td class="align-middle">{{ s[11] }}</td>
-                <td class="align-middle">{{ s[12] }}</td>
-                <td class="align-middle">{{ s[13] }}</td>
-                <td class="align-middle">{{ s[14] }}</td>
-                <td class="align-middle"><img src="{{ s[15] }}" width=64 length=64 alt="{{ s[1]}}'s token"></td>
+                <td class="sticky-cell-left align-middle">{{ s['name'] }}</td>
+                <td class="align-middle">{{ s.race[0] }}</td>
+                <td class="align-middle">{{ s['race'][1] }}</td>
+                <td class="align-middle">{{ s['classes'][0][0] }}</td>
+                <td class="align-middle">{{ s['classes'][0][1] }}</td>
+                <td class="align-middle">{{ s['speed'] }}</td>
+                <td class="align-middle">{{ s['level'] }}</td>
+                <td class="align-middle">{{ s['stats'][0] }}</td>
+                <td class="align-middle">{{ s['stats'][1] }}</td>
+                <td class="align-middle">{{ s['stats'][2] }}</td>
+                <td class="align-middle">{{ s['stats'][3] }}</td>
+                <td class="align-middle">{{ s['stats'][4] }}</td>
+                <td class="align-middle">{{ s['stats'][5] }}</td>
+                <td class="align-middle">{{ s['hitpoints'] }}</td>
+                <td class="align-middle"><img src="{{ s['char_token'] }}" width=64 length=64 alt="{{ s['name'] }}'s token"></td>
                 <td class="sticky-cell-right align-middle">
                     <div class="d-flex justify-content-center">
-                        <form action="/characters/edit/{{ s[1] }}" method="GET" class="form mr-2">
+                        <form action="/characters/edit/{{ s.id }}" method="GET" class="form mr-2">
                             <button type="submit" class="btn btn-warning"><i class="fas fa-pencil-alt"></i></button>
                         </form>
                         <form action="/characters" method="POST" class="form">
                             <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i></button>
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <input type="hidden" name="character_name" value="{{ s[1] }}">
+                            <input type="hidden" name="character_id" value="{{ s.id }}">
                         </form>
                     </div>
                 </td>
