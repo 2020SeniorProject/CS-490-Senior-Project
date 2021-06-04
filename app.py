@@ -204,15 +204,9 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
     """
     if form.validate():
         values = (user_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data, form.character_token.data or current_user.profile_picture)
-        print(values)
-        if usage == "create":
-           # if read_db("characters", "*", f"WHERE user_id = '{user_id}' AND character_name = '{values[1]}'") != []:
-            print(Character.objects(user_id=user_id, name=values[1]))
-            # TODO: Do we want this check still? name is no longer the primary key
-            # if Character.objects(user_id=user_id, name=values[1]) != []:
-            #     app.logger.warning(f"User {current_user.username} already has a character with name {form.name.data}. Reloading the Add Character page to allow them to change the name")
-            #     return render_template("add_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
 
+        if usage == "create":
+      
             app.logger.debug(f"User {current_user.username} successfully added a character with name {form.name.data}. Redirecting them to the View Characters page.")
             add_to_db("characters", values)
             Character(user_id=user_id, name=values[1], classes=[[values[2], 
@@ -224,21 +218,17 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
             return redirect(url_for("view_characters"))
 
         elif usage == "edit":
-            # if request.form['old_name'] != request.form['name'] and read_db("characters", "*", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['name']}'") != []:
-            #     app.logger.warning(f"User {current_user.username} attempted to change the name of character {request.form['old_name']} to {request.form['name']}. They already have another character with that name. Reloading the Edit Character page to allow them to change the name.")
-            #     return render_template("edit_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'], char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
-            print(request.form['old_char_id'])
             app.logger.debug(f"Updating the characters owned by user {current_user.username}.")
-            #delete_from_db("characters", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['old_name']}'")
-            Character.objects(user_id=user_id, id=request.form['old_char_id']).delete()
 
-            # add_to_db("characters", values)
+            Character.objects(user_id=user_id, id=request.form["old_char_id"]).delete()
+
             Character(user_id=user_id, name=values[1], classes=[[values[2], 
                             values[3]]],race=[values[4], values[5]],
                             speed=values[6], level=values[7],
                             stats = [values[8], values[9], values[10], values[11], values[12], values[13]],
                             hitpoints=values[14], char_token=values[15]).save()
 
+            # TODO: How are we going to handle updating active rooms?!?!
             # if request.form['old_name'] != form.name.data:
             #     app.logger.warning(f"User {current_user.username} updating the character name. Updating all of the references to that character in the database.")
             #     update_db("active_room", f"character_name = '{form.name.data}'", f"WHERE character_name = '{request.form['old_name']}' AND user_id = '{user_id}'")
@@ -248,7 +238,6 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
             return redirect(url_for("view_characters"))
         
         elif usage == "play":
-            # add_to_db("characters", values)
             Character(user_id=user_id, name=values[1], classes=[[values[2], 
                             values[3]]],race=[values[4], values[5]],
                             speed=values[6], level=values[7],
@@ -651,15 +640,13 @@ def edit_character(char_id):
         app.logger.warning(f"User {current_user.username} is attempting to update a character with name {request.form['old_name']}.")
         return process_character_form(form, user_id, "edit")
 
-    # character = read_db("characters", "*", f"WHERE user_id = '{current_user.id}' AND character_name = '{name}'")
     character = Character.objects(user_id=user_id, id=char_id)
-    print(character)
     if character:
         character = character[0]
         app.logger.debug(f"User {current_user.username} has gone to edit a character with name {character.name}.")
         return render_template("edit_character.html", name=character.name, hp=character.hitpoints, old_race=character.race[0], old_subrace=character.race[1], old_class=character.classes[0][0], old_subclass=character.classes[0][1], 
                                 speed=character.speed, lvl=character.level, str=character.stats[0], dex=character.stats[1], con=character.stats[2], int=character.stats[3], wis=character.stats[4], cha=character.stats[5], old_name=character.name, char_token=character.char_token, 
-                                profile_picture=current_user.profile_picture, username=current_user.username, old_char_id=char_id)
+                                profile_picture=current_user.profile_picture, username=current_user.username, old_char_id=character.id)
 
     app.logger.warning(f"User attempted to edit a character with id {char_id}. They do not have a character with that id. Throwing a Bad Request error.")
     raise BadRequest(description=f"You don't have a character with id {char_id}!")

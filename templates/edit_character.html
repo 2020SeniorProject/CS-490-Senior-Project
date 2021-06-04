@@ -92,13 +92,12 @@
         </div>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <input type="hidden" name="type" value="edit"/>
-
-        <input type="hidden" id="old_race" value="{{ old_race }}">
-        <input type="hidden" id="old_subrace" value="{{ old_subrace }}">
-        <input type="hidden" id="old_class" value="{{ old_class }}">
-        <input type="hidden" id="old_subclass" value="{{ old_subclass }}">
-        <input type="hidden" id="old_name" value ="{{ old_name }}">
-        <input type="hidden" id="old_char_id" value="{{ old_char_id }}">
+        <input type="hidden" name="old_race" value="{{ old_race }}" />
+        <input type="hidden" name="old_subrace" value="{{ old_subrace }}" />
+        <input type="hidden" name="old_class" value="{{ old_class }}" />
+        <input type="hidden" name="old_subclass" value="{{ old_subclass }}" />
+        <input type="hidden" name="old_name" value ="{{ old_name }}" />
+        <input type="hidden" name="old_char_id" value="{{ old_char_id }}" />
     </form>
     {{ message_text }}
     <ul>
