@@ -204,7 +204,7 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
     """
     if form.validate():
         values = (user_id, form.name.data, form.classname.data, form.subclass.data, form.race.data, form.subrace.data, form.speed.data, form.level.data, form.strength.data, form.dexterity.data, form.constitution.data, form.intelligence.data, form.wisdom.data, form.charisma.data, form.hitpoints.data, form.character_token.data or current_user.profile_picture)
-    
+        print(values)
         if usage == "create":
            # if read_db("characters", "*", f"WHERE user_id = '{user_id}' AND character_name = '{values[1]}'") != []:
             print(Character.objects(user_id=user_id, name=values[1]))
@@ -227,7 +227,7 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
             # if request.form['old_name'] != request.form['name'] and read_db("characters", "*", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['name']}'") != []:
             #     app.logger.warning(f"User {current_user.username} attempted to change the name of character {request.form['old_name']} to {request.form['name']}. They already have another character with that name. Reloading the Edit Character page to allow them to change the name.")
             #     return render_template("edit_character.html", message_text="You already have a character with this name!", name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.wisdom.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'], char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
-
+            print(request.form['old_char_id'])
             app.logger.debug(f"Updating the characters owned by user {current_user.username}.")
             #delete_from_db("characters", f"WHERE user_id = '{user_id}' AND character_name = '{request.form['old_name']}'")
             Character.objects(user_id=user_id, id=request.form['old_char_id']).delete()
@@ -265,7 +265,7 @@ def process_character_form(form, user_id, usage, route="/characters/create"):
     
     if usage == "edit": 
         app.logger.warning(f"Character that user {current_user.username} attempted to edit had errors. Reloading the Edit Character page to allow them to fix the errors.")
-        return render_template("edit_character.html", errors=error_list, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'],  char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username)
+        return render_template("edit_character.html", errors=error_list, name=form.name.data, hp=form.hitpoints.data, speed=form.speed.data, lvl=form.level.data, str=form.strength.data, dex=form.dexterity.data, con=form.constitution.data, int=form.intelligence.data, wis=form.wisdom.data, cha=form.charisma.data, old_race=form.race.data, old_subrace=form.subrace.data, old_class=form.classname.data, old_subclass=form.subclass.data, old_name=request.form['old_name'],  char_token=form.character_token.data, profile_picture=current_user.profile_picture, username=current_user.username, old_char_id=request.form['old_char_id'])
 
     if usage == "play":
         app.logger.warning(f"Character user {current_user.username} attempted to add had errors. Reloading Add Character page to allow them to fix the errors.")
@@ -572,7 +572,6 @@ def view_characters():
     characters = Character.objects(user_id=user_id)
     
     app.logger.debug(f"User {current_user.username} has gone to view their characters. They have {len(characters)} characters.")
-    #print(Character(name='Yanko').race)
     return render_template("view_characters.html", items=characters, profile_picture=current_user.profile_picture, username=current_user.username)
 
 
@@ -654,11 +653,13 @@ def edit_character(char_id):
 
     # character = read_db("characters", "*", f"WHERE user_id = '{current_user.id}' AND character_name = '{name}'")
     character = Character.objects(user_id=user_id, id=char_id)
-    
+    print(character)
     if character:
         character = character[0]
-        app.logger.debug(f"User {current_user.username} has gone to edit a character with name {character[1]}.")
-        return render_template("edit_character.html", name=character[1], hp=character[14], old_race=character[4], old_subrace=character[5], old_class=character[2], old_subclass=character[3], speed=character[6], lvl=character[7], str=character[8], dex=character[9], con=character[10], int=character[11], wis=character[12], cha=character[13], old_name=character[1], char_token=character[15], profile_picture=current_user.profile_picture, username=current_user.username, old_char_id=char_id)
+        app.logger.debug(f"User {current_user.username} has gone to edit a character with name {character.name}.")
+        return render_template("edit_character.html", name=character.name, hp=character.hitpoints, old_race=character.race[0], old_subrace=character.race[1], old_class=character.classes[0][0], old_subclass=character.classes[0][1], 
+                                speed=character.speed, lvl=character.level, str=character.stats[0], dex=character.stats[1], con=character.stats[2], int=character.stats[3], wis=character.stats[4], cha=character.stats[5], old_name=character.name, char_token=character.char_token, 
+                                profile_picture=current_user.profile_picture, username=current_user.username, old_char_id=char_id)
 
     app.logger.warning(f"User attempted to edit a character with id {char_id}. They do not have a character with that id. Throwing a Bad Request error.")
     raise BadRequest(description=f"You don't have a character with id {char_id}!")
@@ -1825,68 +1826,68 @@ Error Handlers:
 """
 
 
-@app.errorhandler(CSRFError)
-def handle_csrf_error(e):
-    """
-    The CSRFError handler. This function
-    grabs all of the errors related to CSRF tokens
-    and loads the information into the error.html 
-    template. 
+# @app.errorhandler(CSRFError)
+# def handle_csrf_error(e):
+#     """
+#     The CSRFError handler. This function
+#     grabs all of the errors related to CSRF tokens
+#     and loads the information into the error.html 
+#     template. 
     
-    For the most part, this happens with 
-    entering fors when the user is not logged in
-    or the user somehow is able to stay in a room
-    after it has been closed.
-    """
-    app.logger.warning(f"A CSRFError has occurred. How did this happen?")
-    return render_template("error.html", error_name="Error Code 400" ,error_desc = "The room you were in has closed!", username=current_user.username), 400
+#     For the most part, this happens with 
+#     entering fors when the user is not logged in
+#     or the user somehow is able to stay in a room
+#     after it has been closed.
+#     """
+#     app.logger.warning(f"A CSRFError has occurred. How did this happen?")
+#     return render_template("error.html", error_name="Error Code 400" ,error_desc = "The room you were in has closed!", username=current_user.username), 400
 
 
-@app.errorhandler(HTTPException)
-def generic_error(e):
-    """
-    The HTTPException handler. This function handles
-    all HTTP errors that are not 5xx. This handler
-    deals with all user errors, such as attempting to
-    connect to a route on the site that does not exist.
-    """
-    app.logger.warning(f"A HTTP error with code {e.code} has occurred. Handling the error.")
-    return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description, username=current_user.username, profile_picture=current_user.profile_picture), e.code
+# @app.errorhandler(HTTPException)
+# def generic_error(e):
+#     """
+#     The HTTPException handler. This function handles
+#     all HTTP errors that are not 5xx. This handler
+#     deals with all user errors, such as attempting to
+#     connect to a route on the site that does not exist.
+#     """
+#     app.logger.warning(f"A HTTP error with code {e.code} has occurred. Handling the error.")
+#     return render_template("error.html", error_name=f"Error Code {e.code}", error_desc=e.description, username=current_user.username, profile_picture=current_user.profile_picture), e.code
 
 
-@app.errorhandler(Exception)
-def five_hundred_error(e):
-    """
-    The generic error handler. Technically, this handler
-    deals with all errors that are not CSRFErrors or 
-    HTTPExceptions. Because app.errorhandler works with more
-    specific errors first, this handler will only be called
-    when the error is not a CSRFError or an HTTPException.
+# @app.errorhandler(Exception)
+# def five_hundred_error(e):
+#     """
+#     The generic error handler. Technically, this handler
+#     deals with all errors that are not CSRFErrors or 
+#     HTTPExceptions. Because app.errorhandler works with more
+#     specific errors first, this handler will only be called
+#     when the error is not a CSRFError or an HTTPException.
 
-    Because of that, this will handle any sort of server error,
-    or in IP terms, 5xx errors. In terms related to use developers,
-    errors that we should fix.
-    """
-    app.logger.warning(f"A server error occurred. Handling it, but you probably should fix the bug...")
-    app.logger.error(f"Here it is: {e}")
-    desc = "Internal Server Error. Congrats! You found an unexpected feature!"
-    return render_template("error.html", error_name="Error Code 500", error_desc=desc, username=current_user.username, profile_picture=current_user.profile_picture), 500
+#     Because of that, this will handle any sort of server error,
+#     or in IP terms, 5xx errors. In terms related to use developers,
+#     errors that we should fix.
+#     """
+#     app.logger.warning(f"A server error occurred. Handling it, but you probably should fix the bug...")
+#     app.logger.error(f"Here it is: {e}")
+#     desc = "Internal Server Error. Congrats! You found an unexpected feature!"
+#     return render_template("error.html", error_name="Error Code 500", error_desc=desc, username=current_user.username, profile_picture=current_user.profile_picture), 500
 
 
-@app.route("/process_error", methods=["POST"])
-@login_required
-def process_error():
-    """
-    The /process error route. This route is made for
-    processing user input for errors. But lets be honest,
-    who actually fills out those forms?
+# @app.route("/process_error", methods=["POST"])
+# @login_required
+# def process_error():
+#     """
+#     The /process error route. This route is made for
+#     processing user input for errors. But lets be honest,
+#     who actually fills out those forms?
 
-    Should be removed.
-    """
-    if 'error_desc' in request.form:
-        add_to_error_db(request.form['error_desc'])
+#     Should be removed.
+#     """
+#     if 'error_desc' in request.form:
+#         add_to_error_db(request.form['error_desc'])
     
-    return redirect(url_for("home"))
+#     return redirect(url_for("home"))
 
 
 """
